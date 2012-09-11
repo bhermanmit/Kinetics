@@ -1,0 +1,2 @@
+main.o: expokit/expokit.o
+main.o: gnuplot/gnufor2.o
