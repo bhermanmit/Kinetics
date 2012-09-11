@@ -1,0 +1,31 @@
+# Compiled objects and modules
+*.o
+*.mod
+*.log
+*.out
+
+# Compiler python objects
+*.pyc
+
+# OpenMC executable
+pkes
+ipkes
+
+# emacs backups
+*~
+
+# Documentation builds
+docs/build
+
+# xml-fortran reader
+src/xml-fortran/xmlreader
+
+# Modules built from XML templates
+src/templates/*.f90
+
+# vi
+*swp
+
+# misc
+*.txt
+date*
