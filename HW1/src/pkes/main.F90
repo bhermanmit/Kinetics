@@ -2,8 +2,10 @@ program main
 
 !-external references
 
-  use expokit
-  use gnufor2, only: plot
+  use finalize,    only: finalize_run
+  use initialize,  only: initialize_run
+  use input_xml,   only: read_input_xml
+  use physics,     only: run_kinetics
 
 !-program options
 
@@ -11,23 +13,18 @@ program main
 
 !-begin program
 
-  real(kind=8) :: x(4),y(4)
-  real(8) :: A(2,2)
+  ! read in input
+  call read_input_xml()
 
-  print *, "Hello World!"
+  ! initialize problem
+  call initialize_run()
 
-  A(1,1) = 1.0
-  A(2,1) = 2.0
-  A(1,2) = 3.0
-  A(2,2) = 4.0
+  ! solve point kinetics equations
+  call run_kinetics()
 
-  call dense_pade(A,2,1.0_8)
+  ! plot results
 
-  print *,A
-
-  x = (/1.0,2.0,3.0,4.0/)
-  y = 2.0*x + 4.0
-
-  call plot(x,y)
+  ! finalize problem
+  call finalize_run()
 
 end program main

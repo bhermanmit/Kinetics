@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<template>
+
+  <options rootname="input" />
+
+  <typedef name="reactivity_xml">
+    <component name="time" type="double-array" />
+    <component name="rho"  type="double-array" />
+  </typedef>
+
+  <variable name="timestep_"   tag="timestep"   type="double" />
+  <variable name="maxtime_"    tag="maxtime"    type="double" />
+  <variable name="reactivity_" tag="reactivity" type="reactivity_xml" />
+
+</template>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+
+  <!-- Parameter -->
+  <timestep> 1e-2 </timestep>
+  <maxtime> 100.0 </maxtime>
+
+  <!-- Reactivity Shape -->
+  <reactivity>
+    <time> 0.0 5.0 7.0 27.0 29.0 100.0 </time>
+    <rho>  0.0 0.0 0.1 0.1  0.0  0.0 </rho>
+  </reactivity>
+
+</input>
