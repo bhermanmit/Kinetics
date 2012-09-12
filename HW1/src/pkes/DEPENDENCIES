@@ -4,17 +4,20 @@ error.o: global.o
 
 finalize.o: data_header.o
 finalize.o: global.o
+finalize.o: output.o
+finalize.o: timing.o
 
 global.o: timing.o
 
-initialize.o: global.o
 initialize.o: data_header.o
+initialize.o: global.o
+initialize.o: input_xml.o
+initialize.o: output.o
+initiailze.o: timing.o
 
 input_xml.o: error.o
 input_xml.o: output.o
 
-main.o: expokit/expokit.o
-main.o: gnuplot/gnufor2.o
 main.o: initialize.o
 main.o: physics.o
 
@@ -23,6 +26,7 @@ output.o: global.o
 output.o: string.o
 
 physics.o: constants.o
+physics.o: data_header.o
 physics.o: global.o
 
 timing.o: constants.o

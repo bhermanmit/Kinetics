@@ -9,7 +9,7 @@ module global
 
 !-timing variables
 
-  type(Timer) :: time_total       ! timer for total run
+  type(Timer) :: total_time       ! timer for total run
 
 !-Message used in message/warning/fatal_error
 

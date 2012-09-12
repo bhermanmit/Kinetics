@@ -6,13 +6,14 @@ contains
 ! DENSE_PADE
 !===============================================================================
 
-  subroutine dense_pade(A,m,t)
+  subroutine dense_pade(A,m,t,E)
 
 !---arguments
 
     integer :: m
     real(8) :: A(m,m)
     real(8) :: t
+    real(8) :: E(m,m)
 
 !---local variables
 
@@ -35,7 +36,7 @@ contains
     call DGPADM( ideg, m, t, A, m, wsp, lwsp, iwsp, iexp, ns, iflag ) 
 
     ! set new matrix
-    A = reshape(wsp(iexp:iexp+m*m-1),(/m,m/))
+    E = reshape(wsp(iexp:iexp+m*m-1),(/m,m/))
 
     ! deallocate all memory
     deallocate(wsp)

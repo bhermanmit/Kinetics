@@ -16,6 +16,7 @@ module data_header
 
     integer              :: npts         ! number of points in inputvector
     integer              :: nt           ! number of time steps
+    integer              :: idx=1        ! index in input vectors for interp
     real(8)              :: maxt         ! maximum time in seconds of transient
     real(8)              :: dt           ! delta time
     real(8), allocatable :: t(:)         ! time vector
