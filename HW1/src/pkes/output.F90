@@ -214,6 +214,11 @@ contains
 
   subroutine plot_results()
 
+!---begin execution
+
+    ! write out
+    write(OUTPUT_UNIT, fmt='(A)') 'Plotting results with GNUPLOT...'
+
   end subroutine plot_results
 
 !===============================================================================
@@ -221,6 +226,20 @@ contains
 !===============================================================================
 
   subroutine write_results()
+
+!---external references
+
+    use global,  only: total_time
+
+!---begin execution
+
+    ! write results
+    call header("Simulation Summary", level = 2)
+    write(OUTPUT_UNIT, 100) 'Total simulation time', total_time % elapsed
+    write(OUTPUT_UNIT, fmt='(/,A)') 'Simulation Finished.'
+
+    ! fomat for write statements
+100 format (1X,A,T35,"= ",ES11.4," seconds")
 
   end subroutine write_results
 
