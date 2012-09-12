@@ -19,7 +19,6 @@ contains
     use constants,  only: NUM_PRECS
     use expokit,    only: dense_pade
     use global,     only: pke
-    use gnufor2,    only: plot
     use output,     only: header
 
 !---local variables
@@ -50,8 +49,6 @@ contains
       pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))
 
     end do
-
-    call plot(pke % time, pke % N(1,:))
 
   end subroutine run_kinetics
 

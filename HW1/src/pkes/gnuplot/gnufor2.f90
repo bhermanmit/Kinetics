@@ -1722,7 +1722,7 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
     character(len=100):: data_file_name, command_file_name, my_linewidth
     integer, parameter:: Nc=20
     character(len=Nc):: my_line_type1, my_line_type2, my_color1, my_color2, my_range, my_pause, my_persist
-    character(len=255),optional:: xlabel, ylabel, y2label, leg1, leg2
+    character(len=*),optional:: xlabel, ylabel, y2label, leg1, leg2
     character(len=1000) :: str
 !***********************************************************************************
     if (present(input)) then
@@ -1830,9 +1830,9 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
     if (.not.(present(leg1) .and. present(leg2))) write ( file_unit, '(a)' ) 'unset key'
     write ( file_unit, '(a)' ) 'set grid'
 !***********************************************************************************
-    if (present(xlabel)) write (file_unit, '(a)' ) 'set xlabel ' // trim(xlabel)
-    if (present(ylabel)) write (file_unit, '(a)' ) 'set ylabel ' // trim(ylabel)
-    if (present(y2label)) write (file_unit, '(a)' ) 'set y2label ' // trim(y2label)
+    if (present(xlabel)) write (file_unit, '(a)' ) 'set xlabel "' // trim(xlabel) // '"'
+    if (present(ylabel)) write (file_unit, '(a)' ) 'set ylabel "' // trim(ylabel) // '"'
+    if (present(y2label)) write (file_unit, '(a)' ) 'set y2label "' // trim(y2label) // '"'
     write ( file_unit, '(a)') 'set ytics nomirror'
     write ( file_unit, '(a)') 'set y2tics'
 !***********************************************************************************
@@ -1840,16 +1840,16 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
       & //'" using 1:2 with ' // trim(my_line_type1)  // ' linecolor rgb '&
       & // trim(my_color1) // ' linewidth '// trim(my_linewidth) // ' axes x1y1 '
 
-      if (present(leg1)) str = trim(str) // ' title ' // trim(leg1)
+      if (present(leg1)) str = trim(str) // ' title "' // trim(leg1) // '"'
 
-      str = trim(str) // ' "'
+      str = trim(str) // ', "'
 
       str = trim(str) &
       & // trim (data_file_name) // '" using 3:4 with ' // trim(my_line_type2) &
       & // ' linecolor rgb ' // trim(my_color2) // ' linewidth ' // trim(my_linewidth) &
       & // ' axes x1y2 '
 
-      if (present(leg2)) str = trim(str) // ' title ' // trim(leg2)
+      if (present(leg2)) str = trim(str) // ' title "' // trim(leg2) //'"'
 
       write ( file_unit, '(a)' ) trim(str) 
 !***********************************************************************************

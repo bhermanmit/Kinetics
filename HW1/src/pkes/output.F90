@@ -214,10 +214,29 @@ contains
 
   subroutine plot_results()
 
+!---external references
+
+    use global,   only: pke
+    use gnufor2,  only: plot_yy
+
 !---begin execution
 
     ! write out
     write(OUTPUT_UNIT, fmt='(A)') 'Plotting results with GNUPLOT...'
+
+    ! make plot
+    call plot_yy(x1 = pke % time                        ,&
+                 y1 = pke % N(1,:)                      ,&
+                 x2 = pke % time                        ,&
+                 y2 = pke % react                       ,&
+                 color1 = 'blue'                        ,&
+                 color2 = 'red'                         ,&
+                 linewidth = 2.                         ,&
+                 xlabel = 'Time[s]'                     ,&
+                 ylabel = 'Power [fraction of nominal]' ,&
+                 y2label = 'Reactivity [$]'             ,&
+                 leg1 = 'Power'                         ,&
+                 leg2 = 'Reactivity')
 
   end subroutine plot_results
 

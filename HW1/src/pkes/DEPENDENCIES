@@ -23,10 +23,12 @@ main.o: physics.o
 
 output.o: constants.o
 output.o: global.o
+output.o: gnuplot/gnufor2.o
 output.o: string.o
 
 physics.o: constants.o
 physics.o: data_header.o
+physics.o: expokit/expokit.o
 physics.o: global.o
 physics.o: output.o
 
