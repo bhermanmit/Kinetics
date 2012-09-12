@@ -28,5 +28,6 @@ output.o: string.o
 physics.o: constants.o
 physics.o: data_header.o
 physics.o: global.o
+physics.o: output.o
 
 timing.o: constants.o

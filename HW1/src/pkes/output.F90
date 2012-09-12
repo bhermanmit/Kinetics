@@ -9,7 +9,7 @@ module output
   implicit none
   private
   public :: title, plot_results, write_input, write_results, write_message,    &
-            header
+            header, write_physics
 
 contains
 
@@ -160,7 +160,53 @@ contains
 
   subroutine write_input()
 
+!---external references
+
+    use global,     only: pke
+
+!---local variables
+
+    integer :: i ! loop counter
+
+!---begin execution
+
+    ! echo input
+    write(OUTPUT_UNIT, fmt='(A,T30,I0)') 'Number of time steps: ' , pke % nt
+    write(OUTPUT_UNIT, fmt='(A,T30,F0.0)') 'Max time (s) of transient: ',      &
+                                                                    pke % maxt
+    write(OUTPUT_UNIT, fmt='(/,"Time (s)",T20,"Rho ($)")')
+    write(OUTPUT_UNIT, fmt='(  "--------",T20,"-------")')
+    do i = 1, pke % npts
+      write(OUTPUT_UNIT, fmt='(1PE9.3,T20,1PE9.3)') pke % t(i), pke % rho(i)
+    end do
+
   end subroutine write_input
+
+!===============================================================================
+! WRITE_PHYSICS
+!===============================================================================
+
+  subroutine write_physics()
+
+!---external references
+
+    use constants,  only: beta, lambda, pnl, NUM_PRECS
+
+!---local variables
+
+    integer :: i ! loop counter
+
+!---begin execution
+
+    ! echo physics
+    write(OUTPUT_UNIT, fmt='(A,I0)') 'Number of Precursor Groups: ', NUM_PRECS
+    write(OUTPUT_UNIT, fmt='(/,"beta",T20,"lambda")')
+    write(OUTPUT_UNIT, fmt='(  "----",T20,"------")')
+    do i = 1, NUM_PRECS 
+      write(OUTPUT_UNIT, fmt='(1PE9.3,T20,1PE9.3)') beta(i), lambda(i) 
+    end do
+
+  end subroutine write_physics
 
 !===============================================================================
 ! PLOT_RESULTS

@@ -20,12 +20,16 @@ contains
     use expokit,    only: dense_pade
     use global,     only: pke
     use gnufor2,    only: plot
+    use output,     only: header
 
 !---local variables
 
     integer :: i ! loop counter
 
 !---begin execution
+
+    ! print header for run
+    call header("POINT KINETICS SIMULATION", level=1)
 
     ! set up coefficient matrix
     call setup_coefmat()
