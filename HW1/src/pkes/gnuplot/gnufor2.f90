@@ -1709,6 +1709,167 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
 !***********************************************************************************
 	end subroutine plot_1
 !***********************************************************************************
+  subroutine plot_yy(x1,y1,x2,y2,style,pause,color1,color2,terminal,filename,polar,&
+                     persist,input,linewidth,xlabel,ylabel,y2label,leg1,leg2)
+!***********************************************************************************
+! this subroutine plots a two-dimensional graph
+!***********************************************************************************
+    implicit none
+	real(kind=8), intent(in):: x1(:), y1(:), x2(:), y2(:)
+	real(kind=4), optional:: pause,linewidth
+    character(len=*),optional:: style, color1, color2, terminal, filename, polar, persist, input
+    integer:: i, ierror, ios, file_unit, Nx1
+    character(len=100):: data_file_name, command_file_name, my_linewidth
+    integer, parameter:: Nc=20
+    character(len=Nc):: my_line_type1, my_line_type2, my_color1, my_color2, my_range, my_pause, my_persist
+    character(len=255),optional:: xlabel, ylabel, y2label, leg1, leg2
+    character(len=1000) :: str
+!***********************************************************************************
+    if (present(input)) then
+      data_file_name='data_file_'//input//'.txt'
+      command_file_name='command_file_'//input//'.txt'
+    else
+      data_file_name='data_file.txt'
+      command_file_name='command_file.txt'
+    end if
+!***********************************************************************************
+    Nx1=size(x1)
+    if ((size(x1).ne.size(y1)).or.(size(x2).ne.size(y2))) then
+      print *,'subroutine plot ERROR: size(x) is not equal to size(y)'
+      stop
+    end if
+    if (present(style).and.(len(style).ne.3)) then
+      print *,'subroutine plot ERROR: argument "style" has wrong number of characters'
+      stop
+    end if
+!***********************************************************************************
+    ierror=0
+    call get_unit(file_unit)
+    if (file_unit==0) then
+      ierror=1
+      print *,'write_vector_data - fatal error! Could not get a free FORTRAN unit.'
+      stop
+    end if
+    open (unit=file_unit, file=data_file_name, status='replace', iostat=ios)
+    if (ios/=0) then
+      ierror=2
+      print *,'write_vector_data - fatal error! Could not open the terminal data file.'
+      stop
+    end if
+!***********************************************************************************	
+! here we write the date to the data_file - the gnuplot will read this data later
+!***********************************************************************************	
+    do i=1,Nx1
+      write (file_unit,'(4E15.7)') x1(i), y1(i), x2(i), y2(i)
+    end do
+!***********************************************************************************	
+    close (unit=file_unit)
+!***********************************************************************************
+    ierror = 0
+    call get_unit(file_unit)
+    if (file_unit==0) then
+      ierror=1
+      print *,'write_vector_data - fatal error! Could not get a free FORTRAN unit.'
+      stop
+    end if
+    open (unit=file_unit, file=command_file_name, status='replace', iostat=ios)
+    if (ios/=0) then
+      ierror=2
+      print *,'write_vector_data - fatal error! Could not open the terminal command file.'
+      stop
+    end if
+!***********************************************************************************
+! here we write the commands to the commands file which gnuplot will execute
+!***********************************************************************************
+    my_line_type1='lines'
+    if (present(style)) then
+      if ((style(3:3)=='-')) then
+        my_line_type1='linespoints'
+      else
+        my_line_type1='points'
+      end if
+    end if
+    my_line_type2='lines'
+    if (present(style)) then
+      if ((style(6:6)=='-')) then
+        my_line_type2='linespoints'
+      else
+        my_line_type2='points'
+      end if
+    end if
+    if (present(linewidth)) then
+      write (my_linewidth,'(e9.3)') linewidth
+    else
+      my_linewidth=trim(default_linewidth)
+    end if
+    if (present(color1)) then
+      my_color1='"'//trim(color1)//'"'
+    else
+      my_color1='"'//trim(default_color1)//'"'
+    end if
+    if (present(color2)) then
+      my_color2='"'//trim(color2)//'"'
+    else
+      my_color2='"'//trim(default_color2)//'"'
+    end if
+!***********************************************************************************
+    my_persist='persist '
+    if (present(persist).and.(persist=='no')) my_persist=' '
+    if (present(terminal)) then
+      write ( file_unit, '(a)' ) 'set terminal '// trim(output_terminal(terminal)) 
+      if (present(filename)) then
+        write ( file_unit, '(a)' ) 'set output "'// trim(filename) //'"' 
+      else
+        write ( file_unit, '(a)' ) 'set output "'//my_date_and_time()//'"' 
+      end if
+    else
+     write ( file_unit, '(a)' ) 'set terminal ' // trim(default_terminal) // ' ' &
+      & //trim(my_persist) //' title  "Gnuplot"' 
+    end if
+!***********************************************************************************
+    if (.not.(present(leg1) .and. present(leg2))) write ( file_unit, '(a)' ) 'unset key'
+    write ( file_unit, '(a)' ) 'set grid'
+!***********************************************************************************
+    if (present(xlabel)) write (file_unit, '(a)' ) 'set xlabel ' // trim(xlabel)
+    if (present(ylabel)) write (file_unit, '(a)' ) 'set ylabel ' // trim(ylabel)
+    if (present(y2label)) write (file_unit, '(a)' ) 'set y2label ' // trim(y2label)
+    write ( file_unit, '(a)') 'set ytics nomirror'
+    write ( file_unit, '(a)') 'set y2tics'
+!***********************************************************************************
+      str = 'plot "' // trim (data_file_name) &
+      & //'" using 1:2 with ' // trim(my_line_type1)  // ' linecolor rgb '&
+      & // trim(my_color1) // ' linewidth '// trim(my_linewidth) // ' axes x1y1 '
+
+      if (present(leg1)) str = trim(str) // ' title ' // trim(leg1)
+
+      str = trim(str) // ' "'
+
+      str = trim(str) &
+      & // trim (data_file_name) // '" using 3:4 with ' // trim(my_line_type2) &
+      & // ' linecolor rgb ' // trim(my_color2) // ' linewidth ' // trim(my_linewidth) &
+      & // ' axes x1y2 '
+
+      if (present(leg2)) str = trim(str) // ' title ' // trim(leg2)
+
+      write ( file_unit, '(a)' ) trim(str) 
+!***********************************************************************************
+    if (present(pause)) then
+      if (pause<0.0) then
+        write ( file_unit, '(a)' ) 'pause -1 "press RETURN to continue"'
+      else 
+        write ( my_pause,'(e9.3)') pause
+        write ( file_unit, '(a)' ) 'pause ' // trim(my_pause) 
+      end if
+    else
+      write ( file_unit, '(a)' ) 'pause 0'
+    end if
+!***********************************************************************************
+    write ( file_unit, '(a)' ) 'q'
+    close ( unit = file_unit )
+!***********************************************************************************
+    call run_gnuplot (command_file_name) 
+!***********************************************************************************
+  end subroutine plot_yy
 !***********************************************************************************
 !***********************************************************************************
 	subroutine run_gnuplot(command_file_name)
