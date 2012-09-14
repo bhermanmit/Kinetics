@@ -162,7 +162,7 @@ contains
 
 !---external references
 
-    use global,     only: pke
+    use global,     only: pke, restart
 
 !---local variables
 
@@ -172,11 +172,15 @@ contains
 
     ! echo input
     write(OUTPUT_UNIT, fmt='(A,T30,I0)') 'Number of time steps: ', sum(pke % nt)
-    write(OUTPUT_UNIT, fmt='(/,"Time (s)",T20,"Rho ($)")')
-    write(OUTPUT_UNIT, fmt='(  "--------",T20,"-------")')
-!   do i = 1, pke % npts
-!     write(OUTPUT_UNIT, fmt='(1PE9.3,T20,1PE9.3)') pke % t(i), pke % rho(i)
-!   end do
+    if (restart) then
+      write(OUTPUT_UNIT,fmt='(/,A/)') 'Restarted from inverse kinetics...'
+    else
+      write(OUTPUT_UNIT, fmt='(/,"Time (s)",T20,"Rho ($)")')
+      write(OUTPUT_UNIT, fmt='(  "--------",T20,"-------")')
+      do i = 1, pke % npts
+        write(OUTPUT_UNIT, fmt='(1PE9.3,T20,1PE9.3)') pke % t(i), pke % rho(i)
+      end do
+    end if
 
   end subroutine write_input
 

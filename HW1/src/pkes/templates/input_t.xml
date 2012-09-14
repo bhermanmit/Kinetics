@@ -6,5 +6,6 @@
   <variable name="rho_"      tag="rho" type="double-array" />
   <variable name="time_"     tag="time"  type="double-array" />
   <variable name="timestep_" tag="timestep" type="double-array" />
+  <variable name="restart_"  tag="restart"  type="logical" default=".FALSE." />
 
 </template>

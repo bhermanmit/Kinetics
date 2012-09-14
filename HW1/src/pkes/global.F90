@@ -32,4 +32,8 @@ module global
 
   type(pke_type) :: pke
 
+!-restart
+
+  logical :: restart = .FALSE.
+
 end module global

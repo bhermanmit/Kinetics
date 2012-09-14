@@ -18,7 +18,7 @@ contains
 
     use data_header,  only: allocate_pke_type
     use global,       only: pke, total_time
-    use input_xml,    only: read_input_xml, read_binary
+    use input_xml,    only: read_input_xml
     use output,       only: title, write_input, header, write_physics
     use timing,       only: timer_start
 
@@ -37,8 +37,7 @@ contains
     call header("INITIALIZATION", level=1)
 
     ! read in input
-!  call read_input_xml()
-   call read_binary()
+    call read_input_xml()
 
     ! compute number of time steps
     allocate(pke % nt(pke % npts - 1))

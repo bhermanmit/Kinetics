@@ -51,7 +51,7 @@ contains
 
     use constants,        only: MAX_FILE_LEN
     use error,            only: fatal_error
-    use global,           only: message, pke
+    use global,           only: message, pke, restart
     use output,           only: write_message
     use xml_data_input_t
 
@@ -73,10 +73,14 @@ contains
 
     ! read in input file
     call read_xml_file_input_t(filename)
-print *,size(time_),size(rho_),size(timestep_)
-write(200,*) time_
-write(201,*) rho_
-write(202,*) timestep_
+
+    ! check for restart
+    restart = restart_
+    if (restart) then
+      call read_binary()
+      return
+    end if
+
     ! get size of input vectors
     n = size(time_)
     if (n /= size(rho_)) then
