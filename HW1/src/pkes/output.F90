@@ -171,9 +171,7 @@ contains
 !---begin execution
 
     ! echo input
-    write(OUTPUT_UNIT, fmt='(A,T30,I0)') 'Number of time steps: ' , pke % nt
-    write(OUTPUT_UNIT, fmt='(A,T30,F0.0)') 'Max time (s) of transient: ',      &
-                                                                    pke % maxt
+    write(OUTPUT_UNIT, fmt='(A,T30,I0)') 'Number of time steps: ', sum(pke % nt)
     write(OUTPUT_UNIT, fmt='(/,"Time (s)",T20,"Rho ($)")')
     write(OUTPUT_UNIT, fmt='(  "--------",T20,"-------")')
     do i = 1, pke % npts

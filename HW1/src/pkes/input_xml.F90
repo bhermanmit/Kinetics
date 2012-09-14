@@ -47,13 +47,13 @@ contains
     ! allocate vectors
     allocate(pke % t(n))
     allocate(pke % rho(n))
+    allocate(pke % dt(n-1))
 
     ! save in object
     pke % npts = n
     pke % t    = reactivity_ % time
     pke % rho  = reactivity_ % rho
-    pke % maxt = maxtime_
-    pke % dt   = timestep_ 
+    pke % dt   = reactivity_ % timestep
 
   end subroutine read_input_xml
 

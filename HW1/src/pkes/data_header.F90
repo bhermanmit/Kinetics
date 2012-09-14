@@ -15,10 +15,9 @@ module data_header
   type, public :: pke_type
 
     integer              :: npts         ! number of points in inputvector
-    integer              :: nt           ! number of time steps
     integer              :: idx=1        ! index in input vectors for interp
-    real(8)              :: maxt         ! maximum time in seconds of transient
-    real(8)              :: dt           ! delta time
+    integer, allocatable :: nt(:)        ! number of time steps
+    real(8), allocatable :: dt(:)        ! delta time
     real(8), allocatable :: t(:)         ! time vector
     real(8), allocatable :: rho(:)       ! reactivity vector
     real(8), allocatable :: time(:)      ! time vector for output
@@ -44,9 +43,9 @@ contains
 !---begin execution
 
     ! allocate
-    if (.not.allocated(this % time))  allocate(this % time(this % nt))
-    if (.not.allocated(this % N))     allocate(this % N(NUM_PRECS+1,this % nt))
-    if (.not.allocated(this % react)) allocate(this % react(this % nt))
+    if (.not.allocated(this % time))  allocate(this % time(sum(this % nt)+1))
+    if (.not.allocated(this % N))     allocate(this % N(NUM_PRECS+1,sum(this % nt)+1))
+    if (.not.allocated(this % react)) allocate(this % react(sum(this % nt)+1))
 
     ! set to 0
     this % time  = 0.0_8
@@ -75,6 +74,8 @@ contains
     if (allocated(this % time))  deallocate(this % time)
     if (allocated(this % N))     deallocate(this % N)
     if (allocated(this % react)) deallocate(this % react)
+    if (allocated(this % dt))    deallocate(this % dt)
+    if (allocated(this % nt))    deallocate(this % nt)
 
   end subroutine deallocate_pke_type
 

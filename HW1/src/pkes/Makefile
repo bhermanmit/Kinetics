@@ -207,7 +207,7 @@ xml-fortran:
 	cd xml-fortran; make MACHINE=$(MACHINE) F90=$(F90) F90FLAGS="$(F90FLAGS)"
 	cd templates; make F90=$(F90) F90FLAGS="$(F90FLAGS)"
 expokit:
-	cd expokit; make F90=$(F90) F90FLAGS="$(F90FLAGS)"
+	cd expokit; make F90=$(F90) F90FLAGS=""
 gnuplot:
 	cd gnuplot; make F90=$(F90) F90FLAGS="$(F90FLAGS)"
 $(program): $(objects)

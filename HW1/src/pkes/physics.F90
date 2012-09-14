@@ -23,7 +23,8 @@ contains
 
 !---local variables
 
-    integer :: i ! loop counter
+    integer :: i  ! loop counter
+    real(8) :: dt ! local time step
 
 !---begin execution
 
@@ -37,13 +38,13 @@ contains
     call set_init()
 
     ! begin loop through time steps
-    do i = 1, pke % nt
+    do i = 1, sum(pke % nt)
 
       ! compute exponential matrix
-      call set_reactivity(i)
+      call set_reactivity(i,dt)
 
       ! solve matrix exponential
-      call dense_pade(pke % coef, NUM_PRECS + 1, pke % dt, pke % expm)
+      call dense_pade(pke % coef, NUM_PRECS + 1, dt, pke % expm)
 
       ! get new vector 
       pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))
@@ -122,7 +123,7 @@ contains
 ! SET_REACTIVITY
 !===============================================================================
 
-  subroutine set_reactivity(i)
+  subroutine set_reactivity(i,dt)
 
 !---external references
 
@@ -132,6 +133,7 @@ contains
 !---arguments
 
     integer :: i   ! current time step
+    real(8) :: dt  ! current dt
 
 !---local variables
 
@@ -139,17 +141,18 @@ contains
 
 !---begin execution
 
-    ! compute current time
-    pke % time(i) = float(i - 1) * pke % dt
-
     ! check if index should be moved in input vectors
-    if (pke % time(i) > pke % t(pke % idx + 1)) pke % idx = pke % idx + 1
+    if (i > sum(pke % nt(1:pke % idx))) pke % idx = pke % idx + 1
     idx = pke % idx
 
+    ! compute current time
+    dt = pke % dt(idx)
+    pke % time(i+1) = pke % time(i) + dt 
+ write (100,*) pke  % time(i+1)
     ! interpolate on reactivity
     pke % react(i) = pke % rho(idx) + ((pke % rho(idx+1) - pke % rho(idx))  /  &
                                        (pke % t(idx + 1) - pke % t(idx)))   *  &
-                                       (pke % time(i) - pke % t(idx))
+                                       (pke % time(i+1) - pke % t(idx))
 
     ! set values in coefficient matrix
     pke % coef(1,1) = (pke % react(i)*sum(beta) - sum(beta))/pnl
