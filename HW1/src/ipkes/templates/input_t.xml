@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<template>
+
+  <options rootname="input" />
+
+  <variable name="power_" tag="power" type="double-array" />
+  <variable name="time_"  tag="time"  type="double-array" />
+  <variable name="timestep_" tag="timestep" type="double-array" />
+
+</template>
