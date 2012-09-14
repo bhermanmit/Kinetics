@@ -148,7 +148,7 @@ contains
     ! compute current time
     dt = pke % dt(idx)
     pke % time(i+1) = pke % time(i) + dt 
- write (100,*) pke  % time(i+1)
+
     ! interpolate on reactivity
     pke % react(i) = pke % rho(idx) + ((pke % rho(idx+1) - pke % rho(idx))  /  &
                                        (pke % t(idx + 1) - pke % t(idx)))   *  &
