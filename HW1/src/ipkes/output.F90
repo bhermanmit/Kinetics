@@ -277,32 +277,19 @@ contains
 !---begin execution
 
     ! open file
-    open(unit=10,file='output.xml')
+    open(unit=10,file='output.bin',form='unformatted')
 
-    ! write out header
-    write(10,*) '<?xml version="1.0" encoding="UTF-8"?>'
-    write(10,*) '<input>'
+    ! write out length
+    write(10) size(ipke % time) 
 
     ! write out time
-    write(10,*) '<time>'
-    do i = 1,size(ipke % time)
-      write(10,*) ipke % time(i)
-    end do
-    write(10,*) '</time>'
+    write(10) ipke % time
 
     ! write out reactivity
-    write(10,*) '<rho>'
-    do i = 1,size(ipke % react)
-      write(10,*) ipke % react
-    end do
-    write(10,*) '</rho>'
+    write(10) ipke % react
 
     ! write out time step
-    write(10,*) '<timestep>'
-    do i = 1,size(ipke % time) - 1
-      write(10,*) ipke % time(i+1) - ipke % time(i)
-    end do
-    write(10,*) '</timestep>'
+    write(10) ipke % time(2:size(ipke%time)) - ipke % time(1:size(ipke%time)-1)
 
   end subroutine write_output
 

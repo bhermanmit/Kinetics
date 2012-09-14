@@ -19,11 +19,11 @@ contains
     use output,       only: plot_results, write_results, write_output
     use timing,       only: timer_stop
 
-    ! run plots
-    call plot_results()
-
     ! stop timer
     call timer_stop(total_time)
+
+    ! run plots
+    call plot_results()
 
     ! write summary
     call write_results()

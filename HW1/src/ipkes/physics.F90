@@ -17,7 +17,7 @@ contains
 !---external references
 
     use constants,  only: NUM_PRECS, pnl, beta, lambda
-    use global,     only: ipke
+    use global,     only: ipke, total_time
     use output,     only: header
 
 !---local variables
