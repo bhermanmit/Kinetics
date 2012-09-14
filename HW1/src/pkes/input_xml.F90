@@ -5,6 +5,43 @@ module input_xml
 contains
 
 !===============================================================================
+! READ_BINARY
+!===============================================================================
+
+  subroutine read_binary()
+
+!---external references
+
+    use global,  only: pke
+
+!---local variables
+
+    integer :: i,sz
+
+!---begin execution
+
+    ! open binary file
+    open(10,file='output.bin',form='unformatted')
+
+    ! read size 
+    read(10) sz
+
+    ! allocate vectors
+    allocate(pke % t(sz))
+    allocate(pke % rho(sz))
+    allocate(pke % dt(sz-1))
+
+    ! read vectors
+    read(10) pke % t
+    read(10) pke % rho
+    read(10) pke % dt
+
+    ! set size
+    pke % npts = sz
+
+  end subroutine
+
+!===============================================================================
 ! READ_INPUT_XML
 !===============================================================================
 
@@ -36,10 +73,13 @@ contains
 
     ! read in input file
     call read_xml_file_input_t(filename)
-
+print *,size(time_),size(rho_),size(timestep_)
+write(200,*) time_
+write(201,*) rho_
+write(202,*) timestep_
     ! get size of input vectors
-    n = size(reactivity_ % time)
-    if (n /= size(reactivity_ % rho)) then
+    n = size(time_)
+    if (n /= size(rho_)) then
       message = "Time and Rho vectors not of same size!"
       call fatal_error()
     end if
@@ -51,9 +91,9 @@ contains
 
     ! save in object
     pke % npts = n
-    pke % t    = reactivity_ % time
-    pke % rho  = reactivity_ % rho
-    pke % dt   = reactivity_ % timestep
+    pke % t    = time_
+    pke % rho  = rho_
+    pke % dt   = timestep_
 
   end subroutine read_input_xml
 

@@ -3,12 +3,8 @@
 
   <options rootname="input" />
 
-  <typedef name="reactivity_xml">
-    <component name="time"     type="double-array" />
-    <component name="rho"      type="double-array" />
-    <component name="timestep" type="double-array" />
-  </typedef>
-
-  <variable name="reactivity_" tag="reactivity" type="reactivity_xml" />
+  <variable name="rho_"      tag="rho" type="double-array" />
+  <variable name="time_"     tag="time"  type="double-array" />
+  <variable name="timestep_" tag="timestep" type="double-array" />
 
 </template>
