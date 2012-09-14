@@ -291,6 +291,9 @@ contains
     ! write out time step
     write(10) ipke % time(2:size(ipke%time)) - ipke % time(1:size(ipke%time)-1)
 
+    ! write out reference power
+    write(10) ipke % N(1,:) 
+
   end subroutine write_output
 
 end module output
