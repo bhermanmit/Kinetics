@@ -29,12 +29,14 @@ contains
     ! allocate vectors
     allocate(pke % t(sz))
     allocate(pke % rho(sz))
+    allocate(pke % refpower(sz))
     allocate(pke % dt(sz-1))
 
     ! read vectors
     read(10) pke % t
     read(10) pke % rho
     read(10) pke % dt
+    read(10) pke % refpower
 
     ! set size
     pke % npts = sz

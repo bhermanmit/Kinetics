@@ -16,6 +16,7 @@ initialize.o: output.o
 initiailze.o: timing.o
 
 input_xml.o: error.o
+input_xml.o: data_header.o
 input_xml.o: output.o
 
 main.o: initialize.o

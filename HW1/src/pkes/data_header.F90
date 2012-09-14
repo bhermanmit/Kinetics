@@ -23,6 +23,7 @@ module data_header
     real(8), allocatable :: time(:)      ! time vector for output
     real(8), allocatable :: N(:,:)       ! power/prec vector for output
     real(8), allocatable :: react(:)     ! reactivity vector for output
+    real(8), allocatable :: refpower(:)  ! reference power if restart
     real(8) :: coef(NUM_PRECS+1,NUM_PRECS+1) ! coeffcient matrix
     real(8) :: expm(NUM_PRECS+1,NUM_PRECS+1) ! result after matrix exponential
 
@@ -69,13 +70,14 @@ contains
 !---begin execution
 
     ! deallocate
-    if (allocated(this % t))     deallocate(this % t)
-    if (allocated(this % rho))   deallocate(this % rho)
-    if (allocated(this % time))  deallocate(this % time)
-    if (allocated(this % N))     deallocate(this % N)
-    if (allocated(this % react)) deallocate(this % react)
-    if (allocated(this % dt))    deallocate(this % dt)
-    if (allocated(this % nt))    deallocate(this % nt)
+    if (allocated(this % t))        deallocate(this % t)
+    if (allocated(this % rho))      deallocate(this % rho)
+    if (allocated(this % time))     deallocate(this % time)
+    if (allocated(this % N))        deallocate(this % N)
+    if (allocated(this % react))    deallocate(this % react)
+    if (allocated(this % dt))       deallocate(this % dt)
+    if (allocated(this % nt))       deallocate(this % nt)
+    if (allocated(this % refpower)) deallocate(this % refpower)
 
   end subroutine deallocate_pke_type
 

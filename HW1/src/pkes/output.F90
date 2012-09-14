@@ -219,7 +219,7 @@ contains
 !---external references
 
     use global,   only: pke
-    use gnufor2,  only: plot_yy
+    use gnufor2,  only: plot_yy, plot
 
 !---begin execution
 
@@ -239,6 +239,12 @@ contains
                  y2label = 'Reactivity [$]'             ,&
                  leg1 = 'Power'                         ,&
                  leg2 = 'Reactivity')
+
+    ! make plot
+    call plot(x1 = pke % time                           ,&
+              y1 = pke % N(1,:)                         ,&
+              x2 = pke % time                           ,&
+              y2 = pke % refpower)
 
   end subroutine plot_results
 
