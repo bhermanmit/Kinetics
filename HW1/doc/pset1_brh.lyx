@@ -1,0 +1,375 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass report
+\begin_preamble
+\date{}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\rfoot{\scriptsize Bryan Herman}
+\usepackage{color}
+\usepackage{tikz}
+\usepackage{gnuplot-lua-tikz}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\bullet 0 0 0 -1
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\shape smallcaps
+\size giant
+Problem Set 1
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+22.S904 Nuclear Reactor Kinetics
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Due: 17 September 2011
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Bryan Herman
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+PART A
+\end_layout
+
+\begin_layout Standard
+An 8-group point kinetics code was developed using Fortran.
+ The code uses an xml-based user input where the user can input a reactivity
+ and time profile.
+ Also, each coarse time mesh can have an associated time step.
+ The standard point kinetics equations (constant kinetics parameters, no
+ external source) solved in the code are listed below:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{d}{dt}T\left(t\right)=\frac{\rho\left(t\right)-\beta}{\Lambda}T\left(t\right)+\sum_{i}\lambda_{i}C_{i}\left(t\right)
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\frac{d}{dt}C_{i}\left(t\right)=\frac{\beta_{i}}{\Lambda}T\left(t\right)-\lambda_{i}C_{i}\left(t\right).
+\]
+
+\end_inset
+
+Note that this gives us 9 equations, 1 for the power and 8 for the precursors.
+ The steady state relationship between power and precursor can be determined
+ by setting the time derivative in the precursor equation to zero.
+ This yields
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{i}^{0}=\frac{\beta_{i}}{\Lambda\lambda_{i}}T^{0}.
+\]
+
+\end_inset
+
+ In this code the power always starts from unity (fraction of nominal power)
+ where the reactivity is initially zero.
+ Setting up a linear system of these 9 equations yields
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{d}{dt}\left[N\left(t\right)\right]=\frac{d}{dt}\left[\begin{array}{c}
+T\left(t\right)\\
+C_{1}\left(t\right)\\
+C_{2}\left(t\right)\\
+C_{3}\left(t\right)\\
+C_{4}\left(t\right)\\
+C_{5}\left(t\right)\\
+C_{6}\left(t\right)\\
+C_{7}\left(t\right)\\
+C_{8}\left(t\right)
+\end{array}\right]=\left[\begin{array}{ccccccccc}
+\frac{\rho\left(t\right)-\beta}{\Lambda} & \lambda_{1} & \lambda_{2} & \lambda_{3} & \lambda_{4} & \lambda_{5} & \lambda_{6} & \lambda_{7} & \lambda_{8}\\
+\frac{\beta_{1}}{\Lambda} & -\lambda_{1}\\
+\frac{\beta_{2}}{\Lambda} &  & -\lambda_{2}\\
+\frac{\beta_{3}}{\Lambda} &  &  & -\lambda_{3}\\
+\frac{\beta_{4}}{\Lambda} &  &  &  & -\lambda_{4}\\
+\frac{\beta_{5}}{\Lambda} &  &  &  &  & -\lambda_{5}\\
+\frac{\beta_{6}}{\Lambda} &  &  &  &  &  & -\lambda_{6}\\
+\frac{\beta_{7}}{\Lambda} &  &  &  &  &  &  & -\lambda_{7}\\
+\frac{\beta_{8}}{\Lambda} &  &  &  &  &  &  &  & -\lambda_{8}
+\end{array}\right]\left[N\left(t\right)\right].
+\]
+
+\end_inset
+
+ We can write this simply in matrix notation as 
+\begin_inset Formula 
+\[
+\frac{d}{dt}\left[N\left(t\right)\right]=\left[A\left(t\right)\right]\left[N\left(t\right)\right].
+\]
+
+\end_inset
+
+ We can integrate this analytically as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left[N\left(t\right)\right]=\left[N\left(0\right)\right]\exp\left\{ \int_{0}^{t^{\prime}}\left[A\left(t^{\prime}\right)\right]dt^{\prime}\right\} .
+\]
+
+\end_inset
+
+ We can make an assumption that we take the matrix inside the integrate
+ at time t if it does not rapidly change.
+ Therefore, the final equation is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left[N\left(t\right)\right]=\left[N\left(0\right)\right]\exp\left\{ \left[A\left(t\right)\right]dt\right\} .
+\]
+
+\end_inset
+
+ The exponential term on the right hand side is known as the 
+\emph on
+matrix exponential
+\emph default
+.
+ There are many ways to approximate this.
+ In this Fortran implementation we use a dense Pade approximation available
+ in the external solver package 
+\emph on
+EXPOFIT
+\emph default
+.
+ We can discretize the system for any time step, 
+\emph on
+k, 
+\emph default
+as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left[N^{k}\right]=\left[N^{k-1}\right]\exp\left\{ \left[A^{k}\right]dt^{k-1}\right\} .
+\]
+
+\end_inset
+
+ The source code to the main point kinetics is listed in the Appendix.
+\end_layout
+
+\begin_layout Section*
+Part B
+\end_layout
+
+\begin_layout Standard
+From the output of the code, the total value of beta and pnl is:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\beta=\qquad\Lambda=.
+\]
+
+\end_inset
+
+ The output of a point kinetics run can be viewed in the Appendix.
+ Figure __ below shows fraction power vs.
+ time during the transient for different time steps.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+input{../partB/power_compare.tikz}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+\start_of_appendix
+Source Code
+\end_layout
+
+\begin_layout Subsection*
+Point Kinetics Main Physics Solver
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../src/pkes/physics.F90"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Inverse Point Kinetics Main Physics Solver
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../src/ipkes/physics.F90"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

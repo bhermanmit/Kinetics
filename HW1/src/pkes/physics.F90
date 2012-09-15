@@ -1,3 +1,10 @@
+!==============================================================================!
+! MODULE: global 
+!
+!> @author Bryan Herman
+!>
+!> @brief Contains all of the global variables
+!==============================================================================!
 module physics
 
 !-module options
