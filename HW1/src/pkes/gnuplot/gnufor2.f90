@@ -1417,8 +1417,8 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
 		data_file_name='data_file_'//input//'.txt'
 		command_file_name='command_file_'//input//'.txt'		
 	else
-		data_file_name='data_file.txt'
-		command_file_name='command_file.txt'
+		data_file_name='data_file2.txt'
+		command_file_name='command_file2.txt'
 	end if
 !***********************************************************************************
 	Nx1=size(x1)

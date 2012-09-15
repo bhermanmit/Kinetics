@@ -29,7 +29,7 @@ contains
 !---begin execution
 
     ! print header for run
-    call header("POINT KINETICS SIMULATION", level=1)
+    call header("INVERSE POINT KINETICS SIMULATION", level=1)
 
     ! set initial precursors
     ipke % N(1,1) = ipke % power(1)
@@ -45,7 +45,7 @@ contains
       avgpower = (ipke % N(1,i) + ipke % N(1,i+1)) / 2.0_8
 
       ! solve for precursors 
-      ipke %N(2:NUM_PRECS+1,i+1) = ipke % N(2:NUM_PRECS+1,i)*exp(-lambda*dt) + &
+      ipke % N(2:NUM_PRECS+1,i+1) = ipke % N(2:NUM_PRECS+1,i)*exp(-lambda*dt) +&
       beta/(lambda*pnl)*(avgpower - avgpower*exp(-lambda*dt))
 
       ! solve for reactivity

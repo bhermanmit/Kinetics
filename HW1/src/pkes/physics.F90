@@ -18,7 +18,7 @@ contains
 
     use constants,  only: NUM_PRECS
     use expokit,    only: dense_pade
-    use global,     only: pke
+    use global,     only: pke, restart
     use output,     only: header
 
 !---local variables
@@ -39,6 +39,11 @@ contains
 
     ! begin loop through time steps
     do i = 1, sum(pke % nt)
+
+      ! print progress
+      if (sum(pke%nt) > 100000 .and. restart) then
+        if (mod(i,sum(pke%nt)/10000) == 0) write(*,*) 'On Time Step: ',i
+      end if
 
       ! compute exponential matrix
       call set_reactivity(i,dt)
