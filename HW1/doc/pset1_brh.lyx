@@ -10,8 +10,6 @@
 \renewcommand{\headrulewidth}{0pt}
 \rfoot{\scriptsize Bryan Herman}
 \usepackage{color}
-\usepackage{tikz}
-\usepackage{gnuplot-lua-tikz}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -290,7 +288,7 @@ as
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\left[N^{k}\right]=\left[N^{k-1}\right]\exp\left\{ \left[A^{k}\right]dt^{k-1}\right\} .
+\boxed{\left[N^{k}\right]=\left[N^{k-1}\right]\exp\left\{ \left[A^{k}\right]dt^{k-1}\right\} .}
 \]
 
 \end_inset
@@ -309,31 +307,216 @@ From the output of the code, the total value of beta and pnl is:
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\beta=\qquad\Lambda=.
+\boxed{\beta=0.006648\qquad\Lambda=1.866\times10^{5}\,\mathrm{s}.}
 \]
 
 \end_inset
 
  The output of a point kinetics run can be viewed in the Appendix.
- Figure __ below shows fraction power vs.
+ The plot below shows fraction power vs.
  time during the transient for different time steps.
  
 \end_layout
 
 \begin_layout Standard
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-input{../partB/power_compare.tikz}
-\end_layout
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW1/partB/power_compare.pdf
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+The plot above shows that once the time step becomes 0.1 seconds it very
+ hard to visually see any differences.
+ To be conservative we use a time step of 0.01 seconds.
+ This time step is shown below with the corresponding reactivity input curve.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW1/partB/power_react.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Part C
+\end_layout
+
+\begin_layout Standard
+In this part we are tasked with writing an inverse point kinetics tool.
+ In inverse kinetics, a power amplitude shape is used to determine a correspondi
+ng reactivity curve.
+ We can start the derivation looking at the precursor balance equation for
+ group 
+\emph on
+i
+\emph default
+,
+\begin_inset Formula 
+\[
+\frac{d}{dt}C_{i}\left(t\right)=\frac{\beta_{i}}{\Lambda}T\left(t\right)-\lambda C_{i}\left(t\right).
+\]
+
+\end_inset
+
+ Since we know the power dependence the equations are no longer coupled.
+ We can solve this differential equation analytically as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{d}{dt}C_{i}\left(t\right)+\lambda C_{i}\left(t\right)=\frac{\beta_{i}}{\Lambda}T\left(t\right).
+\]
+
+\end_inset
+
+ The integrating factor is 
+\begin_inset Formula $\exp\left(\lambda_{i}t\right)$
+\end_inset
+
+.
+ Going through the analysis we can arrive at:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\exp\left(\lambda_{i}t\right)\frac{d}{dt}C_{i}\left(t\right)+\exp\left(\lambda_{i}t\right)\lambda C_{i}\left(t\right)=\exp\left(\lambda_{i}t\right)\frac{\beta_{i}}{\Lambda}T\left(t\right),
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\frac{d}{dt}\left[\exp\left(\lambda_{i}t\right)C_{i}\left(t\right)\right]=\exp\left(\lambda_{i}t\right)\frac{\beta_{i}}{\Lambda}T\left(t\right),
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\int\frac{d}{dt}\left[\exp\left(\lambda_{i}t\right)C_{i}\left(t\right)\right]dt=\int\exp\left(\lambda_{i}t\right)\frac{\beta_{i}}{\Lambda}T\left(t\right)dt,
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\exp\left(\lambda_{i}t\right)C_{i}\left(t\right)=\frac{\beta_{i}}{\Lambda}\int\exp\left(\lambda_{i}t\right)T\left(t\right)dt.
+\]
+
+\end_inset
+
+In order to perform that integral on the right hand side the analytic shape
+ of the power amplitude must be known.
+ However, if the time step is small enough we can just pull it out of the
+ integral as a constant and assume it is the average power of the time step.
+ This is shown as
+\begin_inset Formula 
+\[
+\exp\left(\lambda_{i}t\right)C_{i}\left(t\right)=\frac{\beta_{i}}{\Lambda}\bar{T}\int\exp\left(\lambda_{i}t\right)dt.
+\]
+
+\end_inset
+
+ The general form of the equation is 
+\begin_inset Formula 
+\[
+\exp\left(\lambda_{i}t\right)C_{i}\left(t\right)=\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}\exp\left(\lambda_{i}t\right)+\tilde{C},
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+C_{i}\left(t\right)=\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}+\tilde{C}\exp\left(\lambda_{i}t\right).
+\]
+
+\end_inset
+
+ The integration constant can be determine since we know from the initial
+ power what the initial precursor concentration is.
+ This constant can be evaluated as
+\begin_inset Formula 
+\[
+C_{i}^{0}=\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}+\tilde{C},
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\tilde{C}=C_{i}^{0}-\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}.
+\]
+
+\end_inset
+
+ Substituting this back in to the general equation yields the final for
+ of the precursor equation,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{i}\left(t\right)=\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}+\left(C_{i}^{0}-\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}\right)\exp\left(\lambda_{i}t\right),
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+C_{i}\left(t\right)=C_{i}^{0}\exp\left(\lambda_{i}t\right)+\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}\left[1-\exp\left(\lambda_{i}t\right)\right].
+\]
+
+\end_inset
+
+ This will be solved over a time step so that the above approximations are
+ valid.
+ The discretized equation then becomes 
+\begin_inset Formula 
+\[
+\boxed{C_{i}^{k+1}=C_{i}^{k}\exp\left(\lambda_{i}dt^{k}\right)+\frac{\beta_{i}}{\lambda_{i}\Lambda}\bar{T}^{k}\left[1-\exp\left(\lambda_{i}dt^{k}\right)\right].}
+\]
+
+\end_inset
+
+ The power equation solved for reactivity is 
+\begin_inset Formula 
+\[
+\rho\left(t\right)=\frac{\Lambda}{T\left(t\right)}\frac{d}{dt}T\left(t\right)+\beta-\frac{\Lambda}{T\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right).
+\]
+
+\end_inset
+
+ This can be discretized using a simple backward finite difference for the
+ derivative so that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\boxed{\rho^{k+1}=\frac{\Lambda}{T^{k+1}}\frac{T^{k+1}-T^{k}}{dt}+\beta-\frac{\Lambda}{T^{k+1}}\sum_{i}\lambda_{i}C_{i}^{k}.}
+\]
+
+\end_inset
+
+ These physics equation were implemented into a different Fortran code.
+ The physics routines of the code can be viewed in the Appendix.
+ 
 \end_layout
 
 \begin_layout Section*
@@ -365,6 +548,39 @@ Inverse Point Kinetics Main Physics Solver
 LatexCommand lstinputlisting
 filename "../src/ipkes/physics.F90"
 lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Running the Code
+\end_layout
+
+\begin_layout Subsection*
+Part B Input
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "/home/bherman/Dropbox/Kinetics/HW1/partB/input.xml"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=XML,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection*
+Part B Output
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "/home/bherman/Dropbox/Kinetics/HW1/partB/stdout"
 
 \end_inset
 

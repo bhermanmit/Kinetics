@@ -207,6 +207,10 @@ contains
     do i = 1, NUM_PRECS 
       write(OUTPUT_UNIT, fmt='(1PE9.3,T20,1PE9.3)') beta(i), lambda(i) 
     end do
+    write(OUTPUT_UNIT, fmt='(/,A,2X,F8.6)') 'Total Delayed Neutron Fraction',  &
+                                             sum(beta)
+    write(OUTPUT_UNIT, fmt='(/A,2X,1PE9.3)') 'Prompt Neutron Lifetime [s]:',   &
+                                             pnl
 
   end subroutine write_physics
 
@@ -218,7 +222,7 @@ contains
 
 !---external references
 
-    use global,   only: pke
+    use global,   only: pke, restart
     use gnufor2,  only: plot_yy, plot
 
 !---begin execution
@@ -241,10 +245,12 @@ contains
                  leg2 = 'Reactivity')
 
     ! make plot
-    call plot(x1 = pke % time                           ,&
-              y1 = pke % N(1,:)                         ,&
-              x2 = pke % time                           ,&
-              y2 = pke % refpower)
+    if (restart) then
+      call plot(x1 = pke % time                         ,&
+                y1 = pke % N(1,:)                       ,&
+                x2 = pke % time                         ,&
+                y2 = pke % refpower)
+    end if
 
   end subroutine plot_results
 

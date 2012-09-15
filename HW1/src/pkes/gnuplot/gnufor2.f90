@@ -1735,7 +1735,7 @@ subroutine image_4(x,y,rgb,pause,terminal,filename,persist,input)
 !***********************************************************************************
     Nx1=size(x1)
     if ((size(x1).ne.size(y1)).or.(size(x2).ne.size(y2))) then
-      print *,'subroutine plot ERROR: size(x) is not equal to size(y)'
+      print *,'subroutine plot ERROR: size(x) is not equal to size(y)',size(x1),size(y1),size(x2),size(y2)
       stop
     end if
     if (present(style).and.(len(style).ne.3)) then

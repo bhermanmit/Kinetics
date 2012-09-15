@@ -1,10 +1,3 @@
-!==============================================================================!
-! MODULE: global 
-!
-!> @author Bryan Herman
-!>
-!> @brief Contains all of the global variables
-!==============================================================================!
 module physics
 
 !-module options
@@ -164,6 +157,6 @@ contains
     ! set values in coefficient matrix
     pke % coef(1,1) = (pke % react(i)*sum(beta) - sum(beta))/pnl
 
-  end subroutine
+  end subroutine set_reactivity
 
 end module physics
