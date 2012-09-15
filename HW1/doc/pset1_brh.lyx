@@ -2,7 +2,7 @@
 \lyxformat 413
 \begin_document
 \begin_header
-\textclass report
+\textclass article
 \begin_preamble
 \date{}
 \usepackage{fancyhdr}
@@ -10,6 +10,7 @@
 \renewcommand{\headrulewidth}{0pt}
 \rfoot{\scriptsize Bryan Herman}
 \usepackage{color}
+\usepackage{algorithmic}
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -272,12 +273,8 @@ matrix exponential
 \emph default
 .
  There are many ways to approximate this.
- In this Fortran implementation we use a dense Pade approximation available
- in the external solver package 
-\emph on
-EXPOFIT
-\emph default
-.
+ In this Fortran implementation we use a Pade approximation.
+ The solution algorithm is presented in the next section.
  We can discretize the system for any time step, 
 \emph on
 k, 
@@ -294,6 +291,361 @@ as
 \end_inset
 
  The source code to the main point kinetics is listed in the Appendix.
+ 
+\end_layout
+
+\begin_layout Subsection*
+Solving the Matrix Exponential - Pade Approximation
+\end_layout
+
+\begin_layout Standard
+The theory for the approximation of the Pade Approximation presented here
+ is summarized from 
+\emph on
+Nineteen Dubious Ways to Compute the Exponential of a Matrix, Twenty-Five
+ Years Later
+\emph default
+.
+ The Pade approximation of an exponential , 
+\begin_inset Formula $\exp\left(A\right)$
+\end_inset
+
+ is defined as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+R_{pq}\left(A\right)=\left[D_{pq}\left(A\right)\right]^{-1}E_{pq}\left(A\right).
+\]
+
+\end_inset
+
+ The numerator and denominator are defined by 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+E_{pq}\left(A\right)=\sum_{j=0}^{q}\frac{\left(p+q-j\right)!p!}{\left(p+q\right)!j!\left(p-j\right)!}A^{j}
+\]
+
+\end_inset
+
+ and 
+\begin_inset Formula 
+\[
+D_{pq}\left(A\right)=\sum_{j=0}^{q}\frac{\left(p+q-j\right)!p!}{\left(p+q\right)!j!\left(p-j\right)!}\left(-A^{j}\right).
+\]
+
+\end_inset
+
+ Before the Pade approximation is made, the method of 
+\emph on
+scaling and squaring
+\emph default
+ is used to avoid numerical roundoff error.
+ To scale the exponential, it can be written as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\exp\left(A\right)=\left[\exp\left(A/m\right)\right]^{m}.
+\]
+
+\end_inset
+
+ The criterion to choose a parameter like 
+\emph on
+m
+\emph default
+ is that 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left\Vert A/2^{e-1}\right\Vert _{\infty}\leq1/2.
+\]
+
+\end_inset
+
+The integer value of 
+\begin_inset Formula $e$
+\end_inset
+
+ can be easily calculation and will be used at the end of the approximation
+ to undo the scaling.
+ After the matrix is scaled, the Pade approximation can be made.
+ From above, the Pade approximation coefficients have numerous factorials
+ and can be costly to compute.
+ For example if we take this out to 4 terms and compute the diagonal approximate
+ where, 
+\begin_inset Formula $p=q=6$
+\end_inset
+
+, we can see that it is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{j=0}^{q}\frac{\left(p+q-j\right)!p!}{\left(p+q\right)!j!\left(p-j\right)!}=1+\frac{11!6!}{12!5!}+\frac{10!6!}{12!2!4!}+\frac{9!6!}{12!3!3!}+...
+\]
+
+\end_inset
+
+ We can simply some of the factorials as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+1+\frac{6}{12}+\frac{6\cdot5}{12\cdot11\cdot2}+\frac{6\cdot5\cdot4}{12\cdot11\cdot10\cdot3\cdot2}+...
+\]
+
+\end_inset
+
+What we see from this is that each succeeding term has the terms of the
+ previous value when greater than the second term.
+ Thus, we can always factor out all of the preceeding coefficients,
+\begin_inset Formula 
+\[
+1+\frac{6}{12}+\left(\frac{6}{12}\right)\frac{5}{11\cdot2}+\left(\frac{6}{12}\right)\left(\frac{5}{11\cdot2}\right)\frac{4}{10\cdot3}+...
+\]
+
+\end_inset
+
+ Therefore for every term, we will now the multiplication of the terms in
+ parathesis from the previous coefficient.
+ We just need to write an algorithm for the terms in fractions.
+ We notice that starting from
+\emph on
+ 
+\emph default
+
+\begin_inset Formula $j=1$
+\end_inset
+
+ term, the value of the numerator has to do with 
+\emph on
+q
+\emph default
+.
+ The numerator can always be computed as 
+\begin_inset Formula $num=q-j+1$
+\end_inset
+
+.
+ The denominator is always made up of two terms.
+ One of them is the term number, 
+\begin_inset Formula $j$
+\end_inset
+
+.
+ The other is just 
+\begin_inset Formula $2q-j+1$
+\end_inset
+
+.
+ Therefore we can compute any Pade coefficient, 
+\begin_inset Formula $c_{j}$
+\end_inset
+
+ with the following algorithm:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+c_{j}=c_{j-1}\frac{q-j+1}{j\cdot\left(2q-j+1\right)},\quad j=1,2,...
+\]
+
+\end_inset
+
+ Once the numerator, 
+\begin_inset Formula $E_{qq}$
+\end_inset
+
+ and denominator 
+\begin_inset Formula $D_{qq}$
+\end_inset
+
+ are computed the Pade approximation of them is just the division of the
+ matrices.
+ The last step is undo the scaling that was done at the beginning of the
+ algorithm.
+ This can be done with
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\exp\left(A\right)\approx R_{qq}^{s}.
+\]
+
+\end_inset
+
+ The algorithm of this method is presented below.
+ The acutal Fortran source code written is available in the Appendix.
+ For all complicated matrix operations, LAPACK routines were used.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Float algorithm
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Matrix Exponential - Pade Approximation with Squaring and Scaling
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{algorithmic}[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE compute norm-inf of matrix, $
+\backslash
+left
+\backslash
+Vert A
+\backslash
+right
+\backslash
+Vert _{
+\backslash
+infty}$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE get scaling parameter ($s$): determine $e$ such that $norm = f
+\backslash
+cdot2^{e}$, $s = 
+\backslash
+mathrm{max}
+\backslash
+left(0,e+1
+\backslash
+right)$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE initialize Pade numerator ($E$) and denominator ($D$) with a diagonal
+ of ones (takes care of zeroth term)
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE initialize Pade coefficient, $c=1$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+FOR{$j=1,2,3,...q$}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute Pade coefficient, c=c*(q-j+1)/(j*(2(q-j+1))
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Perform matrix multiplication for $A^{j}$
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute numerator, $E = E + c*A^{j}$
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute denominator, $D = D (+/-) c*A^{j}$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+ENDFOR
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE Compute approximate, $R = D^{-1}E$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE Undo scaling, $E = E^{s}$
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{algorithmic}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section*
@@ -667,6 +1019,21 @@ lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,comments
 
 \end_layout
 
+\begin_layout Subsubsection*
+Matrix Exponential Solver - Pade Approximation
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../src/pkes/solvers.F90"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection*
 Part B Runs
 \end_layout
@@ -753,7 +1120,7 @@ Point Kinetics Output
 \begin_layout Standard
 \begin_inset CommandInset include
 LatexCommand verbatiminput
-filename "/home/bherman/Dropbox/Kinetics/HW1/partB/stdout"
+filename "../partC/pke/stdout"
 
 \end_inset
 

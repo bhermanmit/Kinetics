@@ -17,9 +17,10 @@ contains
 !---external references
 
     use constants,  only: NUM_PRECS
-    use expokit,    only: dense_pade
+!   use expokit,    only: dense_pade
     use global,     only: pke, restart
     use output,     only: header
+    use solvers,    only: expm_pade
 
 !---local variables
 
@@ -49,7 +50,8 @@ contains
       call set_reactivity(i,dt)
 
       ! solve matrix exponential
-      call dense_pade(pke % coef, NUM_PRECS + 1, dt, pke % expm)
+!     call dense_pade(pke % coef, NUM_PRECS + 1, dt, pke % expm) ! expokit
+      call expm_pade(pke % coef, NUM_PRECS + 1, dt, pke % expm)  ! my code
 
       ! get new vector 
       pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))

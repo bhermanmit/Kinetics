@@ -7,7 +7,9 @@ global.o      \
 initialize.o  \
 input_xml.o   \
 main.o        \
+math.o        \
 output.o      \
 physics.o     \
+solvers.o     \
 string.o      \
 timing.o
