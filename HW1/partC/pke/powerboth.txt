@@ -1,0 +1,8 @@
+set terminal pdf 
+set grid
+set xlabel "Time[s]"
+set ylabel "Power [W]"
+plot "data_file2.txt" using 1:2 with lines linewidth 0.200E+01 linecolor rgb "blue" title "PKES Power [W]",\
+     "data_file2.txt" using 3:4 with lines linewidth 0.200E+01 linecolor rgb "dark-green" title "Reference Power [W]"
+pause 0
+q

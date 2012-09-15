@@ -519,12 +519,125 @@ C_{i}\left(t\right)=C_{i}^{0}\exp\left(\lambda_{i}t\right)+\frac{\beta_{i}}{\lam
  
 \end_layout
 
+\begin_layout Standard
+The given problem specifies a fixed power amplitude as a function of time
+ as follows:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left[\begin{array}{cc}
+Time\,\mathrm{[s]} & Power\,\mathrm{[W]}\\
+0 & 1\\
+2 & 1\\
+2.01 & 10000\\
+10 & 10000\\
+12 & 100\\
+20 & 100
+\end{array}\right]
+\]
+
+\end_inset
+
+ From running the code several times, we added the time step for each of
+ these regions.
+ To get the right shape after the reactivity insertion an extra time was
+ put in to finer resolve the discretization:
+\begin_inset Formula 
+\[
+\left[\begin{array}{ccc}
+Time\,\mathrm{[s]} & Power\,\mathrm{[W]} & Time\, step\,\mathrm{\left[s\right]}\\
+0 & 1 & 0.1\\
+2 & 1 & 3\times10^{-8}\\
+2.01 & 10000 & 3\times10^{-5}\\
+3.0 & 10000 & 0.001\\
+10 & 10000 & 0.0001\\
+12 & 100 & 0.1\\
+20 & 100 & --
+\end{array}\right]
+\]
+
+\end_inset
+
+ The input and output of the inverse point kinetics run is available in
+ the Appendix.
+ The resulting power and predicted reactivity curves are shown in the plot
+ below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW1/partC/ipke/ipke_results.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Although the full scale of the reactivity can't be seen, the reactivity
+ peaks at about 
+\series bold
+2700 dollars
+\series default
+! This is obviously ridiculous for an actual reactor system.
+ We can then take this reactivity curve and run it in the point kinetics
+ solver to see if the original power amplitude shape can be recovered.
+ The input and output of this run can be viewed in the Appendix.
+ Since the data can get large to port between the codes, a binary output
+ file is written and can be read in by point kinetics code.
+ The same power and reactivity plot is shown below except from the point
+ kinetics solver.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW1/partC/pke/powereact.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can see from this plot that the power doesnt quite get up to 10000 W.
+ Other than that it matches the plot from inverse kinetics well.
+ For comparison we plot it against the reference power from the problem
+ statement below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW1/partC/pke/powerboth.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We miss the power prediction by about 1.5%.
+ This is due to the approximations of the time derivative of the power.
+ As we make the time steps infinitesimally small, the power should be in
+ better agreement.
+ This was the best prediction with the amount of time needed to run the
+ code.
+\end_layout
+
 \begin_layout Section*
 \start_of_appendix
-Source Code
+APPENDIX 
 \end_layout
 
 \begin_layout Subsection*
+Source Code
+\end_layout
+
+\begin_layout Subsubsection*
 Point Kinetics Main Physics Solver
 \end_layout
 
@@ -539,7 +652,7 @@ lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,comments
 
 \end_layout
 
-\begin_layout Subsection*
+\begin_layout Subsubsection*
 Inverse Point Kinetics Main Physics Solver
 \end_layout
 
@@ -554,18 +667,18 @@ lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,comments
 
 \end_layout
 
-\begin_layout Section*
-Running the Code
+\begin_layout Subsection*
+Part B Runs
 \end_layout
 
-\begin_layout Subsection*
-Part B Input
+\begin_layout Subsubsection*
+Point Kinetics Input
 \end_layout
 
 \begin_layout Standard
 \begin_inset CommandInset include
 LatexCommand verbatiminput
-filename "/home/bherman/Dropbox/Kinetics/HW1/partB/input.xml"
+filename "../partB/input.xml"
 lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=XML,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
 
 \end_inset
@@ -573,8 +686,68 @@ lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,comments
 
 \end_layout
 
+\begin_layout Subsubsection*
+Point Kinetics Output
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "../partB/stdout"
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection*
-Part B Output
+Part C Runs
+\end_layout
+
+\begin_layout Subsubsection*
+Inverse Point Kinetics Input
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "../partC/ipke/input.xml"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Inverse Point Kinetics Output
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "../partC/ipke/stdout"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Point Kinetics Input
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "../partC/pke/input.xml"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection*
+Point Kinetics Output
 \end_layout
 
 \begin_layout Standard
