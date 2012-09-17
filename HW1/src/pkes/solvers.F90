@@ -63,7 +63,7 @@ contains
     ! compute norm for scaling
     norm = norm_inf(At,N)
 
-    ! compute exponent integer exponent
+    ! compute integer exponent of formula norm = f*2**(ex)
     ex = ilog2(norm)
 
     ! determine scaling parameter
@@ -85,7 +85,7 @@ contains
       D(i,i) = ONE
     end do
     c = ONE
-    c = 0.5_8   ! this is j=1 Pade coefficient
+    c = 0.5_8    ! this is j=1 Pade coefficient (need to do this before loop)
     E = E + c*At ! accmulate in sum
     D = D - c*At ! accumulate in sum
 
@@ -97,7 +97,7 @@ contains
       ! compute Pade coefficient
       c = c * dble(q-j+1) / dble(j*(2*q-j+1))
 
-      ! multiply A^(j-1) by A LAPACK ROUTINE
+      ! multiply A^(j-1) by LAPACK ROUTINE
       call DGEMM('N','N',N,N,N,ONE,At,N,X,N,ZERO,Xt,N)
 
       ! move temporary to actual
@@ -110,9 +110,9 @@ contains
 
     end do
 
-    ! compute rational function
-    call DGETRF(N,N,D,N,IPIV,info)          ! LU factorization LAPACK
-    call DGETRS('N',N,N,D,N,IPIV,E,N,info)  ! solves E = D^-1*E LAPACK
+    ! compute rational function (E is R after the next two lines)
+    call DGETRF(N,N,D,N,IPIV,info)          ! LU factorization of D, LAPACK
+    call DGETRS('N',N,N,D,N,IPIV,E,N,info)  ! solves E = D^-1*E, LAPACK
 
     ! perform squaring
     do i = 1,s
@@ -121,7 +121,7 @@ contains
     end do
 
     ! set output matrix
-    EXPM  = E
+    EXPM  = E  ! E is really R, didnt want to make a separate matrix
 
     ! deallocate temporary matrices
     deallocate(At)

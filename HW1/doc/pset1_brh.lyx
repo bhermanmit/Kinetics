@@ -306,7 +306,7 @@ Nineteen Dubious Ways to Compute the Exponential of a Matrix, Twenty-Five
  Years Later
 \emph default
 .
- The Pade approximation of an exponential , 
+ The Pade approximation of an exponential, 
 \begin_inset Formula $\exp\left(A\right)$
 \end_inset
 
@@ -490,6 +490,7 @@ c_{j}=c_{j-1}\frac{q-j+1}{j\cdot\left(2q-j+1\right)},\quad j=1,2,...
  The algorithm of this method is presented below.
  The acutal Fortran source code written is available in the Appendix.
  For all complicated matrix operations, LAPACK routines were used.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -624,7 +625,7 @@ STATE Compute approximate, $R = D^{-1}E$
 
 
 \backslash
-STATE Undo scaling, $E = E^{s}$
+STATE Undo scaling, $R = R^{s}$
 \end_layout
 
 \begin_layout Plain Layout
@@ -648,8 +649,32 @@ end{algorithmic}
 
 \end_layout
 
+\begin_layout Subsection*
+Steady State Results
+\end_layout
+
+\begin_layout Standard
+With any transient code, it is important to check that if the system starts
+ in equilibrium and not perturbation is made to the system, the values do
+ not change.
+ This was simulated in the point kinetics code where a reactivity curve
+ was input of all zeros.
+ Therefore, we expect that the fractional power stays constant at zero.
+ Below is a plot that shows the code can hold steady state.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partA/steady.pdf
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Section*
-Part B
+PART B
 \end_layout
 
 \begin_layout Standard
@@ -659,7 +684,7 @@ From the output of the code, the total value of beta and pnl is:
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\boxed{\beta=0.006648\qquad\Lambda=1.866\times10^{5}\,\mathrm{s}.}
+\boxed{\beta=0.006648\qquad\Lambda=1.866\times10^{-5}\,\mathrm{s}.}
 \]
 
 \end_inset
@@ -673,7 +698,7 @@ From the output of the code, the total value of beta and pnl is:
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename /home/bherman/Dropbox/Kinetics/HW1/partB/power_compare.pdf
+	filename ../partB/power_compare.pdf
 
 \end_inset
 
@@ -690,7 +715,7 @@ The plot above shows that once the time step becomes 0.1 seconds it very
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename /home/bherman/Dropbox/Kinetics/HW1/partB/power_react.pdf
+	filename ../partB/power_react.pdf
 
 \end_inset
 
@@ -698,7 +723,7 @@ The plot above shows that once the time step becomes 0.1 seconds it very
 \end_layout
 
 \begin_layout Section*
-Part C
+PART C
 \end_layout
 
 \begin_layout Standard
@@ -921,7 +946,7 @@ Time\,\mathrm{[s]} & Power\,\mathrm{[W]} & Time\, step\,\mathrm{\left[s\right]}\
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename /home/bherman/Dropbox/Kinetics/HW1/partC/ipke/ipke_results.pdf
+	filename ../partC/ipke/ipke_results.pdf
 
 \end_inset
 
@@ -947,7 +972,7 @@ Although the full scale of the reactivity can't be seen, the reactivity
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename /home/bherman/Dropbox/Kinetics/HW1/partC/pke/powereact.pdf
+	filename ../partC/pke/powereact.pdf
 
 \end_inset
 
@@ -964,7 +989,7 @@ We can see from this plot that the power doesnt quite get up to 10000 W.
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename /home/bherman/Dropbox/Kinetics/HW1/partC/pke/powerboth.pdf
+	filename ../partC/pke/powerboth.pdf
 
 \end_inset
 

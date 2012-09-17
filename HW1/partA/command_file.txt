@@ -1,0 +1,10 @@
+set terminal pdf 
+set grid
+set xlabel "Time[s]"
+set ylabel "Power [fraction of nominal]"
+set y2label "Reactivity [$]"
+set ytics nomirror
+set y2tics
+plot "data_file.txt" using 1:2 with lines linecolor rgb "blue" linewidth 0.200E+01 axes x1y1 title "Power", "data_file.txt" using 3:4 with lines linetype "dashed" linecolor rgb "red" linewidth 0.400E+01 axes x1y2 title "Reactivity"
+pause 0
+q

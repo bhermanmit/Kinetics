@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<input>
+
+  <!-- Reactivity Shape -->
+  <reactivity>
+    <time> 0.0  100.0 </time>
+    <rho>  0.0    0.0 </rho>
+    <timestep> .01 </timestep>
+  </reactivity>
+
+</input>
