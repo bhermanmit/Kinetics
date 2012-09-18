@@ -73,6 +73,57 @@ contains
   end subroutine allocate_material_type
 
 !===============================================================================
+! ARRANGE_XS
+!===============================================================================
+
+  subroutine arrange_xs(this,ng)
+
+!---arguments
+
+    integer :: ng
+    type(material_type) :: this
+
+!---local variables
+
+    integer :: g
+    integer :: h
+
+!---begin execution
+
+    ! begin loop of target energy
+    TO: do g = 1, ng
+
+      ! check if absorption based
+      if (this % abs_based) then
+
+        ! set removal based to true
+        this % rem_based = .true.
+
+        ! compute removal
+        this % removxs(g) = this % absorxs(g) +                  &
+                            sum(this % scattxs(g,:)) -           & 
+                            this % scattxs(g,g)
+      end if
+
+      ! check if removal based
+      if (this % rem_based) then
+
+        ! compute effective scattering
+        this % scattxs(h,g) = this % totalxs(g) - this % removxs(g)
+
+      end if
+
+
+      ! begin loop over outgoing energy
+      FROM: do h = 1, ng
+
+      end do FROM
+
+    end do TO
+
+  end subroutine arrange_xs
+
+!===============================================================================
 ! DEALLOCATE_MATERIAL_TYPE
 !===============================================================================
 
