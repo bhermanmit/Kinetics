@@ -1,0 +1,48 @@
+error.o: global.o
+
+finalize.o: output.o
+
+global.o: cmfd_header.o
+global.o: timing.o
+
+main.o: cmfd_execute.o
+main.o: finalize.o
+main.o: input_xml.o
+main.o: timing.o
+
+output.o: constants.o
+output.o: global.o
+output.o: string.o
+
+cmfd_data.o: global.o
+
+cmfd_execute.o: cmfd_data.o
+cmfd_execute.o: power_solver.o
+cmfd_execute.o: slepc_solver.o
+cmfd_execute.o: snes_solver.o
+
+loss_operator.o: global.o
+
+power_solver.o: loss_operator.o
+power_solver.o: prod_operator.o
+
+prod_operator.o: global.o
+
+slepc_solver.o: loss_operator.o
+slepc_solver.o: prod_operator.o
+
+snes_solver.o: jacobian_operator.o
+snes_solver.o: loss_operator.o
+snes_solver.o: prod_operator.o
+snes_solver.o: slepc_solver.o
+
+initialize.o: global.o
+
+input_xml.o: global.o
+input_xml.o: templates/input_t.o 
+
+string.o: constants.o
+string.o: error.o
+string.o: global.o
+
+timing.o: constants.o
