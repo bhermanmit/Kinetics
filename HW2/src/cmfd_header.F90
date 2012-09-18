@@ -1,13 +1,12 @@
 module cmfd_header
 
+!-module options
+
   implicit none
 
-!===============================================================================
-! cmfd is used to store diffusion parameters and other information for CMFD
-! analysis.  
-!===============================================================================
+!-module variables
 
-  type cmfd_obj
+  type cmfd_type
 
     ! array indices([1-x,2-y,3-z,4-g],upper bound)
     integer              :: indices(4)
@@ -38,15 +37,6 @@ module cmfd_header
     ! dimensions of mesh cells (xloc,yloc,zloc,[hu,hv,hw])
     real(8), allocatable :: hxyz(:,:,:,:)
 
-    ! source probability distribution
-    real(8), allocatable :: sourcepdf(:,:,:,:)
-
-    ! source sites in each mesh box
-    real(8), allocatable :: sourcecounts(:,:,:,:)
-
-    ! weight adjustment factors
-    real(8), allocatable :: weightfactors(:,:,:,:)
-
     ! core map for xs association
     integer, allocatable :: coremap(:,:,:)
 
@@ -54,6 +44,6 @@ module cmfd_header
     real(8), allocatable :: phi(:)
     real(8) :: keff = 0.0_8
 
-  end type cmfd_obj
+  end type cmfd_type
 
 end module cmfd_header

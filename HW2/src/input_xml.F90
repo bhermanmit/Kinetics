@@ -1,5 +1,7 @@
 module input_xml
 
+!-module options
+
   implicit none
   private
   public :: read_input_xml
@@ -12,299 +14,150 @@ contains
 
   subroutine read_input_xml()
 
-    use global, only: cmfd
+!---external references
+
+    use constants,        only: MAX_FILE_LEN
+    use error,            only: fatal_error
+    use geometry_header,  only: allocate_geometry_type 
+    use global,           only: material, geometry, message, n_materials
+    use material_header,  only: material_type, allocate_material_type
+    use output,           only: write_message
     use xml_data_input_t
 
-    ! local variables
-    integer :: nx                    ! number of volumes in x-direction
-    integer :: ny                    ! number of volumes in y-direction
-    integer :: nz                    ! number of volumes in z-direction
-    integer :: ng                    ! number of energy groups
-    integer :: nnx                   ! number of sub meshes in x-direction
-    integer :: nny                   ! number of sub meshes in y-direction
-    integer :: nnz                   ! number of sub meshes in z-direction
-    integer :: i                     ! x iteration counter
-    integer :: j                     ! y iteration counter
-    integer :: k                     ! z iteration counter
-    integer :: g                     ! group iteration counter
-    integer :: h                     ! group iteration counter
-    integer :: map_idx               ! vector location for core map
-    integer :: matid                 ! material id number
-    integer :: hg_idx                ! energy h-->g vector location 
-    integer :: dim_idx               ! vector location for dimensions
-    integer :: ii                    ! inner loop x iteration
-    integer :: jj                    ! inner loop y iteration
-    integer :: kk                    ! inner loop z iteration
-    integer :: ix                    ! shifted x index
-    integer :: jy                    ! shifted y index
-    integer :: kz                    ! shifted z index
-    integer, allocatable :: xgrid(:) ! grid in the x direction
-    integer, allocatable :: ygrid(:) ! grid in the y direction
-    integer, allocatable :: zgrid(:) ! grid in the z direciton
+!---local variables
 
-    ! read xml input file
-    call read_xml_file_input_t('input.xml')
+    type(material_type), pointer :: m => null()
+    logical :: file_exists
+    character(MAX_FILE_LEN) :: filename
+    integer :: i
 
-    ! get mesh and group indices
-    nnx = geometry%nx
-    nny = geometry%ny
-    nnz = geometry%nz
-    ng = geometry%ng
+!---begin execution
 
-    ! allocate grid varibles
-    allocate(xgrid(nnx))
-    allocate(ygrid(nny))
-    allocate(zgrid(nnz))
+    ! display output message
+    message = "Reading input XML file..."
+    call write_message(5)
 
-    ! get grid variables
-    xgrid = geometry%xgrid
-    ygrid = geometry%ygrid
-    zgrid = geometry%zgrid
-
-    ! get total in each direction
-    nx = sum(xgrid)
-    ny = sum(ygrid)
-    nz = sum(zgrid)
-
-    ! allocate cmfd object
-    allocate(cmfd%totalxs(ng,nx,ny,nz))
-    allocate(cmfd%scattxs(ng,ng,nx,ny,nz))
-    allocate(cmfd%nfissxs(ng,ng,nx,ny,nz))
-    allocate(cmfd%diffcof(ng,nx,ny,nz))
-    allocate(cmfd%dtilde(6,ng,nx,ny,nz))
-    allocate(cmfd%hxyz(3,nx,ny,nz))
-    allocate(cmfd%coremap(nx,ny,nz))
-
-    ! record indices in object
-    cmfd%indices(1) = nx
-    cmfd%indices(2) = ny
-    cmfd%indices(3) = nz
-    cmfd%indices(4) = ng
-
-    ! set boundary conditions
-    cmfd%albedo = geometry%bc
-
-    ! check core map dimensions
-    if (size(geometry%mesh,1) /= nnx*nny*nnz) then
-
-      ! write out fatal error
-      print *,'FATAL ===> core map dimensions not consistent'
-      STOP
-
+    ! check if settings.xml exists
+    filename = "input.xml"
+    inquire(FILE=filename, EXIST=file_exists)
+    if (.not. file_exists) then
+       message = "Input XML file '" // trim(filename) // "' does not exist!"
+       call fatal_error()
     end if
 
-    ! read in core map and xs
-    ZLOOP:  do k = 1,nnz
+    ! read in input file
+    call read_xml_file_input_t(filename)
 
-      YLOOP: do j = 1,nny
+    ! read in geometry indices
+    geometry % ncx = geometry_ % nx
+    geometry % ncy = geometry_ % ny
+    geometry % ncz = geometry_ % nz
+    geometry % ncg = geometry_ % ng
 
-        XLOOP: do i = 1,nnx
+    ! allocate geometry object
+    call allocate_geometry_type(geometry)
 
-          GROUP: do g = 1,ng
+    ! read in coarse material map first check dimensions
+    if (geometry % ncx*geometry % ncy*geometry % ncz /=                        &
+        size(geometry_ % mesh)) then
+      message = "Map dimensions do not match indices!"
+      call fatal_error()
+    end if 
+    geometry % mat_map = reshape(geometry_ % mesh,(/geometry % ncx,            &
+                                                    geometry % ncy,            &
+                                                    geometry % ncz/))
 
-            ! get vector idx for core map
-            map_idx = get_matrix_idx(1,i,j,k,1,nnx,nny)
+    ! read in grid info
+    geometry % xgrid = geometry_ % xgrid
+    geometry % ygrid = geometry_ % ygrid
+    geometry % zgrid = geometry_ % zgrid
+   
+    ! read in fine mesh per coarse mesh 
+    geometry % nnx = geometry_ % nnx 
+    geometry % nny = geometry_ % nny
+    geometry % nnz = geometry_ % nnz
 
-            ! extract material identifier
-            matid = geometry%mesh(map_idx)
+    ! read in boundary conditions
+    geometry % bc = geometry_ % bc
 
-            ! record to core map
-            ZZLOOP: do kk = 1,zgrid(k)
+    ! get size of materials
+    n_materials = size(material_)
 
-              YYLOOP: do jj = 1,ygrid(j)
+    ! allocate material
+    allocate(material(n_materials))
 
-                XXLOOP: do ii = 1,xgrid(i)
+    ! begin loop and read in material information
+    do i = 1, n_materials
 
-                  ! compute shifted indices
-                  ix = sum(xgrid(1:i)) - xgrid(i) + ii
-                  jy = sum(ygrid(1:j)) - ygrid(j) + jj
-                  kz = sum(zgrid(1:k)) - zgrid(k) + kk
+      ! set material pointer
+      m => material(i)
 
-                  ! record in object
-                  cmfd%coremap(ix,jy,kz) = matid
+      ! check that uid matches loop
+      if (i /= material_(i) % uid) then
+        message = "Materials need to go in ascending order in order from 1" // &
+                  " to number of materials"
+        call fatal_error()
+      end if
 
-                  ! check to see if matid is there
-                  if (matid > size(mat,1)) then
+      ! allocate material
+      call allocate_material_type(m, geometry % ncg)
 
-                    ! write out fatal error
-                    print *, 'Fatal Error ===> MATERIAL ID',matid,' NOT SET!'
-                    STOP
+      ! save materials if they are associated
+      if (associated(material_(i) % absxs)) then
+        m % abs_based = .true.
+        m % absorxs = material_(i) % absxs
+      end if
 
-                  end if
+      if (associated(material_(i) % remxs)) then
+        m % rem_based = .true.
+        m % removxs = material_(i) % remxs
+      end if
 
-                  ! check if remxs is set
-                  if (associated(mat(matid)%remxs)) then
+      if (associated(material_(i) % totalxs)) then
+        m % totalxs = material_(i) % totalxs
+      else
+        if (.not. m % abs_based .and. .not. m % rem_based) then
+          message ="Need to specify absorption or total xs!"
+          call fatal_error()
+        end if
+      end if
 
-                    ! set arbitrary totalxs
-                    cmfd%totalxs(g,ix,jy,kz) = 0.5
+      if (.not.associated(material_(i) % diffcoef)) then
+        message = "Need to specify diffusion coefficients!"
+        call fatal_error()
+      else
+        m % diffcof = material_(i) % diffcoef
+      end if
 
-                  else
+      if (.not.associated(material_(i) % scattxs)) then
+        message = "Need to specify scattering xs!"
+        call fatal_error()
+      else
+        m % scattxs = reshape(material_(i) % scattxs,(/geometry % ncg,         &
+                                                       geometry % ncg/))
+      end if
 
-                    ! set tot xs since it is given
-                    cmfd%totalxs(g,ix,jy,kz) = mat(matid)%totalxs(g)
+      if (associated(material_(i) % chi)) then
+        m % chi = material_(i) % chi
+        m % chi_based = .true.
+      end if
 
-                  end if
+      if (associated(material_(i) % nfissxs) .and. m % chi_based) then
+        m % fissvec = material_(i) % nfissxs
+      else
+        m % nfissxs = reshape(material_(i) % nfissxs,(/geometry % ncg,         &
+                                                       geometry % ncg/))
+      end if
 
-                  ! set diffusion coefficient
-                  cmfd%diffcof(g,ix,jy,kz) = mat(matid)%diffcoef(g)
+      print *,"Material:", i
+      print *,"Removal:", m % removxs, m % rem_based
+      print *,"Scattering:", m % scattxs
+      print *,"Fission v:", m % fissvec
+      print *,"Chi:", m % chi, m % chi_based
+      print *,"DC:", m % diffcof
 
-                  ! loop around outgoing energy groups 
-                  ELOOP: do h = 1,ng
-
-                    ! get vector h-->g index
-                    ! two group --> 1-->1,1-->2,2-->1,2-->2
-                    hg_idx = g + ng*(h - 1)
-
-                    ! check if remxs is set and if so adjust within group
-                    if (associated(mat(matid)%remxs) .and. g == h) then
-
-                      ! set within group scattering
-                      cmfd%scattxs(h,g,ix,jy,kz) = cmfd%totalxs(g,ix,jy,kz) -  &
-                     &                           mat(matid)%remxs(g)
-
-                    else
-
-                      ! set regular of just off-scattering
-                      cmfd%scattxs(h,g,ix,jy,kz) = mat(matid)%scattxs(hg_idx)
-
-                    end if
-
-                    ! check if chi was entered
-                    if (associated(mat(matid)%chi)) then
-
-                      ! set nfissxs transfer based on chi and nfissxs vector
-                      cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%chi(g)*mat(matid)%nfissxs(h)
-
-                    else
-
-                      ! user entered in transfer matrix just record
-                      cmfd%nfissxs(h,g,ix,jy,kz) = mat(matid)%nfissxs(hg_idx)
-
-                    end if
-
-                  end do ELOOP
-
-                end do XXLOOP
-
-              end do YYLOOP
-
-            end do ZZLOOP
-
-          end do GROUP
-
-        end do XLOOP
-
-      end do YLOOP
-
-    end do ZLOOP
-
-    ! get dimensions
-    if (associated(geometry%uniform)) then
-
-      ! record uniform dimensions
-      cmfd%hxyz(1,:,:,:) = geometry%uniform(1)
-      cmfd%hxyz(2,:,:,:) = geometry%uniform(2)
-      cmfd%hxyz(3,:,:,:) = geometry%uniform(3)
-
-    else if (associated(geometry%dx)) then
-
-      ! loop through to get nonuniform dimensions
-      ZLOOP2: do k = 1,nnz
-
-        YLOOP2: do j = 1,nny
-
-          XLOOP2: do i = 1,nnx
-
-            ! record to core map
-            ZZLOOP2: do kk = 1,zgrid(k)
-
-              YYLOOP2: do jj = 1,ygrid(j)
-
-                XXLOOP2: do ii = 1,xgrid(i)
-
-                  ! compute shifted indices
-                  ix = sum(xgrid(1:i)) - xgrid(i) + ii
-                  jy = sum(ygrid(1:j)) - ygrid(j) + jj
-                  kz = sum(zgrid(1:k)) - zgrid(k) + kk
-
-                  ! record dimension
-                  cmfd%hxyz(1,ix,jy,kz) = geometry%dx(i)/xgrid(i)
-                  cmfd%hxyz(2,ix,jy,kz) = geometry%dy(j)/ygrid(j)
-                  cmfd%hxyz(3,ix,jy,kz) = geometry%dz(k)/zgrid(k)
-
-                end do XXLOOP2
-
-              end do YYLOOP2
-
-            end do ZZLOOP2
-
-          end do XLOOP2
-
-        end do YLOOP2
-
-      end do ZLOOP2
-
-    else
-
-      ! user forgot dimensions
-      print *,'Fatal Error ===> Dimensions not entered correctly!'
-      STOP
-
-    end if
-
-    ! write out core map and deallocate
-    write(200,*) cmfd%coremap
-    deallocate(cmfd%coremap)
-
-    ! echo input
-!   print *, 'Dimensions:'
-!   print *,cmfd%indices
-!   print *, 'CORE MAP:'
-!   print *,cmfd%coremap
-!   print *, 'TOTAL XS:'
-!   print *,minval(cmfd%totalxs),maxval(cmfd%totalxs)
-!   print *, 'SCATTERING XS:'
-!   print *,minval(cmfd%scattxs),maxval(cmfd%scattxs)
-!   print *, 'Nu-FISSION XS:'
-!   print *,minval(cmfd%nfissxs),maxval(cmfd%nfissxs)
-!   print *, 'DIFFUSION COEFFICIENT:'
-!   print *,minval(cmfd%diffcof),maxval(cmfd%diffcof)
-!   print *, 'BOUNDARY CONDITIONS:'
-!   print *,cmfd%albedo
-!   print *, 'CORE CELL DIMENSIONS X:'
-!   print *,cmfd%hxyz(1,:,:,:)
-!   print *, 'CORE CELL DIMENSIONS Y:'
-!   print *,cmfd%hxyz(2,:,:,:)
-!   print *, 'CORE CELL DIMENSIONS Z:'
-!   print *,cmfd%hxyz(3,:,:,:)
-
+    end do
+stop
   end subroutine read_input_xml
-
-!===============================================================================
-! GET_MATRIX_IDX takes (x,y,z,g) indices and computes location in matrix 
-!===============================================================================
-
-  function get_matrix_idx(g,i,j,k,ng,nx,ny)
-
-    ! arguments
-    integer :: get_matrix_idx  ! the index location in matrix
-    integer :: i               ! current x index
-    integer :: j               ! current y index
-    integer :: k               ! current z index
-    integer :: g               ! current group index
-    integer :: ng              ! max energy groups
-    integer :: nx              ! maximum cells in x direction
-    integer :: ny              ! maximum cells in y direction
-
-    ! local variables
-    integer :: nidx            ! index in matrix
-
-    ! compute index
-    nidx = g + ng*(i - 1) + ng*nx*(j - 1) + ng*nx*ny*(k - 1)
-
-    ! record value to function
-    get_matrix_idx = nidx
-
-  end function get_matrix_idx
 
 end module input_xml 

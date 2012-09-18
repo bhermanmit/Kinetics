@@ -1,17 +1,29 @@
 module global
 
-  use constants,   only: MAX_LINE_LEN
-  use cmfd_header, only: cmfd_obj
-  use timing,      only: Timer
+!-module external references
+
+  use constants,        only: MAX_LINE_LEN
+  use cmfd_header,      only: cmfd_type
+  use geometry_header,  only: geometry_type
+  use material_header,  only: material_type
+  use timing,           only: Timer
+
+!-module options
 
   implicit none
   save
 
-!-Main object
+!-main objects
 
-  type(cmfd_obj) :: cmfd
+  type(cmfd_type)                          :: cmfd        ! holds result
+  type(geometry_type), target              :: geometry    ! holds geometry info
+  type(material_type), allocatable, target :: material(:) ! holds material info
 
-!-Timing objects
+!-material information
+
+  integer :: n_materials
+
+!-timing objects
 
   type(Timer) :: time_total  ! timer for whole calculation
   type(Timer) :: time_build  ! timer for mat building

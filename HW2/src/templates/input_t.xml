@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <template>
 
-  <!-- This is the template for reading input in CMFD -->
+  <!-- This is the template for reading input for CMFD -->
 
   <options rootname="input" />
 
@@ -15,23 +15,25 @@
     <component name="ygrid" type="integer-array" />
     <component name="zgrid" type="integer-array" /> 
     <component name="uniform" type="double-array" />
-    <component name="dx" type="double-array" />
-    <component name="dy" type="double-array" />
-    <component name="dz" type="double-array" />
+    <component name="nnx" type="integer-array" />
+    <component name="nny" type="integer-array" />
+    <component name="nnz" type="integer-array" />
     <component name="bc" type="double-array" />
   </typedef>
 
-  <typedef name="mat_xml">
+  <typedef name="material_xml">
     <component name="uid" type="integer" />
     <component name="totalxs" type="double-array" />
     <component name="scattxs" type="double-array" />
+    <component name="absxs" type="double-array" />
+    <component name="remxs" type="double-array" />
     <component name="nfissxs" type="double-array" />
     <component name="diffcoef" type="double-array" />
     <component name="chi" type="double-array" />
-    <component name="remxs" type="double-array" />
+    <component name="buckling" type="double" />
   </typedef>
 
-  <variable name="geometry" type="geometry_xml" />
-  <variable name="mat" tag="mat" type="mat_xml" dimension="1" />
+  <variable name="geometry_" tag="geometry" type="geometry_xml" />
+  <variable name="material_" tag="material" type="material_xml" dimension="1" />
 
 </template>
