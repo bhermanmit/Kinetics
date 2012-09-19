@@ -28,6 +28,7 @@ jacobian_operator.o: prod_operator.o
 
 loss_operator.o: global.o
 loss_operator.o: material_header.o
+loss_operator.o: math.o
 
 main.o: cmfd_execute.o
 main.o: finalize.o

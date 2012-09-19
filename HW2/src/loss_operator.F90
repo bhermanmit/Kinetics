@@ -19,7 +19,11 @@ module loss_operator
     integer  :: nnz    ! max number of nonzeros
     integer  :: localn ! local size on proc
     integer, allocatable :: d_nnz(:) ! vector of diagonal preallocation
-    integer, allocatable :: o_nnz(:) ! vector of off-diagonal preallocation
+    integer, allocatable :: o_nnz(:)   ! vector of off-diagonal preallocation
+    integer, allocatable :: row(:)     ! vector of row indices
+    integer, allocatable :: col(:)     ! vector of column indices
+    integer, allocatable :: row_csr(:) ! row indexing for CSR
+    real(8), allocatable :: val(:)     ! the value
 
   end type loss_operator_type
 
@@ -203,6 +207,12 @@ contains
 
     end do ROWS
 
+    ! allocate CSR objects
+    allocate(this % row(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % col(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % row_csr(2*(row_end - row_start + 1)))
+
   end subroutine preallocate_loss_matrix
 
 !===============================================================================
@@ -252,8 +262,14 @@ contains
     ! get row bounds for this processor
     call MatGetOwnershipRange(this%M,row_start,row_finish,ierr)
 
+    ! initialize counter
+    kount = 1
+
     ! begin iteration loops
     ROWS: do irow = row_start,row_finish-1 
+
+      ! set csr value of row
+      this % row_csr(2*irow+1) = kount
 
       ! get indices for that row
       call matrix_to_indices(irow,g,i,j,k)
@@ -315,6 +331,11 @@ contains
           call MatSetValue(this%M,irow,neig_mat_idx-1,val,                     &
           &                 INSERT_VALUES,ierr)
 
+          this % row(kount) = irow + 1
+          this % col(kount) = neig_mat_idx
+          this % val(kount) = val
+          kount = kount + 1
+
           ! compute leakage coefficient for target to cell
           jo(l) = shift_idx*dtilde
 
@@ -341,6 +362,11 @@ contains
 
       ! record diagonal term
       call MatSetValue(this%M,irow,irow,val,INSERT_VALUES,ierr)
+      this % row(kount) = irow + 1
+      this % col(kount) = irow + 1 
+      this % row_csr(2*irow+2) = kount ! sets diagnal csr index
+      this % val(kount) = val
+      kount = kount + 1
 
       ! begin loop over off diagonal in-scattering
       SCATTR: do h = 1,ng
@@ -357,6 +383,10 @@ contains
         val = -m % scattxs(h,g)
 
         call MatSetValue(this%M,irow,scatt_mat_idx-1,val, INSERT_VALUES,ierr)
+        this % row(kount) = irow + 1
+        this % col(kount) = scatt_mat_idx
+        this % val(kount) = val
+        kount = kount + 1
 
       end do SCATTR
 
@@ -365,6 +395,7 @@ contains
     ! assemble matrix
     call MatAssemblyBegin(this%M,MAT_FLUSH_ASSEMBLY,ierr)
     call MatAssemblyEnd(this%M,MAT_FINAL_ASSEMBLY,ierr)
+    call csr_sort_vectors(this)
 
     ! print out operator to file
     call print_M_operator(this)
@@ -413,6 +444,46 @@ contains
   end subroutine matrix_to_indices
 
 !===============================================================================
+! CSR_SORT_VECTORS
+!===============================================================================
+
+  subroutine csr_sort_vectors(this)
+
+!---external references
+
+    use math,  only: sort_csr
+
+!---arguments
+
+    type(loss_operator_type) :: this
+
+!---local variables
+
+    integer :: i
+    integer :: j
+    integer :: first
+    integer :: last
+    integer :: sr(4) = (/1,1,1,1/)
+    integer :: sc(4) = (/5,2,9,1/)
+    real(8) :: sv(4) = (/2.0_8,1.0_8,3.0_8,8.0_8/)
+
+!---begin execution
+
+    ! loop around row csr vector
+    do i = 1, size(this % row_csr)/2 - 1
+
+      ! get bounds
+      first = this % row_csr(2*(i-1) + 1)
+      last =  this %row_csr(2*i+1) - 1
+
+      ! sort a row
+      call sort_csr(this % row, this % col, this % val, first, last) 
+
+    end do
+
+  end subroutine csr_sort_vectors
+
+!===============================================================================
 ! PRINT_M_OPERATOR 
 !===============================================================================
 
@@ -440,6 +511,12 @@ contains
 
     ! deallocate matrix
     call MatDestroy(this%M,ierr)
+
+    ! deallocate CSR objects
+    if (allocated(this % row)) deallocate(this % row)
+    if (allocated(this % col)) deallocate(this % col)
+    if (allocated(this % val)) deallocate(this % val)
+    if (allocated(this % row_csr)) deallocate(this % row_csr)
 
     ! deallocate other parameters
     if (allocated(this%d_nnz)) deallocate(this%d_nnz)
