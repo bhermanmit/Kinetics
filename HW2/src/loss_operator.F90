@@ -54,15 +54,15 @@ contains
 
   subroutine get_M_indices(this)
 
-    use global, only: cmfd
+    use global, only: geometry 
 
     type(loss_operator_type) :: this
 
     ! get maximum number of cells in each direction
-    nx = cmfd%indices(1)
-    ny = cmfd%indices(2)
-    nz = cmfd%indices(3)
-    ng = cmfd%indices(4)
+    nx = geometry % nfx 
+    ny = geometry % nfy
+    nz = geometry % nfz
+    ng = geometry % nfg
 
     ! get number of nonzeros
     this%nnz = 7 + ng - 1
@@ -77,8 +77,6 @@ contains
 !===============================================================================
 
   subroutine preallocate_loss_matrix(this)
-
-    use global, only: cmfd
 
     type(loss_operator_type) :: this
 
@@ -213,7 +211,8 @@ contains
 
   subroutine build_loss_matrix(this)
 
-    use global, only: cmfd,ierr
+    use global,           only: geometry, material, mpi_err
+    use material_header,  only: material_type
 
     type(loss_operator_type) :: this
 
@@ -235,16 +234,15 @@ contains
     integer :: row_start            ! the first local row on the processor
     integer :: row_finish           ! the last local row on the processor
     integer :: irow                 ! iteration counter over row
-    real(8) :: totxs                ! total macro cross section
-    real(8) :: scattxsgg            ! scattering macro cross section g-->g
-    real(8) :: scattxshg            ! scattering macro cross section h-->g
-    real(8) :: dtilde(6)            ! finite difference coupling parameter
-    real(8) :: dhat(6)              ! nonlinear coupling parameter
     real(8) :: hxyz(3)              ! cell lengths in each direction
+    real(8) :: hxyzn(3)             ! cell lengths for neighbor
+    real(8) :: dtilde               ! coupling factor
     real(8) :: jn                   ! direction dependent leakage coeff to neig
     real(8) :: jo(6)                ! leakage coeff in front of cell flux
     real(8) :: jnet                 ! net leakage from jo
     real(8) :: val                  ! temporary variable before saving to 
+    type(material_type), pointer :: m  ! current cell materials
+    type(material_type), pointer :: mn ! neighboring cell materials
 
     ! create single vector of these indices for boundary calculation
     nxyz(1,:) = (/1,nx/)
@@ -260,18 +258,13 @@ contains
       ! get indices for that row
       call matrix_to_indices(irow,g,i,j,k)
 
-      ! retrieve cell data
-      totxs = cmfd%totalxs(g,i,j,k)
-      scattxsgg = cmfd%scattxs(g,g,i,j,k)
-      dtilde = cmfd%dtilde(:,g,i,j,k)
-      hxyz = cmfd%hxyz(:,i,j,k)
+      ! set material pointer
+      m => material(geometry % fine_map(i,j,k) % mat)
 
-      ! check and get dhat
-      if (allocated(cmfd%dhat)) then
-        dhat = cmfd%dhat(:,g,i,j,k)
-      else
-        dhat = 0.0_8
-      end if
+      ! retrieve cell widths 
+      hxyz = (/geometry % dx(geometry % fine_map(i,j,k) % x),                  &
+               geometry % dy(geometry % fine_map(i,j,k) % y),                  &
+               geometry % dz(geometry % fine_map(i,j,k) % z)/)
 
       ! create boundary vector 
       bound = (/i,i,j,j,k,k/)
@@ -292,24 +285,50 @@ contains
         ! check for global boundary
         if (bound(l) /= nxyz(xyz_idx,dir_idx)) then
 
+          ! set neighbor material pointer
+          mn => material(geometry % fine_map(neig_idx(1), neig_idx(2),         &
+                                              neig_idx(3)) % mat)
+
+          ! retrive neighbor cell widths
+          hxyzn = (/geometry % dx(geometry % fine_map(neig_idx(1),neig_idx(2), &
+                                                      neig_idx(3)) % x),       &
+                    geometry % dy(geometry % fine_map(neig_idx(1),neig_idx(2), &
+                                                      neig_idx(3)) % y),       &
+                    geometry % dz(geometry % fine_map(neig_idx(1),neig_idx(2), &
+                                                      neig_idx(3)) % z)/)
+
+          ! compute dtilde
+          dtilde = (2.0_8*m % diffcof(g)*mn % diffcof(g)) /                    &
+                (hxyzn(xyz_idx)*m % diffcof(g) + hxyz(xyz_idx)*mn % diffcof(g))
+
           ! compute leakage coefficient for neighbor
-          jn = -dtilde(l) + shift_idx*dhat(l)
+          jn = -dtilde
 
           ! get neighbor matrix index
-          call indices_to_matrix(g,neig_idx(1),neig_idx(2),neig_idx(3),      &
+          call indices_to_matrix(g,neig_idx(1),neig_idx(2),neig_idx(3),        &
          &                       neig_mat_idx)
 
           ! compute value and record to bank
           val = jn/hxyz(xyz_idx)
 
           ! record value in matrix
-          call MatSetValue(this%M,irow,neig_mat_idx-1,val,                   &
+          call MatSetValue(this%M,irow,neig_mat_idx-1,val,                     &
           &                 INSERT_VALUES,ierr)
 
-        end if
+          ! compute leakage coefficient for target to cell
+          jo(l) = shift_idx*dtilde
 
-        ! compute leakage coefficient for target
-        jo(l) = shift_idx*dtilde(l) + dhat(l)
+        else
+
+          ! calculate dtilde
+          dtilde = (2.0_8*m % diffcof(g)*(1.0_8-geometry % bc(l))) /           &
+                   (4.0_8*m % diffcof(g)*(1.0_8+geometry % bc(l)) +                   &
+                   (1.0_8-geometry % bc(l))*hxyz(xyz_idx))
+
+          ! compute leakage coefficient for target next to boundary
+          jo(l) = shift_idx*dtilde
+
+        end if
 
       end do LEAK
 
@@ -318,7 +337,7 @@ contains
      &       (jo(6) - jo(5))/hxyz(3)
 
       ! calculate loss of neutrons
-      val = jnet + totxs - scattxsgg
+      val = jnet + m % totalxs(g) - m % scattxs(g,g)
 
       ! record diagonal term
       call MatSetValue(this%M,irow,irow,val,INSERT_VALUES,ierr)
@@ -334,11 +353,8 @@ contains
         ! get neighbor matrix index
         call indices_to_matrix(h,i,j,k,scatt_mat_idx)
 
-        ! get scattering macro xs
-        scattxshg = cmfd%scattxs(h,g,i,j,k)
-
         ! record value in matrix (negate it)
-        val = -scattxshg
+        val = -m % scattxs(h,g)
 
         call MatSetValue(this%M,irow,scatt_mat_idx-1,val, INSERT_VALUES,ierr)
 

@@ -54,15 +54,15 @@ contains
 
   subroutine get_F_indices(this)
 
-    use global, only: cmfd
+    use global, only: geometry 
 
     type(prod_operator_type) :: this
 
     ! get maximum number of cells in each direction
-    nx = cmfd%indices(1)
-    ny = cmfd%indices(2)
-    nz = cmfd%indices(3)
-    ng = cmfd%indices(4)
+    nx = geometry % nfx
+    ny = geometry % nfy
+    nz = geometry % nfz
+    ng = geometry % nfg
 
     ! get number of nonzeros
     this%nnz = 7 + ng - 1
@@ -77,8 +77,6 @@ contains
 !===============================================================================
 
   subroutine preallocate_prod_matrix(this)
-
-    use global, only: cmfd
 
     type(prod_operator_type) :: this
 
@@ -166,7 +164,8 @@ contains
 
   subroutine build_prod_matrix(this)
 
-    use global, only: cmfd
+    use global,           only: geometry, material 
+    use material_header,  only: material_type
 
     type(prod_operator_type) :: this
 
@@ -179,11 +178,12 @@ contains
     integer :: gmat_idx           ! index in matrix for energy group g
     integer :: hmat_idx           ! index in matrix for energy group h
     integer :: ierr               ! Petsc error code
-    integer :: row_start            ! the first local row on the processor
-    integer :: row_finish           ! the last local row on the processor
-    integer :: irow                 ! iteration counter over row
+    integer :: row_start          ! the first local row on the processor
+    integer :: row_finish         ! the last local row on the processor
+    integer :: irow               ! iteration counter over row
     real(8) :: nfissxs            ! nufission cross section h-->g
     real(8) :: val                ! temporary variable for nfissxs
+    type(material_type), pointer :: m
 
     ! get row bounds for this processor
     call MatGetOwnershipRange(this%F,row_start,row_finish,ierr)
@@ -194,17 +194,17 @@ contains
       ! get indices for that row
       call matrix_to_indices(irow,g,i,j,k)
 
+      ! set material pointer
+      m => material(geometry % fine_map(i,j,k) % mat)
+
       ! loop around all other groups 
       NFISS: do h = 1,ng
-
-        ! get cell data
-        nfissxs = cmfd%nfissxs(h,g,i,j,k)
 
         ! get matrix column location
         call indices_to_matrix(h,i,j,k,hmat_idx)
 
         ! reocrd value in matrix
-        val = nfissxs
+        val = m % nfissxs(h,g)
         call MatSetValue(this%F,irow,hmat_idx-1,val,INSERT_VALUES,ierr)
 
       end do NFISS

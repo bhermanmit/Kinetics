@@ -54,6 +54,12 @@ contains
     geometry % ncz = geometry_ % nz
     geometry % ncg = geometry_ % ng
 
+    ! set fine grid
+    geometry % nfx = sum(geometry_ % nnx)
+    geometry % nfy = sum(geometry_ % nny)
+    geometry % nfz = sum(geometry_ % nnz)
+    geometry % nfg = geometry_ % ng
+
     ! allocate geometry object
     call allocate_geometry_type(geometry)
 
@@ -149,15 +155,19 @@ contains
                                                        geometry % ncg/))
       end if
 
-      print *,"Material:", i
-      print *,"Removal:", m % removxs, m % rem_based
-      print *,"Scattering:", m % scattxs
-      print *,"Fission v:", m % fissvec
-      print *,"Chi:", m % chi, m % chi_based
-      print *,"DC:", m % diffcof
+      if (material_(i) % buckling > 1.e-20_8) then
+        m % use_buckling = .true.
+        m % buckling = material_(i) % buckling
+        if (.not. m % abs_based) then
+          message = "Cant use buckling unless absxs is specified!"
+          call fatal_error()
+        end if
+      else
+        m % buckling = 0.0_8
+      end if
 
     end do
-stop
+
   end subroutine read_input_xml
 
 end module input_xml 

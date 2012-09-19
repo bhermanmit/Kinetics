@@ -8,7 +8,6 @@
 
 module cmfd_execute
 
-  use cmfd_data,         only: set_up_cmfd
   use global
   use power_solver, only: cmfd_power_execute
   use slepc_solver, only: cmfd_slepc_execute
@@ -26,9 +25,6 @@ contains
 
     integer :: ierr  ! petsc error code
 
-    ! intialize the cmfd object 
-    call set_up_cmfd()
-
     ! execute solver
     select case (trim(solver_type))
 
@@ -42,9 +38,6 @@ contains
         call cmfd_power_execute()
 
     end select
-
-    ! write vtk file
-    !if(.not. cmfd_only) call write_cmfd_vtk()
 
   end subroutine execute_cmfd
 

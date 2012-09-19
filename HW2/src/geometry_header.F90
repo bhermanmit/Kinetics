@@ -4,9 +4,22 @@ module geometry_header
 
   implicit none
   private
-  public :: allocate_geometry_type, deallocate_geometry_type, generate_fine_map
+  public :: allocate_geometry_type, deallocate_geometry_type,                  &
+            generate_fine_map, compute_widths
 
 !-module variables
+
+  type :: map_type
+
+    ! coarse indices
+    integer :: x
+    integer :: y
+    integer :: z
+
+    ! matid
+    integer :: mat
+
+  end type map_type
 
   type, public :: geometry_type
 
@@ -26,7 +39,7 @@ module geometry_header
     integer, allocatable :: mat_map(:,:,:)
 
     ! fine to coarse map based on materials
-    integer, allocatable :: fine_map(:,:,:)
+    type(map_type), allocatable :: fine_map(:,:,:)
 
     ! size of each coarse mesh
     real(8), allocatable :: xgrid(:)
@@ -47,6 +60,7 @@ module geometry_header
     real(8) :: bc(6)
 
   end type geometry_type 
+
 
 contains
 
@@ -93,9 +107,82 @@ contains
 
     type(geometry_type) :: this
 
+!---local variables
+
+    integer :: i  ! loop counter
+    integer :: j  ! loop counter
+    integer :: k  ! loop counter
+    integer :: ii ! loop counter
+    integer :: jj ! loop cuonter
+    integer :: kk ! loop counter
+    integer :: ix ! index counter
+    integer :: iy ! index counter
+    integer :: iz ! index counter
+
 !---begin execution
 
+    ! begin loop over coarse map
+    iz = 0
+    CZLOOP: do k = 1, this % ncz
+
+      iy = 0
+      CYLOOP: do j = 1, this % ncy
+
+        ix = 0
+        CXLOOP: do i = 1, this % ncx
+
+          ! begin loop over fine mesh
+          FZLOOP: do kk = 1, this % nnz(k)
+
+            FYLOOP: do jj = 1, this % nny(j)
+
+              FXLOOP: do ii = 1, this % nnx(i)
+
+                ! save coarse to fine mesh
+                this % fine_map(ix+ii,iy+jj,iz+kk) % mat = this % mat_map(i,j,k)
+                this % fine_map(ix+ii,iy+jj,iz+kk) % x   = i
+                this % fine_map(ix+ii,iy+jj,iz+kk) % y   = j
+                this % fine_map(ix+ii,iy+jj,iz+kk) % z   = k
+
+              end do FXLOOP
+
+            end do FYLOOP
+
+          end do FZLOOP
+          ix = ix + this % nnx(i)
+
+        end do CXLOOP
+        iy = iy + this % nny(j)
+
+      end do CYLOOP
+      iz = iz + this % nnz(k)
+
+    end do CZLOOP
+
   end subroutine generate_fine_map
+
+!===============================================================================
+! COMPUTE_WIDTHS
+!===============================================================================
+
+  subroutine compute_widths(this)
+
+!---arguments
+
+    type(geometry_type) :: this
+
+!---begin execution
+
+    ! compute x
+    this % dx = this % xgrid / dble(this % nnx)
+
+    ! compute y
+    this % dy = this % ygrid / dble(this % nny)
+
+    ! compute z
+    this % dz = this % zgrid / dble(this % nnz)
+
+  end subroutine compute_widths
 
 !===============================================================================
 ! DEALLOCATE_GEOMETRY_TYPE

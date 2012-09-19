@@ -20,10 +20,23 @@ contains
 
   subroutine initialize_run()
 
+!---external references
+
+    use input_xml,        only: read_input_xml
+
 !---begin execution
 
     ! initailize PETSc/SLEPc
     call petsc_init()
+
+    ! read in input
+    call read_input_xml()
+
+    ! initialize materials
+    call materials_init()
+
+    ! initialize geometry
+    call geometry_init()
 
   end subroutine initialize_run
 
@@ -50,5 +63,52 @@ contains
     if (rank == 0) master = .true.
 
   end subroutine petsc_init
+
+!===============================================================================
+! MATERIALS_INIT
+!===============================================================================
+
+  subroutine materials_init()
+
+!---external references
+
+    use global,           only: material, n_materials, geometry
+    use material_header,  only: arrange_xs
+
+!---local variables
+
+    integer :: i ! loop counter
+
+!---begin execution
+
+    ! arrange material cross sections
+    do i = 1, n_materials
+
+      call arrange_xs(material(i),geometry % ncg)
+
+    end do
+
+  end subroutine materials_init
+
+!===============================================================================
+! GEOMETRY_INIT
+!===============================================================================
+
+  subroutine geometry_init()
+
+!---external references
+
+    use geometry_header,  only: generate_fine_map, compute_widths
+    use global,           only: geometry
+
+!---begin execution
+
+    ! set up geometry fine map
+    call generate_fine_map(geometry)
+
+    ! compute cell widths
+    call compute_widths(geometry) 
+
+  end subroutine geometry_init
 
 end module initialize

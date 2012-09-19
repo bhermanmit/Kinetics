@@ -5,7 +5,6 @@ program main
   use cmfd_execute,  only: execute_cmfd 
   use finalize,      only: finalize_run
   use initialize,    only: initialize_run 
-  use input_xml,     only: read_input_xml
   use output,        only: title
 
 !-program options
@@ -16,9 +15,6 @@ program main
 
   ! print out title
   call title()
-
-  ! read input
-  call read_input_xml()
 
   ! initialize
   call initialize_run()

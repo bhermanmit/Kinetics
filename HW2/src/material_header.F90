@@ -4,7 +4,7 @@ module material_header
 
   implicit none
   private
-  public :: allocate_material_type, deallocate_material_type
+  public :: allocate_material_type, deallocate_material_type, arrange_xs
 
 !-module variables
 
@@ -24,10 +24,14 @@ module material_header
     ! fission spectrum 
     real(8), allocatable :: chi(:)
 
+    ! axial buckling
+    real(8) :: buckling
+
     ! logicals for preprocessing
     logical :: abs_based = .false.
     logical :: rem_based = .false.
     logical :: chi_based = .false.
+    logical :: use_buckling = .false.
 
   end type material_type 
 
@@ -90,8 +94,12 @@ contains
 
 !---begin execution
 
+    ! check for buckling
+    if (this % use_buckling) this % absorxs = this % absorxs +                 &
+                             this % diffcof*this % buckling**2
+
     ! begin loop of target energy
-    TO: do g = 1, ng
+    GROUP: do g = 1, ng
 
       ! check if absorption based
       if (this % abs_based) then
@@ -107,19 +115,17 @@ contains
 
       ! check if removal based
       if (this % rem_based) then
-
-        ! compute effective scattering
-        this % scattxs(h,g) = this % totalxs(g) - this % removxs(g)
-
+        this % scattxs(g,g) = this % totalxs(g) - this % removxs(g)
       end if
 
-
       ! begin loop over outgoing energy
-      FROM: do h = 1, ng
+      if (this % chi_based) then
+        do h = 1, ng
+          this % nfissxs(h,g) = this % chi(h) * this % fissvec(g)
+        end do
+      end if
 
-      end do FROM
-
-    end do TO
+    end do GROUP 
 
   end subroutine arrange_xs
 

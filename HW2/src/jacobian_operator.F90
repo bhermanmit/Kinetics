@@ -65,15 +65,15 @@ contains
 
   subroutine get_J_indices(this)
 
-    use global, only: cmfd
+    use global, only: geometry 
 
     type(jacobian_operator_type) :: this
 
     ! get maximum number of cells in each direction
-    nx = cmfd%indices(1)
-    ny = cmfd%indices(2)
-    nz = cmfd%indices(3)
-    ng = cmfd%indices(4)
+    nx = geometry % nfx 
+    ny = geometry % nfy
+    nz = geometry % nfz
+    ng = geometry % nfg
 
     ! get number of nonzeros
     this%nnz = 7 + ng - 1

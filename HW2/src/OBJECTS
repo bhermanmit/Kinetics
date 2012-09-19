@@ -1,5 +1,4 @@
 objects = \
-cmfd_data.o \
 cmfd_execute.o \
 cmfd_header.o \
 constants.o \
