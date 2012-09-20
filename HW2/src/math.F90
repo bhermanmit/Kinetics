@@ -155,7 +155,7 @@ contains
 ! CSR_JACOBI
 !===============================================================================
 
-  subroutine csr_jacobi(row,col,val,diag,x,b,y,n,nz,tol)
+  subroutine csr_jacobi(row,col,val,diag,x,b,n,nz,tol)
 
 !---external arguments
 
@@ -170,7 +170,6 @@ contains
     integer, intent(in)     :: diag(n)
     real(8), intent(in)     :: val(nz) 
     real(8), intent(inout)  :: x(n)
-    real(8), intent(out)    :: y(n)
     real(8), intent(in)     :: b(n)
     real(8), intent(in)     :: tol
 
@@ -180,9 +179,13 @@ contains
     integer :: j
     integer :: iter
     real(8) :: norm
+    real(8), allocatable :: tmp(:)
 
 !---begin execution
-write(44,*) b
+
+    ! allocate temp
+    allocate(tmp(n))
+
     ! loop until converged
     do iter = 1, 10000 
 
@@ -190,7 +193,7 @@ write(44,*) b
       do i = 1, n
 
         ! initialize y
-        y(i) = ZERO
+        tmp(i) = ZERO
 
         ! loop over columns in that row but skip diagonal
         do j = row(i), row(i+1) - 1
@@ -200,26 +203,26 @@ write(44,*) b
             cycle
           end if
 
-          y(i) = y(i) + val(j)*x(col(j))
+          tmp(i) = tmp(i) + val(j)*x(col(j))
 
         end do
 
         ! subtract RHS value
-        y(i) = b(i) - y(i)
+        tmp(i) = b(i) - tmp(i)
 
         ! divide by diagonal
-        y(i) = y(i)/val(diag(i))
+        tmp(i) = tmp(i)/val(diag(i))
 
       end do
 
       ! compute point-wise L2 norm 
-      norm = sqrt(sum((y - x)**2))
+      norm = sqrt(sum((tmp - x)**2))
+
+      ! set all temp x to x
+      x = tmp 
 
       ! check convergence
       if (norm < tol) exit 
-
-      ! set all temp x to x
-      x = y 
 
     end do
 

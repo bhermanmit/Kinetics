@@ -16,8 +16,7 @@ module power_iter
   logical     :: iconv      ! did the problem converged
   real(8)     :: k_n        ! new k-eigenvalue
   real(8)     :: k_o        ! old k-eigenvalue
-  real(8), allocatable :: phi_n(:) ! new flux vector
-  real(8), allocatable :: phi_o(:) ! old flux vector
+  real(8), allocatable :: phi(:)   ! flux vector
   real(8), allocatable :: S_n(:)   ! new source vector
   real(8), allocatable :: S_o(:)   ! old source vector
 
@@ -80,9 +79,8 @@ contains
     ! get problem size
     n = loss%n
 
-    ! set up flux vectors
-    allocate(phi_n(n))
-    allocate(phi_o(n))
+    ! set up flux vector
+    allocate(phi(n))
 
     ! set up source vectors
     allocate(S_n(n))
@@ -91,8 +89,7 @@ contains
     ! set initial guess
     k_n = ONE 
     k_o = ONE
-    phi_n = ONE
-    phi_o = ONE
+    phi = ONE
     S_n = ONE
     S_o = ONE 
 
@@ -144,16 +141,16 @@ contains
     do i = 1,10000
 
       ! compute source vector
-      S_o =  csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi_o,prod%n)
+      S_o =  csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
 
       ! normalize source vector
       S_o = S_o/k_o
 
       ! compute new flux vector
-      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi_o, S_o, phi_n, n, nz, 1.e-10_8)
+      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, 1.e-10_8)
 
       ! compute new source vector
-      S_n = csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi_n,prod%n)
+      S_n = csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
 
       ! compute new k-eigenvalue
       num = sum(S_n)
@@ -170,7 +167,6 @@ contains
       if (iconv) exit
 
       ! record old values
-      phi_o = phi_n 
       k_o = k_n
 
     end do
@@ -229,8 +225,7 @@ contains
     call destroy_M_operator(loss)
     call destroy_F_operator(prod)
 
-    deallocate(phi_n)
-    deallocate(phi_o)
+    deallocate(phi)
     deallocate(S_n)
     deallocate(S_o)
 
