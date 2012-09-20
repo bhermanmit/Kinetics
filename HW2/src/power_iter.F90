@@ -117,7 +117,9 @@ contains
 
 !---external references
 
-    use math,       only: csr_matvec_mult, csr_jacobi
+    use cmfd_header,  only: calc_power
+    use global,       only: cmfd, geometry
+    use math,         only: csr_matvec_mult, csr_jacobi
 
 !---local variables
 
@@ -137,6 +139,15 @@ contains
     ! reset convergence flag
     iconv = .FALSE.
 
+    ! compute source vector
+    S_o =  csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
+
+    ! compute initail nodal power
+    call calc_power(cmfd,S_o,n,geometry)
+
+    ! move power to old
+    cmfd % power_o = cmfd % power_n
+
     ! begin power iteration
     do i = 1,10000
 
@@ -152,6 +163,9 @@ contains
       ! compute new source vector
       S_n = csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
 
+      ! compute new power
+      call calc_power(cmfd,S_n,n,geometry)
+
       ! compute new k-eigenvalue
       num = sum(S_n)
       den = sum(S_o) 
@@ -161,13 +175,14 @@ contains
       S_o = S_o * k_o 
 
       ! check convergence
-      call convergence()
+      call convergence(cmfd)
 
       ! to break or not to break
       if (iconv) exit
 
       ! record old values
       k_o = k_n
+      cmfd % power_o = cmfd % power_n
 
     end do
 
@@ -177,7 +192,17 @@ contains
 ! CONVERGENCE checks the convergence of eigenvalue, eigenvector and source
 !===============================================================================
 
-  subroutine convergence()
+  subroutine convergence(cmfd)
+
+!---external references
+
+    use cmfd_header,  only: cmfd_type
+
+!---arguments
+
+    type(cmfd_type) :: cmfd
+
+!---local variables
 
     real(8)     :: ktol = 1.e-8_8 ! tolerance on keff
     real(8)     :: stol = 1.e-6_8 ! tolerance on source
@@ -189,6 +214,8 @@ contains
     integer     :: ierr           ! petsc error code
     integer     :: n              ! vector size
 
+!---begin execution
+
     ! reset convergence flag
     iconv = .FALSE.
 
@@ -196,7 +223,7 @@ contains
     kerr = abs(k_o - k_n)/k_n
 
     ! calculate max error in source
-    serr = sqrt(sum((S_n - S_o)**2)) 
+    serr = sqrt(sum((cmfd % power_n - cmfd % power_o)**2)) 
 
     ! check for convergence
     if(kerr < ktol .and. serr < stol) iconv = .TRUE.

@@ -22,7 +22,9 @@ contains
 
 !---external references
 
+    use cmfd_header,      only: allocate_cmfd_type
     use input_xml,        only: read_input_xml
+    use global,           only: geometry, cmfd
 
 !---begin execution
 
@@ -37,6 +39,9 @@ contains
 
     ! initialize geometry
     call geometry_init()
+
+    ! initialize cmfd data
+    call allocate_cmfd_type(cmfd,geometry)
 
   end subroutine initialize_run
 

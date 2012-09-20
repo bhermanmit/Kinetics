@@ -10,11 +10,11 @@
     <component name="ny" type="integer" />
     <component name="nz" type="integer" />
     <component name="ng" type="integer" />
-    <component name="mesh" type="integer-array" />
+    <component name="mat" type="integer-array" />
+    <component name="reg" type="integer-array" />
     <component name="xgrid" type="integer-array" />
     <component name="ygrid" type="integer-array" />
     <component name="zgrid" type="integer-array" /> 
-    <component name="uniform" type="double-array" />
     <component name="nnx" type="integer-array" />
     <component name="nny" type="integer-array" />
     <component name="nnz" type="integer-array" />

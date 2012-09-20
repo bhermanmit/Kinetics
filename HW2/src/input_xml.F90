@@ -65,13 +65,26 @@ contains
 
     ! read in coarse material map first check dimensions
     if (geometry % ncx*geometry % ncy*geometry % ncz /=                        &
-        size(geometry_ % mesh)) then
+        size(geometry_ % mat)) then
       message = "Map dimensions do not match indices!"
       call fatal_error()
     end if 
-    geometry % mat_map = reshape(geometry_ % mesh,(/geometry % ncx,            &
+    geometry % mat_map = reshape(geometry_ % mat, (/geometry % ncx,            &
                                                     geometry % ncy,            &
                                                     geometry % ncz/))
+
+    ! read in coarse region map first check dimensions
+    if (geometry % ncx*geometry % ncy*geometry % ncz /=                        &
+        size(geometry_ % reg)) then
+      message = "Reg dimensions do not match indices!"
+      call fatal_error()
+    end if
+    geometry % reg_map = reshape(geometry_ % reg, (/geometry % ncx,            &
+                                                    geometry % ncy,            &
+                                                    geometry % ncz/))
+
+    ! number of regions
+    geometry % n_regs = maxval(geometry % reg_map)
 
     ! read in grid info
     geometry % xgrid = geometry_ % xgrid

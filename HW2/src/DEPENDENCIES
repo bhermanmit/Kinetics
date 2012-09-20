@@ -4,6 +4,8 @@ cmfd_execute.o: math.o
 cmfd_execute.o: slepc_solver.o
 cmfd_execute.o: snes_solver.o
 
+cmfd_header.o: geometry_header.o
+
 error.o: global.o
 
 finalize.o: output.o

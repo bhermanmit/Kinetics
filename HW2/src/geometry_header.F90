@@ -19,6 +19,9 @@ module geometry_header
     ! matid
     integer :: mat
 
+    ! regid
+    integer :: reg
+
   end type map_type
 
   type, public :: geometry_type
@@ -35,10 +38,16 @@ module geometry_header
     integer :: nfz
     integer :: nfg
 
+    ! number of regions
+    integer :: n_regs
+
     ! material map
     integer, allocatable :: mat_map(:,:,:)
 
-    ! fine to coarse map based on materials
+    ! region map
+    integer, allocatable :: reg_map(:,:,:)
+
+    ! fine to coarse map
     type(map_type), allocatable :: fine_map(:,:,:)
 
     ! size of each coarse mesh
@@ -78,6 +87,7 @@ contains
 
     ! allocate maps
     allocate(this % mat_map (this % ncx, this % ncy, this % ncz))
+    allocate(this % reg_map (this % ncx, this % ncy, this % ncz))
     allocate(this % fine_map(this % nfx, this % nfy, this % nfz))
 
     ! allocate grids
@@ -140,6 +150,7 @@ contains
 
                 ! save coarse to fine mesh
                 this % fine_map(ix+ii,iy+jj,iz+kk) % mat = this % mat_map(i,j,k)
+                this % fine_map(ix+ii,iy+jj,iz+kk) % reg = this % reg_map(i,j,k)
                 this % fine_map(ix+ii,iy+jj,iz+kk) % x   = i
                 this % fine_map(ix+ii,iy+jj,iz+kk) % y   = j
                 this % fine_map(ix+ii,iy+jj,iz+kk) % z   = k
@@ -198,6 +209,7 @@ contains
 
     ! deallocate all
     deallocate(this % mat_map)
+    deallocate(this % reg_map)
     deallocate(this % fine_map)
     deallocate(this % xgrid)
     deallocate(this % ygrid)
