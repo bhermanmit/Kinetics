@@ -24,7 +24,7 @@ contains
 
   subroutine execute_cmfd()
 
-    use math,  only: csr_jacobi
+    use math,  only: csr_jacobi, csr_gauss_seidel
 
     integer :: ierr  ! petsc error code
 
@@ -39,7 +39,7 @@ contains
         call cmfd_snes_execute()
       case DEFAULT
 !       call cmfd_power_execute()
-        call power_execute(csr_jacobi)
+        call power_execute(csr_gauss_seidel)
 
     end select
 

@@ -4,7 +4,7 @@ module math
 
   implicit none
   private
-  public :: sort_csr, csr_matvec_mult, csr_jacobi
+  public :: sort_csr, csr_matvec_mult, csr_jacobi, csr_gauss_seidel
 
 contains
 
@@ -227,5 +227,89 @@ contains
     end do
 
   end subroutine csr_jacobi 
+
+!===============================================================================
+! CSR_GAUSS_SEIDEL
+!===============================================================================
+
+  subroutine csr_gauss_seidel(row,col,val,diag,x,b,n,nz,tol)
+
+!---external arguments
+
+    use constants,  only: ZERO
+
+!---arguments
+
+    integer, intent(in)     :: n
+    integer, intent(in)     :: nz
+    integer, intent(in)     :: row(n+1)
+    integer, intent(in)     :: col(nz)
+    integer, intent(in)     :: diag(n)
+    real(8), intent(in)     :: val(nz)
+    real(8), intent(inout)  :: x(n)
+    real(8), intent(in)     :: b(n)
+    real(8), intent(in)     :: tol
+
+!---local variables
+
+    integer :: i
+    integer :: j
+    integer :: iter
+    real(8) :: sum2 
+    real(8) :: norm
+    real(8), allocatable :: tmp(:)
+
+!---begin execution
+
+    ! allocate temp
+    allocate(tmp(n))
+
+    ! loop until converged
+    do iter = 1, 10000
+
+      ! set norm sum to zero
+      sum2 = ZERO
+
+      ! begin loop over rows
+      do i = 1, n
+
+        ! initialize y
+        tmp(i) = ZERO
+
+        ! loop over columns in that row but skip diagonal
+        do j = row(i), row(i+1) - 1
+
+          ! continue if this diagonal element
+          if (j == diag(i)) then
+            cycle
+          end if
+
+          tmp(i) = tmp(i) + val(j)*x(col(j))
+
+        end do
+
+        ! subtract RHS value
+        tmp(i) = b(i) - tmp(i)
+
+        ! divide by diagonal
+        tmp(i) = tmp(i)/val(diag(i))
+
+        ! sum for norm
+        sum2 = sum2 + (tmp(i) - x(i))**2
+
+        ! set this value in x
+        x(i) = tmp(i)
+
+      end do
+
+      ! compute point-wise L2 norm 
+      norm = sqrt(sum2)
+
+      ! check convergence
+      if (norm < tol) exit
+
+    end do
+
+  end subroutine csr_gauss_seidel
 
 end module math 
