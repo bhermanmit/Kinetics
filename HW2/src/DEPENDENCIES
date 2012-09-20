@@ -1,4 +1,6 @@
+cmfd_execute.o: power_iter.o
 cmfd_execute.o: power_solver.o
+cmfd_execute.o: math.o
 cmfd_execute.o: slepc_solver.o
 cmfd_execute.o: snes_solver.o
 
@@ -39,6 +41,11 @@ material_header.o: constants.o
 output.o: constants.o
 output.o: global.o
 output.o: string.o
+
+power_iter.o: constants.o
+power_iter.o: loss_operator.o
+power_iter.o: math.o
+power_iter.o: prod_operator.o
 
 power_solver.o: loss_operator.o
 power_solver.o: prod_operator.o

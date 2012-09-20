@@ -9,6 +9,7 @@
 module cmfd_execute
 
   use global
+  use power_iter,   only: power_execute
   use power_solver, only: cmfd_power_execute
   use slepc_solver, only: cmfd_slepc_execute
   use snes_solver,  only: cmfd_snes_execute
@@ -23,6 +24,8 @@ contains
 
   subroutine execute_cmfd()
 
+    use math,  only: csr_jacobi
+
     integer :: ierr  ! petsc error code
 
     ! execute solver
@@ -35,7 +38,8 @@ contains
       case('snes')
         call cmfd_snes_execute()
       case DEFAULT
-        call cmfd_power_execute()
+!       call cmfd_power_execute()
+        call power_execute(csr_jacobi)
 
     end select
 

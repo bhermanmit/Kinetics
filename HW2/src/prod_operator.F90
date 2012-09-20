@@ -20,6 +20,10 @@ module prod_operator
     integer  :: localn ! local size on proc
     integer, allocatable :: d_nnz(:) ! vector of diagonal preallocation
     integer, allocatable :: o_nnz(:) ! vector of off-diagonal preallocation
+    integer, allocatable :: row(:)     ! vector of row indices
+    integer, allocatable :: col(:)     ! vector of column indices
+    integer, allocatable :: row_csr(:) ! row indexing for CSR
+    real(8), allocatable :: val(:)     ! the value
 
   end type prod_operator_type
 
@@ -156,6 +160,12 @@ contains
 
     end do ROWS
 
+    ! allocate CSR objects
+    allocate(this % row(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % col(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
+    allocate(this % row_csr(row_end - row_start + 2))
+
   end subroutine preallocate_prod_matrix
 
 !===============================================================================
@@ -181,6 +191,7 @@ contains
     integer :: row_start          ! the first local row on the processor
     integer :: row_finish         ! the last local row on the processor
     integer :: irow               ! iteration counter over row
+    integer :: kount              ! csr counter
     real(8) :: nfissxs            ! nufission cross section h-->g
     real(8) :: val                ! temporary variable for nfissxs
     type(material_type), pointer :: m
@@ -188,8 +199,14 @@ contains
     ! get row bounds for this processor
     call MatGetOwnershipRange(this%F,row_start,row_finish,ierr)
 
+    ! initialize csr counter
+    kount = 1
+
     ! begin iteration loops
     ROWS: do irow = row_start,row_finish-1
+
+      ! set csr value of row
+      this % row_csr(irow+1) = kount
 
       ! get indices for that row
       call matrix_to_indices(irow,g,i,j,k)
@@ -206,14 +223,22 @@ contains
         ! reocrd value in matrix
         val = m % nfissxs(h,g)
         call MatSetValue(this%F,irow,hmat_idx-1,val,INSERT_VALUES,ierr)
+        this % row(kount) = irow + 1
+        this % col(kount) = hmat_idx 
+        this % val(kount) = val
+        kount = kount + 1
 
       end do NFISS
 
     end do ROWS 
 
+    ! put in last row index
+    this % row_csr(row_finish - row_start) = kount
+
     ! assemble matrix 
     call MatAssemblyBegin(this%F,MAT_FLUSH_ASSEMBLY,ierr)
     call MatAssemblyEnd(this%F,MAT_FINAL_ASSEMBLY,ierr)
+    call csr_sort_vectors(this)
 
     ! print out operator to file
     call print_F_operator(this)
@@ -260,6 +285,43 @@ contains
     k = mod(irow,ng*nx*ny*nz)/(ng*nx*ny) + 1
 
   end subroutine matrix_to_indices
+
+!===============================================================================
+! CSR_SORT_VECTORS
+!===============================================================================
+
+  subroutine csr_sort_vectors(this)
+
+!---external references
+
+    use math,  only: sort_csr
+
+!---arguments
+
+    type(prod_operator_type) :: this
+
+!---local variables
+
+    integer :: i
+    integer :: j
+    integer :: first
+    integer :: last
+
+!---begin execution
+
+    ! loop around row csr vector
+    do i = 1, size(this % row_csr) - 1
+
+      ! get bounds
+      first = this % row_csr(i)
+      last =  this %row_csr(i+1) - 1
+
+      ! sort a row
+      call sort_csr(this % row, this % col, this % val, first, last)
+
+    end do
+
+  end subroutine csr_sort_vectors
 
 !===============================================================================
 ! PRINT_F_OPERATOR 

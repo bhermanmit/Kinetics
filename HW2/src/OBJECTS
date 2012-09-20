@@ -14,6 +14,7 @@ main.o \
 material_header.o \
 math.o \
 output.o \
+power_iter.o \
 power_solver.o \
 prod_operator.o \
 slepc_solver.o \

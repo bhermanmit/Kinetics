@@ -23,6 +23,7 @@ module loss_operator
     integer, allocatable :: row(:)     ! vector of row indices
     integer, allocatable :: col(:)     ! vector of column indices
     integer, allocatable :: row_csr(:) ! row indexing for CSR
+    integer, allocatable :: diag(:)    ! diagonal index in CSR
     real(8), allocatable :: val(:)     ! the value
 
   end type loss_operator_type
@@ -211,7 +212,8 @@ contains
     allocate(this % row(sum(this % d_nnz) + sum(this % o_nnz)))
     allocate(this % col(sum(this % d_nnz) + sum(this % o_nnz)))
     allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
-    allocate(this % row_csr(2*(row_end - row_start + 1)))
+    allocate(this % row_csr(row_end - row_start + 2))
+    allocate(this % diag(row_end - row_start + 1))
 
   end subroutine preallocate_loss_matrix
 
@@ -269,7 +271,7 @@ contains
     ROWS: do irow = row_start,row_finish-1 
 
       ! set csr value of row
-      this % row_csr(2*irow+1) = kount
+      this % row_csr(irow+1) = kount
 
       ! get indices for that row
       call matrix_to_indices(irow,g,i,j,k)
@@ -364,7 +366,6 @@ contains
       call MatSetValue(this%M,irow,irow,val,INSERT_VALUES,ierr)
       this % row(kount) = irow + 1
       this % col(kount) = irow + 1 
-      this % row_csr(2*irow+2) = kount ! sets diagnal csr index
       this % val(kount) = val
       kount = kount + 1
 
@@ -391,6 +392,9 @@ contains
       end do SCATTR
 
     end do ROWS 
+
+    ! put in last row index
+    this % row_csr(row_finish - row_start + 1) = kount
 
     ! assemble matrix
     call MatAssemblyBegin(this%M,MAT_FLUSH_ASSEMBLY,ierr)
@@ -463,21 +467,23 @@ contains
     integer :: j
     integer :: first
     integer :: last
-    integer :: sr(4) = (/1,1,1,1/)
-    integer :: sc(4) = (/5,2,9,1/)
-    real(8) :: sv(4) = (/2.0_8,1.0_8,3.0_8,8.0_8/)
 
 !---begin execution
 
     ! loop around row csr vector
-    do i = 1, size(this % row_csr)/2 - 1
+    do i = 1, size(this % row_csr) - 1
 
       ! get bounds
-      first = this % row_csr(2*(i-1) + 1)
-      last =  this %row_csr(2*i+1) - 1
+      first = this % row_csr(i)
+      last =  this % row_csr(i+1) - 1
 
       ! sort a row
-      call sort_csr(this % row, this % col, this % val, first, last) 
+      call sort_csr(this % row, this % col, this % val, first, last)
+
+      ! loop around columns to find diag
+     do j = first, last
+       if (i == this % col(j)) this % diag(i) = j
+     end do
 
     end do
 
