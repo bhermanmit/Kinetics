@@ -44,7 +44,13 @@ module global
 
 !-solver type
 
-  character(len=25) :: solver_type
+  character(len=50) :: solver_type = "jacobi"
+
+!-solver tolerances
+
+  real(8) :: ktol = 1.e-8_8
+  real(8) :: stol = 1.e-6_8
+  real(8) :: itol = 1.e-10_8
 
 !-Message used in message/warning/fatal_error
 

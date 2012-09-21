@@ -21,6 +21,8 @@ module cmfd_header
     ! final iteration and norm
     integer :: iter
     real(8) :: norm
+    real(8) :: norm_o
+    real(8) :: dr
 
   end type cmfd_type
 

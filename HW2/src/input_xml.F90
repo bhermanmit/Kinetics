@@ -19,7 +19,8 @@ contains
     use constants,        only: MAX_FILE_LEN
     use error,            only: fatal_error
     use geometry_header,  only: allocate_geometry_type 
-    use global,           only: material, geometry, message, n_materials
+    use global,           only: material, geometry, message, n_materials,      &
+                                solver_type, ktol, stol, itol
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -180,6 +181,14 @@ contains
       end if
 
     end do
+
+    ! get solver type
+    solver_type = trim(solver_)
+
+    ! get solver tolerances
+    ktol = ktol_
+    stol = stol_
+    itol = itol_
 
   end subroutine read_input_xml
 

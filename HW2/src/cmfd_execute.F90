@@ -1,20 +1,10 @@
-!==============================================================================!
-! MODULE: cmfd_execute
-!
-!> @author Bryan Herman
-!>
-!> @brief Routine for running the eigenvalue solve
-!==============================================================================!
-
 module cmfd_execute
 
-  use global
-  use power_iter,   only: power_execute
-  use power_solver, only: cmfd_power_execute
-  use slepc_solver, only: cmfd_slepc_execute
-  use snes_solver,  only: cmfd_snes_execute
- 
+!-module options
+
   implicit none
+  private
+  public execute_cmfd
 
 contains
 
@@ -24,10 +14,15 @@ contains
 
   subroutine execute_cmfd()
 
-    use math,    only: csr_jacobi, csr_gauss_seidel
-    use output,  only: header
+!---external references
 
-    integer :: ierr  ! petsc error code
+    use error,       only: fatal_error
+    use global,      only: solver_type, message
+    use math,        only: csr_jacobi, csr_gauss_seidel
+    use output,      only: header
+    use power_iter,  only: power_execute
+
+!---begin execution
 
     ! print to screen
     call header('MULTIGROUP DIFFUSION', level=1)
@@ -35,15 +30,13 @@ contains
     ! execute solver
     select case (trim(solver_type))
 
-      case('power')
-        call cmfd_power_execute()
-      case('slepc')
-        call cmfd_slepc_execute()
-      case('snes')
-        call cmfd_snes_execute()
-      case DEFAULT
-!       call cmfd_power_execute()
+      case('jacobi')
+        call power_execute(csr_jacobi) 
+      case('gauss')
         call power_execute(csr_gauss_seidel)
+      case DEFAULT      
+        message = "Solver type does not exist!"
+        call fatal_error()
 
     end select
 

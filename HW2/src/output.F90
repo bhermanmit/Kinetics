@@ -185,6 +185,7 @@ contains
     write(OUTPUT_UNIT, 201) 'Final k-effective', cmfd % keff
     write(OUTPUT_UNIT, 202) 'L-2 norm of nodal power', cmfd % norm
     write(OUTPUT_UNIT, 200) 'Number of iterations', cmfd % iter
+    write(OUTPUT_UNIT, 202) 'Dominance ratio', cmfd % dr
     write(OUTPUT_UNIT, fmt='(/,A)') 'Simulation Finished.'
 
     ! fomat for write statements

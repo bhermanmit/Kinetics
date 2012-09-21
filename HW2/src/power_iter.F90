@@ -1,5 +1,7 @@
 module power_iter
 
+
+  use global,        only: ktol, stol, itol
   use loss_operator, only: loss_operator_type,init_M_operator,                 &
  &                         build_loss_matrix,destroy_M_operator
   use prod_operator, only: prod_operator_type,init_F_operator,                 &
@@ -36,9 +38,6 @@ contains
 !---arguments
 
     external :: inner_solver
-
-    ! initialize solver
-    call init_solver()
 
     ! initialize matrices and vectors
     call init_data()
@@ -83,6 +82,7 @@ contains
 !---local variables
 
     integer :: n      ! problem size
+    integer :: i      ! counter
     real(8) :: guess  ! initial guess
 
 !---begin execution
@@ -104,24 +104,15 @@ contains
     ! set initial guess
     k_n = ONE 
     k_o = ONE
-    phi = ONE
     S_n = ONE
     S_o = ONE 
 
+    ! put random guess to excite all harmonics
+    do i=1,n
+      phi(i) = rand()
+    end do
+
   end subroutine init_data
-
-!===============================================================================
-! INIT_SOLVER
-!===============================================================================
-
-  subroutine init_solver()
-
-    real(8)     :: solvertol ! krylov tolerance
-
-    ! set tolerance
-    solvertol = 1.0e-10_8
-
-  end subroutine init_solver
 
 !===============================================================================
 ! EXECUTE_POWER_ITER  in the main power iteration routine 
@@ -177,7 +168,7 @@ contains
 
       ! compute new flux vector
       call timer_start(time_inner)
-      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, 1.e-10_8)
+      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, itol)
       call timer_stop(time_inner)
 
       ! compute new source vector
@@ -202,12 +193,14 @@ contains
         cmfd % iter = i
         cmfd % keff = k_n
         cmfd % norm = norm
+        cmfd % dr = cmfd % norm/cmfd % norm_o
         exit
       end if
 
       ! record old values
       k_o = k_n
       cmfd % power_o = cmfd % power_n
+      cmfd % norm_o = norm
 
     end do
 
@@ -231,14 +224,7 @@ contains
 
 !---local variables
 
-    real(8)     :: ktol = 1.e-8_8 ! tolerance on keff
-    real(8)     :: stol = 1.e-6_8 ! tolerance on source
     real(8)     :: kerr           ! error in keff
-    real(8)     :: one = -1.0_8   ! one
-    integer     :: floc           ! location of max error in flux
-    integer     :: sloc           ! location of max error in source
-    integer     :: ierr           ! petsc error code
-    integer     :: n              ! vector size
 
 !---begin execution
 
