@@ -8,7 +8,7 @@ module output
 
   implicit none
   private
-  public :: title, write_results, write_message
+  public :: title, header, write_results, write_message
 
 contains
 
@@ -167,17 +167,31 @@ contains
 
 !---external references
 
-    use global,  only: time_total
+    use global,  only: time_total, time_init, time_build, time_power,          &
+                       time_inner, cmfd
 
 !---begin execution
 
-    ! write results
-    call header("Simulation Summary", level = 2)
+    ! write timing
+    call header("Timing Statistics", level = 3)
+    write(OUTPUT_UNIT, 100) 'Time for initialization', time_init % elapsed
+    write(OUTPUT_UNIT, 100) 'Time for building matrices', time_build % elapsed
+    write(OUTPUT_UNIT, 100) 'Time for source convergence', time_power % elapsed
+    write(OUTPUT_UNIT, 100) 'Time for inner iterations', time_inner % elapsed
     write(OUTPUT_UNIT, 100) 'Total simulation time', time_total % elapsed
+
+    ! write results
+    call header("Results",level=3)
+    write(OUTPUT_UNIT, 201) 'Final k-effective', cmfd % keff
+    write(OUTPUT_UNIT, 202) 'L-2 norm of nodal power', cmfd % norm
+    write(OUTPUT_UNIT, 200) 'Number of iterations', cmfd % iter
     write(OUTPUT_UNIT, fmt='(/,A)') 'Simulation Finished.'
 
     ! fomat for write statements
 100 format (1X,A,T35,"= ",ES11.4," seconds")
+200 format (1X,A,T35,"=  ",I0)
+201 format (1X,A,T35,"=  ",F8.6)
+202 format (1X,A,T35,"= ",ES11.4)
 
   end subroutine write_results
 

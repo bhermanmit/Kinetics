@@ -26,8 +26,10 @@ module global
 !-timing objects
 
   type(Timer) :: time_total  ! timer for whole calculation
+  type(Timer) :: time_init   ! timer for initialization
   type(Timer) :: time_build  ! timer for mat building
-  type(Timer) :: time_solve  ! timer for power iteration
+  type(Timer) :: time_power  ! timer for power iteration
+  type(Timer) :: time_inner  ! timer for inner iterations
 
 !-petsc error code
 

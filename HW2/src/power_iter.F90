@@ -28,6 +28,11 @@ contains
 
   subroutine power_execute(inner_solver)
 
+!---external references
+
+    use global,  only: time_build, time_power
+    use timing,  only: timer_start, timer_stop
+
 !---arguments
 
     external :: inner_solver
@@ -38,14 +43,24 @@ contains
     ! initialize matrices and vectors
     call init_data()
 
+    ! start build timer
+    call timer_start(time_build)
+
     ! set up M loss matrix
     call build_loss_matrix(loss) 
 
     ! set up F production matrix
     call build_prod_matrix(prod)
 
+    ! stop build timer and start power iter timer
+    call timer_stop(time_build)
+    call timer_start(time_power)
+
     ! begin power iteration 
     call execute_power_iter(inner_solver)
+
+    ! stop power iter timer
+    call timer_stop(time_power)
 
     ! extract results
     call extract_results()
@@ -118,13 +133,16 @@ contains
 !---external references
 
     use cmfd_header,  only: calc_power
-    use global,       only: cmfd, geometry
+    use global,       only: cmfd, geometry, time_inner
     use math,         only: csr_matvec_mult, csr_jacobi
+    use timing,       only: timer_start, timer_stop
+
 
 !---local variables
 
     real(8)     :: num       ! numerator for eigenvalue update
     real(8)     :: den       ! denominator for eigenvalue update
+    real(8)     :: norm      ! norm
     external :: inner_solver
     integer     :: i         ! iteration counter
     integer     :: n
@@ -158,7 +176,9 @@ contains
       S_o = S_o/k_o
 
       ! compute new flux vector
+      call timer_start(time_inner)
       call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, 1.e-10_8)
+      call timer_stop(time_inner)
 
       ! compute new source vector
       S_n = csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
@@ -175,10 +195,15 @@ contains
       S_o = S_o * k_o 
 
       ! check convergence
-      call convergence(cmfd)
+      call convergence(cmfd, i, norm)
 
       ! to break or not to break
-      if (iconv) exit
+      if (iconv) then
+        cmfd % iter = i
+        cmfd % keff = k_n
+        cmfd % norm = norm
+        exit
+      end if
 
       ! record old values
       k_o = k_n
@@ -192,7 +217,7 @@ contains
 ! CONVERGENCE checks the convergence of eigenvalue, eigenvector and source
 !===============================================================================
 
-  subroutine convergence(cmfd)
+  subroutine convergence(cmfd,iter, norm)
 
 !---external references
 
@@ -200,6 +225,8 @@ contains
 
 !---arguments
 
+    integer :: iter
+    real(8) :: norm
     type(cmfd_type) :: cmfd
 
 !---local variables
@@ -207,7 +234,6 @@ contains
     real(8)     :: ktol = 1.e-8_8 ! tolerance on keff
     real(8)     :: stol = 1.e-6_8 ! tolerance on source
     real(8)     :: kerr           ! error in keff
-    real(8)     :: serr           ! error in source
     real(8)     :: one = -1.0_8   ! one
     integer     :: floc           ! location of max error in flux
     integer     :: sloc           ! location of max error in source
@@ -223,13 +249,15 @@ contains
     kerr = abs(k_o - k_n)/k_n
 
     ! calculate max error in source
-    serr = sqrt(sum((cmfd % power_n - cmfd % power_o)**2)) 
+    norm = sqrt(sum((cmfd % power_n - cmfd % power_o)**2)) 
 
     ! check for convergence
-    if(kerr < ktol .and. serr < stol) iconv = .TRUE.
+    if(kerr < ktol .and. norm < stol) iconv = .TRUE.
 
     ! print out to user (TODO: make formatted)
-    print *,k_n,kerr,serr
+    write(*,100) iter,k_n,norm 
+
+ 100 format(I5,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3)
 
   end subroutine convergence
 

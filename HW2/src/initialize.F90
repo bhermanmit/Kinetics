@@ -24,9 +24,18 @@ contains
 
     use cmfd_header,      only: allocate_cmfd_type
     use input_xml,        only: read_input_xml
-    use global,           only: geometry, cmfd
+    use global,           only: geometry, cmfd, time_total, time_init
+    use output,           only: header
+    use timing,           only: timer_start, timer_stop
 
 !---begin execution
+
+    ! start timer
+    call timer_start(time_total)
+    call timer_start(time_init)
+
+    ! set initialization title
+    call header('INITIALIZATION',level=1)
 
     ! initailize PETSc/SLEPc
     call petsc_init()
@@ -42,6 +51,9 @@ contains
 
     ! initialize cmfd data
     call allocate_cmfd_type(cmfd,geometry)
+
+    ! stop initialization timer
+    call timer_stop(time_init)
 
   end subroutine initialize_run
 

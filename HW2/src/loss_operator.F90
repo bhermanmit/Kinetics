@@ -337,7 +337,7 @@ contains
           this % col(kount) = neig_mat_idx
           this % val(kount) = val
           kount = kount + 1
-write(888,*) irow+1,neig_mat_idx,val
+
           ! compute leakage coefficient for target to cell
           jo(l) = shift_idx*dtilde
 

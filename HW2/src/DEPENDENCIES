@@ -1,6 +1,7 @@
 cmfd_execute.o: power_iter.o
 cmfd_execute.o: power_solver.o
 cmfd_execute.o: math.o
+cmfd_execute.o: output.o
 cmfd_execute.o: slepc_solver.o
 cmfd_execute.o: snes_solver.o
 
@@ -8,17 +9,25 @@ cmfd_header.o: geometry_header.o
 
 error.o: global.o
 
+finalize.o: cmfd_header.o
+finalize.o: geometry_header.o
+finalize.o: global.o
+finalize.o: material_header.o
 finalize.o: output.o
+finalize.o: timing.o
 
 global.o: cmfd_header.o
 global.o: geometry_header.o
 global.o: material_header.o
 global.o: timing.o
 
+initialize.o: cmfd_header.o
 initialize.o: geometry_header.o
 initialize.o: global.o
 initialize.o: input_xml.o
 initialize.o: material_header.o
+initialize.o: output.o
+initialize.o: timing.o
 
 input_xml.o: constants.o
 input_xml.o: error.o
@@ -48,6 +57,7 @@ power_iter.o: constants.o
 power_iter.o: loss_operator.o
 power_iter.o: math.o
 power_iter.o: prod_operator.o
+power_iter.o: timing.o
 
 power_solver.o: loss_operator.o
 power_solver.o: prod_operator.o

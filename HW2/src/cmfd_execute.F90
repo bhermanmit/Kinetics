@@ -24,9 +24,13 @@ contains
 
   subroutine execute_cmfd()
 
-    use math,  only: csr_jacobi, csr_gauss_seidel
+    use math,    only: csr_jacobi, csr_gauss_seidel
+    use output,  only: header
 
     integer :: ierr  ! petsc error code
+
+    ! print to screen
+    call header('MULTIGROUP DIFFUSION', level=1)
 
     ! execute solver
     select case (trim(solver_type))
