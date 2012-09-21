@@ -337,7 +337,7 @@ contains
           this % col(kount) = neig_mat_idx
           this % val(kount) = val
           kount = kount + 1
-
+write(888,*) irow+1,neig_mat_idx,val
           ! compute leakage coefficient for target to cell
           jo(l) = shift_idx*dtilde
 
@@ -368,6 +368,7 @@ contains
       this % col(kount) = irow + 1 
       this % val(kount) = val
       kount = kount + 1
+write(888,*) irow+1,irow+1,val
 
       ! begin loop over off diagonal in-scattering
       SCATTR: do h = 1,ng
@@ -381,13 +382,14 @@ contains
         call indices_to_matrix(h,i,j,k,scatt_mat_idx)
 
         ! record value in matrix (negate it)
-        val = -m % scattxs(h,g)
+        val = -m % scattxs(g,h)
 
         call MatSetValue(this%M,irow,scatt_mat_idx-1,val, INSERT_VALUES,ierr)
         this % row(kount) = irow + 1
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val
         kount = kount + 1
+write(888,*) irow+1,scatt_mat_idx,val
 
       end do SCATTR
 

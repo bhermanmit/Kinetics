@@ -221,7 +221,7 @@ contains
         call indices_to_matrix(h,i,j,k,hmat_idx)
 
         ! reocrd value in matrix
-        val = m % nfissxs(h,g)
+        val = m % nfissxs(g,h)
         call MatSetValue(this%F,irow,hmat_idx-1,val,INSERT_VALUES,ierr)
         this % row(kount) = irow + 1
         this % col(kount) = hmat_idx 

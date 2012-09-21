@@ -8,15 +8,15 @@
     <nz>1</nz>
     <ng>2</ng>
     <mat>
-         3 1 5 1 3 
+         3 1 1 1 3
     </mat>
     <reg>
-         1 2 3 4 5 
+         1 2 3 4 5
     </reg>
     <xgrid>30 170 20 170 30</xgrid>
     <ygrid>1</ygrid>
     <zgrid>1</zgrid>
-    <nnx>3 17 2 17 3</nnx>
+    <nnx>30 170 20 170 30</nnx>
     <nny>1</nny>
     <nnz>1</nnz>
     <bc> 1.0 1.0 1.0 1.0 1.0 1.0  </bc>
@@ -60,7 +60,7 @@
     <scattxs> 0.0 0.022 0.0 0.0 </scattxs>
     <nfissxs> 0.006 0.1950 </nfissxs>
     <chi> 1.0 0.0 </chi>
-    <diffcoef> 1.300 0.300 </diffcoef>
+    <diffcoef> 1.300 0.500 </diffcoef>
   </material>
 
 </input>
