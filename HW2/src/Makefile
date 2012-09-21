@@ -186,6 +186,11 @@ ifeq ($(COMPILER),petsc)
     LDFLAGS += -pg
   endif
 
+  # Optimization
+  ifeq ($(OPTIMIZE),yes)
+    F90FLAGS += -O3
+  endif
+
 endif
 
 #===============================================================================

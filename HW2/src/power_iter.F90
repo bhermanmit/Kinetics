@@ -111,6 +111,7 @@ contains
     do i=1,n
       phi(i) = rand()
     end do
+!   phi = ONE
 
   end subroutine init_data
 
@@ -124,7 +125,8 @@ contains
 !---external references
 
     use cmfd_header,  only: calc_power
-    use global,       only: cmfd, geometry, time_inner
+    use error,        only: fatal_error
+    use global,       only: cmfd, geometry, time_inner, message
     use math,         only: csr_matvec_mult, csr_jacobi
     use timing,       only: timer_start, timer_stop
 
@@ -138,6 +140,7 @@ contains
     integer     :: i         ! iteration counter
     integer     :: n
     integer     :: nz 
+    integer     :: iter
 
 !--begin execution
 
@@ -168,7 +171,11 @@ contains
 
       ! compute new flux vector
       call timer_start(time_inner)
-      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, itol)
+      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, itol,iter)
+      if (iter >= 1000000) then
+        message = 'Inner max iteration met'
+        call fatal_error()
+      end if
       call timer_stop(time_inner)
 
       ! compute new source vector

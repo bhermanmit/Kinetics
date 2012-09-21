@@ -155,7 +155,7 @@ contains
 ! CSR_JACOBI
 !===============================================================================
 
-  subroutine csr_jacobi(row,col,val,diag,x,b,n,nz,tol)
+  subroutine csr_jacobi(row,col,val,diag,x,b,n,nz,tol,iter)
 
 !---external arguments
 
@@ -165,6 +165,7 @@ contains
 
     integer, intent(in)     :: n
     integer, intent(in)     :: nz
+    integer, intent(inout)  :: iter
     integer, intent(in)     :: row(n+1)
     integer, intent(in)     :: col(nz)
     integer, intent(in)     :: diag(n)
@@ -177,7 +178,6 @@ contains
 
     integer :: i
     integer :: j
-    integer :: iter
     real(8) :: norm
     real(8), allocatable :: tmp(:)
 
@@ -186,8 +186,11 @@ contains
     ! allocate temp
     allocate(tmp(n))
 
+    ! start counter
+    iter = 1
+
     ! loop until converged
-    do iter = 1, 10000 
+    do while(iter <= 1000000) 
 
       ! begin loop over rows
       do i = 1, n
@@ -224,6 +227,9 @@ contains
       ! check convergence
       if (norm < tol) exit 
 
+      ! increase counter
+      iter = iter + 1
+
     end do
 
   end subroutine csr_jacobi 
@@ -232,7 +238,7 @@ contains
 ! CSR_GAUSS_SEIDEL
 !===============================================================================
 
-  subroutine csr_gauss_seidel(row,col,val,diag,x,b,n,nz,tol)
+  subroutine csr_gauss_seidel(row,col,val,diag,x,b,n,nz,tol,iter)
 
 !---external arguments
 
@@ -242,6 +248,7 @@ contains
 
     integer, intent(in)     :: n
     integer, intent(in)     :: nz
+    integer, intent(inout)  :: iter
     integer, intent(in)     :: row(n+1)
     integer, intent(in)     :: col(nz)
     integer, intent(in)     :: diag(n)
@@ -254,7 +261,6 @@ contains
 
     integer :: i
     integer :: j
-    integer :: iter
     real(8) :: sum2 
     real(8) :: norm
     real(8), allocatable :: tmp(:)
@@ -264,8 +270,11 @@ contains
     ! allocate temp
     allocate(tmp(n))
 
+    ! start counter
+    iter = 1
+
     ! loop until converged
-    do iter = 1, 10000
+    do while(iter <= 1000000)
 
       ! set norm sum to zero
       sum2 = ZERO
@@ -307,6 +316,9 @@ contains
 
       ! check convergence
       if (norm < tol) exit
+
+      ! increment counter
+      iter = iter + 1
 
     end do
 

@@ -209,17 +209,104 @@ contains
 
 !---local variables
 
+    integer :: g,i,j,k
+    integer :: kount
+    integer :: n
+    integer, allocatable :: map(:)
 
 !---begin execution
+
+    ! get full size
+    n = geometry % nfx * geometry % nfy * geometry % nfz * geometry % nfg
 
     ! create a new file
     call hdf5_create_file('output.h5')
 
+    ! write out geometry
+    call hdf5_make_integer(hdf5_output_file, "ncx", geometry % ncx)
+    call hdf5_make_integer(hdf5_output_file, "ncy", geometry % ncy)
+    call hdf5_make_integer(hdf5_output_file, "ncz", geometry % ncz)
+    call hdf5_make_integer(hdf5_output_file, "ncg", geometry % ncg)
+    call hdf5_make_integer(hdf5_output_file, "nfx", geometry % nfx)
+    call hdf5_make_integer(hdf5_output_file, "nfy", geometry % nfy)
+    call hdf5_make_integer(hdf5_output_file, "nfz", geometry % nfz)
+    call hdf5_make_integer(hdf5_output_file, "nfg", geometry % nfg)
+
+    ! allocate temporary vectors
+    allocate(map(geometry % nfx * geometry % nfy *                             &
+                 geometry % nfz))
+
+    ! start loop to generate material map
+    kount = 1
+    do k = 1, geometry % nfz
+
+      do j = 1, geometry % nfy
+
+        do i = 1, geometry % nfx
+
+          ! get the map
+          map(kount) = geometry % fine_map(i,j,k) % mat
+          kount = kount + 1
+
+        end do
+
+      end do
+
+    end do
+
+    ! write out the mat
+    call hdf5_make_array(hdf5_output_file,"mat",map,kount-1)
+
+    ! start loop to generate region map
+    kount = 1
+    do k = 1, geometry % nfz
+
+      do j = 1, geometry % nfy
+
+        do i = 1, geometry % nfx
+
+          ! get the map
+          map(kount) = geometry % fine_map(i,j,k) % reg
+          kount = kount + 1
+
+        end do
+
+      end do
+
+    end do
+
+    ! write out the reg
+    call hdf5_make_array(hdf5_output_file,"reg",map,kount-1)
+
+    ! write out tolerances
+    call hdf5_make_double(hdf5_output_file, "ktol", ktol)
+    call hdf5_make_double(hdf5_output_file, "stol", stol)
+    call hdf5_make_double(hdf5_output_file, "itol", itol)
+
     ! write out iteration count
     call hdf5_make_integer(hdf5_output_file, "iterations", cmfd % iter)
 
+    ! write out norm
+    call hdf5_make_double(hdf5_output_file, "norm", cmfd % norm)
+
+    ! write out dominance ratio
+    call hdf5_make_double(hdf5_output_file, "dr", cmfd % dr)
+
+    ! write out keff
+    call hdf5_make_double(hdf5_output_file, "keff", cmfd % keff)
+
+    ! write out phi
+    call hdf5_make_array(hdf5_output_file, "phi", cmfd % phi, n)
+
+    ! write out power
+    call hdf5_make_array(hdf5_output_file, "power", cmfd%power_n,              &
+                         size(cmfd%power_n))
+
     ! close file
     call hdf5_close_file()
+
+    ! deallocate stuff
+    deallocate(map)
 
   end subroutine write_hdf5
 

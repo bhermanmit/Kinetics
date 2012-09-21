@@ -368,7 +368,6 @@ contains
       this % col(kount) = irow + 1 
       this % val(kount) = val
       kount = kount + 1
-write(888,*) irow+1,irow+1,val
 
       ! begin loop over off diagonal in-scattering
       SCATTR: do h = 1,ng
@@ -389,7 +388,6 @@ write(888,*) irow+1,irow+1,val
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val
         kount = kount + 1
-write(888,*) irow+1,scatt_mat_idx,val
 
       end do SCATTR
 
