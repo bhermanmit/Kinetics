@@ -6,6 +6,7 @@ error.o \
 finalize.o \
 geometry_header.o \
 global.o \
+hdf5_interface.o \
 initialize.o \
 input_xml.o \
 jacobian_operator.o \

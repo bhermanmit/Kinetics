@@ -8,6 +8,10 @@ module global
   use material_header,  only: material_type
   use timing,           only: Timer
 
+# ifdef HDF5
+    use hdf5
+# endif
+
 !-module options
 
   implicit none
@@ -51,6 +55,11 @@ module global
   real(8) :: ktol = 1.e-8_8
   real(8) :: stol = 1.e-6_8
   real(8) :: itol = 1.e-10_8
+
+!-hdf5
+
+  integer :: hdf5_err
+  integer(HID_T) :: hdf5_output_file
 
 !-Message used in message/warning/fatal_error
 

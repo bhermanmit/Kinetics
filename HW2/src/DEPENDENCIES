@@ -12,6 +12,7 @@ error.o: global.o
 finalize.o: cmfd_header.o
 finalize.o: geometry_header.o
 finalize.o: global.o
+finalize.o: hdf5_interface.o
 finalize.o: material_header.o
 finalize.o: output.o
 finalize.o: timing.o
@@ -24,6 +25,7 @@ global.o: timing.o
 initialize.o: cmfd_header.o
 initialize.o: geometry_header.o
 initialize.o: global.o
+initialize.o: hdf5_interface.o
 initialize.o: input_xml.o
 initialize.o: material_header.o
 initialize.o: output.o
@@ -51,6 +53,7 @@ material_header.o: constants.o
 
 output.o: constants.o
 output.o: global.o
+output.o: hdf5_interface.o
 output.o: string.o
 
 power_iter.o: constants.o

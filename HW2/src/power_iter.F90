@@ -190,6 +190,7 @@ contains
 
       ! to break or not to break
       if (iconv) then
+        cmfd % phi = phi
         cmfd % iter = i
         cmfd % keff = k_n
         cmfd % norm = norm

@@ -8,7 +8,7 @@ module output
 
   implicit none
   private
-  public :: title, header, write_results, write_message
+  public :: title, header, write_results, write_message, write_hdf5
 
 contains
 
@@ -195,5 +195,32 @@ contains
 202 format (1X,A,T35,"= ",ES11.4)
 
   end subroutine write_results
+
+!===============================================================================
+! WRITE_HDF5
+!===============================================================================
+
+  subroutine write_hdf5()
+
+!---external references
+
+    use global,  only: cmfd, geometry, ktol, stol, itol, hdf5_err
+    use hdf5_interface
+
+!---local variables
+
+
+!---begin execution
+
+    ! create a new file
+    call hdf5_create_file('output.h5')
+
+    ! write out iteration count
+    call hdf5_make_integer(hdf5_output_file, "iterations", cmfd % iter)
+
+    ! close file
+    call hdf5_close_file()
+
+  end subroutine write_hdf5
 
 end module output

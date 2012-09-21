@@ -25,6 +25,7 @@ contains
     use cmfd_header,      only: allocate_cmfd_type
     use input_xml,        only: read_input_xml
     use global,           only: geometry, cmfd, time_total, time_init
+    use hdf5_interface,   only: hdf5_initialize
     use output,           only: header
     use timing,           only: timer_start, timer_stop
 
@@ -39,6 +40,9 @@ contains
 
     ! initailize PETSc/SLEPc
     call petsc_init()
+
+    ! initialize hdf5
+    call hdf5_initialize()
 
     ! read in input
     call read_input_xml()
