@@ -96,7 +96,7 @@ contains
 
     ! check for buckling
     if (this % use_buckling) this % absorxs = this % absorxs +                 &
-                             this % diffcof*this % buckling**2
+                             this % diffcof*this % buckling
 
     ! begin loop of target energy
     GROUP: do g = 1, ng
@@ -109,7 +109,7 @@ contains
 
         ! compute removal
         this % removxs(g) = this % absorxs(g) +                  &
-                            sum(this % scattxs(g,:)) -           & 
+                            sum(this % scattxs(:,g)) -           & 
                             this % scattxs(g,g)
       end if
 

@@ -34,43 +34,48 @@
 
 <!-- Defition of Materials -->
   <material uid="1">
-    <remxs> 0.0337075 0.1003211  </remxs>
+    <absxs> 0.008252 0.1003  </absxs>
     <scattxs> 0.0 0.02533 0.0 0.0 </scattxs>
     <nfissxs> 0.004602 0.1091 </nfissxs>
     <chi> 1.0 0.0 </chi>
     <diffcoef> 1.255 0.211 </diffcoef>
+    <buckling> 1e-4 </buckling>
   </material>
 
   <material uid="2">
-    <remxs> 0.0349778 0.07048902  </remxs>
+    <absxs> 0.007181 0.07047 </absxs> 
     <scattxs> 0.0 0.02767 0.0 0.0 </scattxs>
     <nfissxs> 0.004609 0.08675 </nfissxs>
     <chi> 1.0 0.0 </chi>
     <diffcoef> 1.268 0.1902 </diffcoef>
+    <buckling> 1e-4 </buckling>
   </material>
 
   <material uid="3">
-    <remxs> 0.0342979 0.08346091 </remxs>
+    <absxs> 0.008002 0.08344 </absxs>
     <scattxs> 0.0 0.02617 0.0 0.0 </scattxs>
     <nfissxs> 0.004663 0.1021 </nfissxs>
     <chi> 1.0 0.0 </chi>
     <diffcoef> 1.259 0.2091 </diffcoef>
+    <buckling> 1e-4 </buckling>
   </material>
 
   <material uid="4">
-    <remxs> 0.0342979 0.07334491 </remxs>
+    <absxs> 0.008002 0.073324 </absxs> 
     <scattxs> 0.0 0.02617 0.0 0.0 </scattxs>
     <nfissxs> 0.004663 0.1021 </nfissxs>
     <chi> 1.0 0.0 </chi>
     <diffcoef> 1.259 0.2091 </diffcoef>
+    <buckling> 1e-4 </buckling>
   </material>
 
   <material uid="5">
-    <remxs> 0.0482691 0.01912592 </remxs>
+    <absxs> 0.0006034 0.01911 </absxs>
     <scattxs> 0.0 0.04754 0.0 0.0 </scattxs>
     <nfissxs> 0.0 0.0 </nfissxs>
     <chi> 1.0 0.0 </chi>
     <diffcoef> 1.257 0.1592 </diffcoef>
+    <buckling> 1e-4 </buckling>
   </material>
 
 </input>
