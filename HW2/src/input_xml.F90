@@ -20,7 +20,7 @@ contains
     use error,            only: fatal_error
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
-                                solver_type, ktol, stol, itol
+                                solver_type, ktol, stol, itol, guess
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -91,6 +91,8 @@ contains
     geometry % xgrid = geometry_ % xgrid
     geometry % ygrid = geometry_ % ygrid
     geometry % zgrid = geometry_ % zgrid
+    geometry % vol = sum(geometry % xgrid) + sum(geometry % ygrid) +           &
+                     sum(geometry % zgrid)
    
     ! read in fine mesh per coarse mesh 
     geometry % nnx = geometry_ % nnx 
@@ -184,6 +186,9 @@ contains
 
     ! get solver type
     solver_type = trim(solver_)
+
+    ! get starting guess
+    guess = trim(guess_)
 
     ! get solver tolerances
     ktol = ktol_

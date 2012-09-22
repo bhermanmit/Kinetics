@@ -57,6 +57,7 @@ output.o: hdf5_interface.o
 output.o: string.o
 
 power_iter.o: constants.o
+power_iter.o: error.o
 power_iter.o: loss_operator.o
 power_iter.o: math.o
 power_iter.o: prod_operator.o

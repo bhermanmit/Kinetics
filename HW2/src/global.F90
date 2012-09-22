@@ -49,6 +49,7 @@ module global
 !-solver type
 
   character(len=50) :: solver_type = "jacobi"
+  character(len=50) :: guess = "flat"
 
 !-solver tolerances
 

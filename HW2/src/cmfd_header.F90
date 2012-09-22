@@ -81,7 +81,9 @@ contains
     integer :: j
     integer :: k
     integer :: g
+    integer :: idx
     integer :: reg
+    real(8) :: vol
 
 !---begin execution
 
@@ -91,43 +93,23 @@ contains
     ! begin loop around rows
     do irow = 1, n
 
-      ! get coordinates
-      call matrix_to_indices(irow-1,g,i,j,k,geometry % nfx, geometry % nfy,    &
-                                          geometry % nfz, geometry % nfg) 
+      ! compute index
+      idx = ceiling(real(irow)/real(geometry%nfg))
 
       ! get region number
-      reg = geometry % fine_map(i,j,k) % reg
+      reg = geometry % freg_map(idx)
+      vol = geometry % fvol_map(idx)
 
       ! sum nodal power
-      this % power_n(reg) = this % power_n(reg) + fsrc(irow)
+      this % power_n(reg) = this % power_n(reg) + fsrc(irow)*vol
 
     end do
 
+    ! normalize power
+    this % power_n = this % power_n / sum(this % power_n) *                    &
+                     count(this % power_n > 1.e-11_8)
+
   end subroutine calc_power
-
-!===============================================================================
-! MATRIX_TO_INDICES 
-!===============================================================================
-
-  subroutine matrix_to_indices(irow,g,i,j,k,nx,ny,nz,ng)
-
-    integer :: i                    ! iteration counter for x
-    integer :: j                    ! iteration counter for y
-    integer :: k                    ! iteration counter for z
-    integer :: g                    ! iteration counter for groups
-    integer :: irow                 ! iteration counter over row (0 reference)
-    integer :: nx                   ! max x
-    integer :: ny                   ! max y
-    integer :: nz                   ! max z
-    integer :: ng                   ! max g
-
-    ! compute indices
-    g = mod(irow,ng) + 1
-    i = mod(irow,ng*nx)/ng + 1
-    j = mod(irow,ng*nx*ny)/(ng*nx)+ 1
-    k = mod(irow,ng*nx*ny*nz)/(ng*nx*ny) + 1
-
-  end subroutine matrix_to_indices
 
 !===============================================================================
 ! DEALLOCATE_CMFD_TYPE

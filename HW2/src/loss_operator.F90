@@ -246,6 +246,8 @@ contains
     integer :: row_start            ! the first local row on the processor
     integer :: row_finish           ! the last local row on the processor
     integer :: irow                 ! iteration counter over row
+    integer :: idx                  ! index in fine map
+    integer :: nidx                 ! index in neighbor fine map
     real(8) :: hxyz(3)              ! cell lengths in each direction
     real(8) :: hxyzn(3)             ! cell lengths for neighbor
     real(8) :: dtilde               ! coupling factor
@@ -270,6 +272,9 @@ contains
     ! begin iteration loops
     ROWS: do irow = row_start,row_finish-1 
 
+      ! fine map index
+      idx = ceiling(real(irow+1)/real(ng))
+
       ! set csr value of row
       this % row_csr(irow+1) = kount
 
@@ -277,12 +282,11 @@ contains
       call matrix_to_indices(irow,g,i,j,k)
 
       ! set material pointer
-      m => material(geometry % fine_map(i,j,k) % mat)
+      m => material(geometry % fmat_map(idx))
 
       ! retrieve cell widths 
-      hxyz = (/geometry % dx(geometry % fine_map(i,j,k) % x),                  &
-               geometry % dy(geometry % fine_map(i,j,k) % y),                  &
-               geometry % dz(geometry % fine_map(i,j,k) % z)/)
+      hxyz = (/geometry % fdx_map(idx), geometry % fdy_map(idx),         &
+               geometry % fdx_map(idx)/)
 
       ! create boundary vector 
       bound = (/i,i,j,j,k,k/)
@@ -303,17 +307,20 @@ contains
         ! check for global boundary
         if (bound(l) /= nxyz(xyz_idx,dir_idx)) then
 
+          ! get neighbor matrix index
+          call indices_to_matrix(g,neig_idx(1),neig_idx(2),neig_idx(3),        &
+         &                       neig_mat_idx)
+
+          ! compute neig fine map indx
+          nidx = ceiling(real(neig_mat_idx)/real(ng))
+
           ! set neighbor material pointer
-          mn => material(geometry % fine_map(neig_idx(1), neig_idx(2),         &
-                                              neig_idx(3)) % mat)
+          mn => material(geometry % fmat_map(nidx))
 
           ! retrive neighbor cell widths
-          hxyzn = (/geometry % dx(geometry % fine_map(neig_idx(1),neig_idx(2), &
-                                                      neig_idx(3)) % x),       &
-                    geometry % dy(geometry % fine_map(neig_idx(1),neig_idx(2), &
-                                                      neig_idx(3)) % y),       &
-                    geometry % dz(geometry % fine_map(neig_idx(1),neig_idx(2), &
-                                                      neig_idx(3)) % z)/)
+          hxyzn = (/geometry % fdx_map(nidx), geometry % fdy_map(nidx),         &
+                   geometry % fdx_map(nidx)/)
+
 
           ! compute dtilde
           dtilde = (2.0_8*m % diffcof(g)*mn % diffcof(g)) /                    &
@@ -321,10 +328,6 @@ contains
 
           ! compute leakage coefficient for neighbor
           jn = -dtilde
-
-          ! get neighbor matrix index
-          call indices_to_matrix(g,neig_idx(1),neig_idx(2),neig_idx(3),        &
-         &                       neig_mat_idx)
 
           ! compute value and record to bank
           val = jn/hxyz(xyz_idx)

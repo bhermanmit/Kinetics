@@ -32,7 +32,7 @@ contains
 
 !---external references
 
-    use global,  only: time_build, time_power
+    use global,  only: time_build, time_power, geometry
     use timing,  only: timer_start, timer_stop
 
 !---arguments
@@ -61,9 +61,6 @@ contains
     ! stop power iter timer
     call timer_stop(time_power)
 
-    ! extract results
-    call extract_results()
-
     ! deallocate petsc objects
     call finalize()
 
@@ -78,12 +75,12 @@ contains
 !---external references
 
     use constants,  only: ONE
+    use global,     only: guess
 
 !---local variables
 
     integer :: n      ! problem size
     integer :: i      ! counter
-    real(8) :: guess  ! initial guess
 
 !---begin execution
 
@@ -108,10 +105,13 @@ contains
     S_o = ONE 
 
     ! put random guess to excite all harmonics
-    do i=1,n
-      phi(i) = rand()
-    end do
-!   phi = ONE
+    if (trim(guess) == 'rand') then
+      do i=1,n
+        phi(i) = rand()
+      end do
+    else
+      phi = ONE
+    end if
 
   end subroutine init_data
 
@@ -140,7 +140,7 @@ contains
     integer     :: i         ! iteration counter
     integer     :: n
     integer     :: nz 
-    integer     :: iter
+    integer     :: inner
 
 !--begin execution
 
@@ -171,8 +171,8 @@ contains
 
       ! compute new flux vector
       call timer_start(time_inner)
-      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, itol,iter)
-      if (iter >= 1000000) then
+      call inner_solver(loss % row_csr, loss % col, loss % val, loss % diag, phi, S_o, n, nz, itol,inner)
+      if (inner >= 1000000) then
         message = 'Inner max iteration met'
         call fatal_error()
       end if
@@ -193,7 +193,7 @@ contains
       S_o = S_o * k_o 
 
       ! check convergence
-      call convergence(cmfd, i, norm)
+      call convergence(cmfd, i, norm, inner)
 
       ! to break or not to break
       if (iconv) then
@@ -218,15 +218,17 @@ contains
 ! CONVERGENCE checks the convergence of eigenvalue, eigenvector and source
 !===============================================================================
 
-  subroutine convergence(cmfd,iter, norm)
+  subroutine convergence(cmfd,iter,norm,inner)
 
 !---external references
 
     use cmfd_header,  only: cmfd_type
+    use global, only: time_inner
 
 !---arguments
 
     integer :: iter
+    integer :: inner
     real(8) :: norm
     type(cmfd_type) :: cmfd
 
@@ -249,20 +251,11 @@ contains
     if(kerr < ktol .and. norm < stol) iconv = .TRUE.
 
     ! print out to user (TODO: make formatted)
-    write(*,100) iter,k_n,norm 
+    write(*,100) iter,k_n,norm,inner,time_inner%elapsed
 
- 100 format(I5,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3)
+ 100 format(I5,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3,5X,"INNER:",I0,2X,1PE9.3)
 
   end subroutine convergence
-
-!==============================================================================
-! EXTRACT_RESULTS
-!==============================================================================
-
-  subroutine extract_results()
-
-
-  end subroutine extract_results
 
 !==============================================================================
 ! FINALIZE

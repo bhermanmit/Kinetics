@@ -51,7 +51,7 @@ contains
     integer :: mid
     real(8) :: val(:)
 
-!---local variables
+!g---local variables
 
     integer :: left
     integer :: right 
@@ -159,7 +159,8 @@ contains
 
 !---external arguments
 
-    use constants,  only: ZERO
+    use constants,  only: ZERO, ONE
+    use global,     only: geometry
 
 !---arguments
 
@@ -176,9 +177,11 @@ contains
 
 !---local variables
 
-    integer :: i
-    integer :: j
+    integer :: i,j,k,g
+    integer :: irow, icol
+    real(8) :: sum2
     real(8) :: norm
+    real(8) :: vol = ONE
     real(8), allocatable :: tmp(:)
 
 !---begin execution
@@ -192,34 +195,43 @@ contains
     ! loop until converged
     do while(iter <= 1000000) 
 
+      ! init norm sum
+      sum2 = ZERO 
+
       ! begin loop over rows
-      do i = 1, n
+      do irow = 1, n
 
         ! initialize y
-        tmp(i) = ZERO
+        tmp(irow) = ZERO
 
         ! loop over columns in that row but skip diagonal
-        do j = row(i), row(i+1) - 1
+        do j = row(irow), row(irow+1) - 1
 
           ! continue if this diagonal element
-          if (j == diag(i)) then
+          if (j == diag(irow)) then
             cycle
           end if
 
-          tmp(i) = tmp(i) + val(j)*x(col(j))
+          tmp(irow) = tmp(irow) + val(j)*x(col(j))
 
         end do
 
         ! subtract RHS value
-        tmp(i) = b(i) - tmp(i)
+        tmp(irow) = b(irow) - tmp(irow)
 
         ! divide by diagonal
-        tmp(i) = tmp(i)/val(diag(i))
+        tmp(irow) = tmp(irow)/val(diag(irow))
+
+        ! get region number
+        vol = geometry % fvol_map(ceiling(real(irow)/real(geometry%nfg)))
+
+        ! sum the difference
+        sum2 = sum2 + vol*(tmp(irow) - x(irow))**2
 
       end do
 
       ! compute point-wise L2 norm 
-      norm = sqrt(sum((tmp - x)**2))
+      norm = sqrt(sum2)
 
       ! set all temp x to x
       x = tmp 
@@ -232,6 +244,8 @@ contains
 
     end do
 
+    deallocate(tmp)
+
   end subroutine csr_jacobi 
 
 !===============================================================================
@@ -242,7 +256,8 @@ contains
 
 !---external arguments
 
-    use constants,  only: ZERO
+    use constants,  only: ZERO, ONE
+    use global,     only: geometry
 
 !---arguments
 
@@ -259,11 +274,14 @@ contains
 
 !---local variables
 
-    integer :: i
-    integer :: j
+    integer :: irow, icol
+    integer :: i, j, k, g
+    integer :: idx
     real(8) :: sum2 
     real(8) :: norm
+    real(8) :: vol=ONE
     real(8), allocatable :: tmp(:)
+    real(8), allocatable :: tmp1(:)
 
 !---begin execution
 
@@ -280,34 +298,38 @@ contains
       sum2 = ZERO
 
       ! begin loop over rows
-      do i = 1, n
+      do irow = 1, n
 
         ! initialize y
-        tmp(i) = ZERO
+        tmp(irow) = ZERO
 
         ! loop over columns in that row but skip diagonal
-        do j = row(i), row(i+1) - 1
+        do icol = row(irow), row(irow+1) - 1
 
           ! continue if this diagonal element
-          if (j == diag(i)) then
+          if (icol == diag(irow)) then
             cycle
           end if
 
-          tmp(i) = tmp(i) + val(j)*x(col(j))
+          tmp(irow) = tmp(irow) + val(icol)*x(col(icol))
 
         end do
 
         ! subtract RHS value
-        tmp(i) = b(i) - tmp(i)
+        tmp(irow) = b(irow) - tmp(irow)
 
         ! divide by diagonal
-        tmp(i) = tmp(i)/val(diag(i))
+        tmp(irow) = tmp(irow)/val(diag(irow))
+
+        ! get region number
+        idx = ceiling(real(irow)/real(geometry%nfg))
+        vol = geometry % fvol_map(idx)
 
         ! sum for norm
-        sum2 = sum2 + (tmp(i) - x(i))**2
+        sum2 = sum2 + vol*(tmp(irow) - x(irow))**2
 
         ! set this value in x
-        x(i) = tmp(i)
+        x(irow) = tmp(irow)
 
       end do
 
@@ -321,6 +343,8 @@ contains
       iter = iter + 1
 
     end do
+
+    deallocate(tmp)
 
   end subroutine csr_gauss_seidel
 

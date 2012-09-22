@@ -210,9 +210,7 @@ contains
 !---local variables
 
     integer :: g,i,j,k
-    integer :: kount
     integer :: n
-    integer, allocatable :: map(:)
 
 !---begin execution
 
@@ -232,51 +230,11 @@ contains
     call hdf5_make_integer(hdf5_output_file, "nfz", geometry % nfz)
     call hdf5_make_integer(hdf5_output_file, "nfg", geometry % nfg)
 
-    ! allocate temporary vectors
-    allocate(map(geometry % nfx * geometry % nfy *                             &
-                 geometry % nfz))
-
-    ! start loop to generate material map
-    kount = 1
-    do k = 1, geometry % nfz
-
-      do j = 1, geometry % nfy
-
-        do i = 1, geometry % nfx
-
-          ! get the map
-          map(kount) = geometry % fine_map(i,j,k) % mat
-          kount = kount + 1
-
-        end do
-
-      end do
-
-    end do
-
     ! write out the mat
-    call hdf5_make_array(hdf5_output_file,"mat",map,kount-1)
-
-    ! start loop to generate region map
-    kount = 1
-    do k = 1, geometry % nfz
-
-      do j = 1, geometry % nfy
-
-        do i = 1, geometry % nfx
-
-          ! get the map
-          map(kount) = geometry % fine_map(i,j,k) % reg
-          kount = kount + 1
-
-        end do
-
-      end do
-
-    end do
+    call hdf5_make_array(hdf5_output_file,"mat",geometry % fmat_map,n)
 
     ! write out the reg
-    call hdf5_make_array(hdf5_output_file,"reg",map,kount-1)
+    call hdf5_make_array(hdf5_output_file,"reg",geometry % freg_map,n)
 
     ! write out tolerances
     call hdf5_make_double(hdf5_output_file, "ktol", ktol)
@@ -304,9 +262,6 @@ contains
 
     ! close file
     call hdf5_close_file()
-
-    ! deallocate stuff
-    deallocate(map)
 
   end subroutine write_hdf5
 

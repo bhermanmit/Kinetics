@@ -124,11 +124,11 @@ contains
 
 !---begin execution
 
-    ! set up geometry fine map
-    call generate_fine_map(geometry)
-
     ! compute cell widths
     call compute_widths(geometry) 
+
+    ! set up geometry fine map
+    call generate_fine_map(geometry)
 
   end subroutine geometry_init
 

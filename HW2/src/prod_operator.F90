@@ -192,6 +192,7 @@ contains
     integer :: row_finish         ! the last local row on the processor
     integer :: irow               ! iteration counter over row
     integer :: kount              ! csr counter
+    integer :: idx
     real(8) :: nfissxs            ! nufission cross section h-->g
     real(8) :: val                ! temporary variable for nfissxs
     type(material_type), pointer :: m
@@ -212,7 +213,8 @@ contains
       call matrix_to_indices(irow,g,i,j,k)
 
       ! set material pointer
-      m => material(geometry % fine_map(i,j,k) % mat)
+      idx = ceiling(real(irow+1)/real(ng))
+      m => material(geometry % fmat_map(idx))
 
       ! loop around all other groups 
       NFISS: do h = 1,ng

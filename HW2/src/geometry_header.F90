@@ -9,21 +9,6 @@ module geometry_header
 
 !-module variables
 
-  type :: map_type
-
-    ! coarse indices
-    integer :: x
-    integer :: y
-    integer :: z
-
-    ! matid
-    integer :: mat
-
-    ! regid
-    integer :: reg
-
-  end type map_type
-
   type, public :: geometry_type
 
     ! coarse indices
@@ -48,12 +33,18 @@ module geometry_header
     integer, allocatable :: reg_map(:,:,:)
 
     ! fine to coarse map
-    type(map_type), allocatable :: fine_map(:,:,:)
+    integer, allocatable :: fmat_map(:)
+    integer, allocatable :: freg_map(:)
+    real(8), allocatable :: fdx_map(:)
+    real(8), allocatable :: fdy_map(:)
+    real(8), allocatable :: fdz_map(:)
+    real(8), allocatable :: fvol_map(:)
 
     ! size of each coarse mesh
     real(8), allocatable :: xgrid(:)
     real(8), allocatable :: ygrid(:)
     real(8), allocatable :: zgrid(:)
+    real(8) :: vol
 
     ! fine mesh per coarse mesh
     integer, allocatable :: nnx(:)
@@ -88,7 +79,12 @@ contains
     ! allocate maps
     allocate(this % mat_map (this % ncx, this % ncy, this % ncz))
     allocate(this % reg_map (this % ncx, this % ncy, this % ncz))
-    allocate(this % fine_map(this % nfx, this % nfy, this % nfz))
+    allocate(this % fmat_map(this % nfx * this % nfy * this % nfz))
+    allocate(this % freg_map(this % nfx * this % nfy * this % nfz))
+    allocate(this % fdx_map(this % nfx * this % nfy * this % nfz))
+    allocate(this % fdy_map(this % nfx * this % nfy * this % nfz))
+    allocate(this % fdz_map(this % nfx * this % nfy * this % nfz))
+    allocate(this % fvol_map(this % nfx * this % nfy * this % nfz))
 
     ! allocate grids
     allocate(this % xgrid(this % ncx))
@@ -128,6 +124,7 @@ contains
     integer :: ix ! index counter
     integer :: iy ! index counter
     integer :: iz ! index counter
+    integer :: n
 
 !---begin execution
 
@@ -148,12 +145,18 @@ contains
 
               FXLOOP: do ii = 1, this % nnx(i)
 
+                ! row
+                n = (ix+ii) + this % nfx * (iy+jj - 1) + this % nfx *          &
+                     this % nfy * (iz+kk - 1)
+
                 ! save coarse to fine mesh
-                this % fine_map(ix+ii,iy+jj,iz+kk) % mat = this % mat_map(i,j,k)
-                this % fine_map(ix+ii,iy+jj,iz+kk) % reg = this % reg_map(i,j,k)
-                this % fine_map(ix+ii,iy+jj,iz+kk) % x   = i
-                this % fine_map(ix+ii,iy+jj,iz+kk) % y   = j
-                this % fine_map(ix+ii,iy+jj,iz+kk) % z   = k
+                this % fmat_map(n) = this % mat_map(i,j,k)
+                this % freg_map(n) = this % reg_map(i,j,k)
+                this % fdx_map(n)  = this % dx(i) 
+                this % fdy_map(n)  = this % dy(j)
+                this % fdz_map(n)  = this % dz(k)
+                this % fvol_map(n) = (this % dx(i) *      &
+                                   this % dy(j) * this % dz(k))
 
               end do FXLOOP
 
@@ -210,7 +213,12 @@ contains
     ! deallocate all
     deallocate(this % mat_map)
     deallocate(this % reg_map)
-    deallocate(this % fine_map)
+    deallocate(this % fmat_map)
+    deallocate(this % freg_map)
+    deallocate(this % fdx_map)
+    deallocate(this % fdy_map)
+    deallocate(this % fdz_map)
+    deallocate(this % fvol_map)
     deallocate(this % xgrid)
     deallocate(this % ygrid)
     deallocate(this % zgrid)
