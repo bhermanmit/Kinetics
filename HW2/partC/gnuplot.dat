@@ -1,0 +1,23 @@
+
+set terminal pdf
+set output "dr.pdf"
+set key horizontal
+set key bmargin center
+set xlabel "Inverse of Mesh Spacing [1/cm]"
+set ylabel "Dominance Ratio [-]
+set log x
+plot '-' using 1:2 with linespoint title "UN-RODDED", '-' using 1:2 with linespoint title "RODDED"
+  0.1 0.99109804571 
+0.2 0.991116148322 
+1.0 0.991183236754 
+2.0 0.991165254343 
+5.0 0.991182430007 
+7.5 0.99117353905 
+e
+0.1 0.993532933773 
+0.2 0.993556034132 
+1.0 0.993615836846 
+2.0 0.993617991346 
+5.0 0.993612901182 
+7.5 0.993611305768 
+e
