@@ -1,0 +1,30 @@
+
+set terminal pdf 
+set output "rodded_conv.pdf"
+set key horizontal
+set key bmargin center
+set log x
+set xlabel "Inverse of Mesh Spacing [1/cm]"
+set ylabel "k-effective [-]"
+set y2label "L2 Norm of Power [-]"
+set ytics nomirror
+set y2tics
+set title "Rodded Case"
+set log y2
+plot '-' using 1:2 with linespoint axes x1y1 title "k-effective", '-' using 1:3 with linespoint axes x1y2 title "L2 norm of nodal power"
+  0.1 1.36457136239 0.0794822559244
+0.2 1.36457303774 0.0465786500939
+1.0 1.36461300618 0.00306506296275
+2.0 1.36461532734 0.000759981774605
+5.0 1.36461599729 9.5984040083e-05
+7.5 1.36461606843 2.50528018783e-05
+9.0 1.36461608565 7.59318602501e-06
+e
+0.1 1.36457136239 0.0794822559244
+0.2 1.36457303774 0.0465786500939
+1.0 1.36461300618 0.00306506296275
+2.0 1.36461532734 0.000759981774605
+5.0 1.36461599729 9.5984040083e-05
+7.5 1.36461606843 2.50528018783e-05
+9.0 1.36461608565 7.59318602501e-06
+e
