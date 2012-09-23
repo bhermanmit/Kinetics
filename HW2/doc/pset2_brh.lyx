@@ -1,0 +1,892 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\date{}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\rfoot{\scriptsize Bryan Herman}
+\usepackage{color}
+\usepackage{algorithmic}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\bullet 0 0 0 -1
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\shape smallcaps
+\size giant
+Problem Set 2
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+22.S904 Nuclear Reactor Kinetics
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Due: 24 September 2012
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Bryan Herman
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Diffusion Code
+\end_layout
+
+\begin_layout Standard
+A general three-dimensional second order finite volume code was written
+ to solve the neutron diffusion equation.
+ 
+\series bold
+The source code can be reviewed at:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\series bold
+http://github.com/bhermanmit/Kinetics/tree/master/HW2/src
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+This code was verified in 2-D by running the LRA BWR benchmark.
+ The material map how the LRA core is arranged is shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../benchmarks/LRABWR/LRA_mat.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Material 1 is a low enriched bundle, material 2 is medium enriched while
+ material 3 is the highest enriched bundle.
+ Material region 4 is exactly the same as 3 except a control rod has been
+ ejected such that the thermal absorption cross section is lower.
+ Finally material region 5 is the water reflector.
+ The resulting group 1 and group 2 flux distributions are shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../benchmarks/LRABWR/LRA_flux1.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../benchmarks/LRABWR/LRA_flux2.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Finally the difference in eigenvalue as compared to the benchmark reference
+ is listed below.
+ It shows very good agreement with the benchmark reference and gives me
+ confidence in the diffusion solver.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="2" columns="3">
+<features booktabs="true" tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0pt">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+My Code 
+\begin_inset Formula $k_{eff}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Reference 
+\begin_inset Formula $k_{eff}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\Delta k$
+\end_inset
+
+ (pcm)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.99633
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0.99636
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+3
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Part A - Difference Equations
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Derive the expression for the first-order finite-difference net curent at
+ a nodal interface for the case of variable mesh spacing/material properties.
+
+\series default
+ 
+\end_layout
+
+\begin_layout Standard
+We will begin the derivation by writing expressions for the net current
+ at a suface between two arbitrary nodes.
+ We assume that cross sections and diffusion coefficients are constants
+ in each cell.
+ The surface currents are
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{-}=-D_{l,m,n}^{g}\left.\frac{d}{du}\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{-}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{+}=-D_{l+1,m,n}^{g}\left.\frac{d}{du}\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{+}.
+\]
+
+\end_inset
+
+ In this notation,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{-}$
+\end_inset
+
+ is the group 
+\begin_inset Formula $g$
+\end_inset
+
+ surface-averaged net current at arbitrary location 
+\begin_inset Formula $l+1/2,m,n$
+\end_inset
+
+, approaching the surface from the left
+\end_layout
+
+\begin_layout Itemize
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula $\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{+}$
+\end_inset
+
+ 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+is the group 
+\begin_inset Formula $g$
+\end_inset
+
+ surface-averaged net current at arbitrary location 
+\begin_inset Formula $l+1/2,m,n$
+\end_inset
+
+, approaching the surface from the right
+\end_layout
+
+\begin_layout Itemize
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula $D_{l,m,n}^{g}$
+\end_inset
+
+ and 
+\begin_inset Formula $D_{l+1,m,n}^{g}$
+\end_inset
+
+ are the cell-average diffusion coefficients in their respective cells
+\end_layout
+
+\begin_layout Itemize
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula $\left.\frac{d}{du}\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{-}$
+\end_inset
+
+ is the gradient with respective to arbitrary direction 
+\begin_inset Formula $u$
+\end_inset
+
+ of the group 
+\begin_inset Formula $g$
+\end_inset
+
+ surface-averaged flux at location 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+
+\begin_inset Formula $l+1/2,m,n$
+\end_inset
+
+ approaching from the left
+\end_layout
+
+\begin_layout Itemize
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula $\left.\frac{d}{du}\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{+}$
+\end_inset
+
+ is the gradient with respective to arbitrary direction 
+\begin_inset Formula $u$
+\end_inset
+
+ of the group 
+\begin_inset Formula $g$
+\end_inset
+
+ surface-averaged flux at location 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+
+\begin_inset Formula $l+1/2,m,n$
+\end_inset
+
+ approaching from the right
+\end_layout
+
+\begin_layout Standard
+We can approximate each of these spatial derivatives by taking either a
+ forward or back difference between the surface averaged flux and cell averaged
+ flux, which we approximate to be the flux at the center of the cell.
+ Therefore each equation becomes
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{-}=-D_{l,m,n}^{g}\frac{\left.\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{-}-\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{+}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-\left.\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{+}}{h_{l+1}^{u}/2},
+\]
+
+\end_inset
+
+ where 
+\begin_inset Formula $h_{l}^{u}$
+\end_inset
+
+ is the width of a cell in the 
+\begin_inset Formula $u$
+\end_inset
+
+ direction for any cell with arbitrary index 
+\begin_inset Formula $l$
+\end_inset
+
+.
+ The first constraint place on these equations is that we have continuity
+ of the surface flux,
+\begin_inset Formula 
+\[
+\left.\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{-}=\left.\overline{\phi}_{u}^{g}\right|_{l+1/2,m,n}^{+}=\overline{\phi}_{u_{l+1/2,m,n}}^{g}.
+\]
+
+\end_inset
+
+ The current relations can be rewritten as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{-}=-D_{l,m,n}^{g}\frac{\overline{\phi}_{u_{l+1/2,m,n}}^{g}-\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{+}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-\overline{\phi}_{u_{l+1/2,m,n}}^{g}}{h_{l+1}^{u}/2}.
+\]
+
+\end_inset
+
+ The next constraint is that the surface current is continuous,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{-}=\left.\overline{J}_{u}^{g}\right|_{l+1/2,m,n}^{+}=\overline{J}_{u_{l+1/2,m,n}}^{g}.
+\]
+
+\end_inset
+
+ The current relations now become
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\overline{J}_{u_{l+1/2,m,n}}^{g}=-D_{l,m,n}^{g}\frac{\overline{\phi}_{u_{l+1/2,m,n}}^{g}-\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\overline{J}_{u_{l+1/2,m,n}}^{g}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-\overline{\phi}_{u_{l+1/2,m,n}}^{g}}{h_{l+1}^{u}/2}.
+\]
+
+\end_inset
+
+ Now, we are left with two equations and two unknowns.
+ We can set both equations equation to each and solve for the surface averaged
+ flux:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+-D_{l,m,n}^{g}\frac{\overline{\phi}_{u_{l+1/2,m,n}}^{g}-\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-\overline{\phi}_{u_{l+1/2,m,n}}^{g}}{h_{l+1}^{u}/2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+h_{l+1}^{u}D_{l,m,n}^{g}\left(\overline{\phi}_{u_{l+1/2,m,n}}^{g}-\overline{\overline{\phi}}_{l,m,n}^{g}\right)=h_{l}^{u}D_{l+1,m,n}^{g}\left(\overline{\overline{\phi}}_{l+1,m,n}^{g}-\overline{\phi}_{u_{l+1/2,m,n}}^{g}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\overline{\phi}_{u_{l+1/2,m,n}}^{g}=\frac{h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}.
+\]
+
+\end_inset
+
+ Now that we have an expression for the surface flux we can substitute into
+ any of the current relations to get an expression for the net current.
+ It is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\overline{J}_{u_{l+1/2,m,n}}^{g}=-D_{l,m,n}^{g}\frac{\left(\frac{h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)-\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\overline{J}_{u_{l+1/2,m,n}}^{g}=-\frac{2D_{l,m,n}^{g}}{h_{l}^{u}}\left(\frac{h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}-\frac{h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\overline{J}_{u_{l+1/2,m,n}}^{g}=-\frac{2D_{l,m,n}^{g}}{h_{l}^{u}}\left(\frac{h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}-h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\boxed{\overline{J}_{u_{l+1/2,m,n}}^{g}=-\frac{2D_{l,m,n}^{g}D_{l+1,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\left(\overline{\overline{\phi}}_{l+1,m,n}^{g}-\overline{\overline{\phi}}_{l,m,n}^{g}\right).}
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Section*
+Part B - Spatial Convergence
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Plot the iteratively-converged eigenvalue and L2 norm of nodal power error
+ (using 10 cm nodes) vs.
+ mesh spacing until the L2 norm of error is converged to < 1e-6 for the
+ rodded and unrodded cores.
+\end_layout
+
+\begin_layout Standard
+The reference spatial distribution chosen was 0.1 cm mesh.
+ This was chosen due to computational requirements (the code took over an
+ hour to run!).
+ The eigenvalue tolerance was set at 1e-8, the coarse mesh power convergence
+ at 1e-9 and the G-S inner iteration tolerance was set at 1e-10.
+ The rodded and unrodded reference spatial flux distributions are shown
+ below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/unrodded_flux.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/ROD/rodded_flux.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Spatial convergence plots were generated against this reference.
+ Unfortunately, the target L2 norm of 1e-6 could not be met with the computer
+ resources at hand.
+ However, the way this norm is defined is arbitrary.
+ I decided to look at the L2 norm for 10 cm coarse mesh powers that were
+ normalized to a core average of unity.
+ Depending on this normalization, a different error can be achieved.
+ The unrodded and rodded plots are shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/unrodded_conv.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/ROD/rodded_conv.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From the plots, the convergence rate is not quite second order.
+ Also, because we get close to the reference spatial distribution a very
+ steep slope of the convergence exists at the end.
+ For the purposes of this homework and time, a 0.2 cm mesh will be used in
+ subsequent parts of the homework.
+ 
+\end_layout
+
+\begin_layout Section*
+Part C - Dominance Ratio
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Plot the asymptotic dominance ratio vs.
+ mesh spacing for the rodded and unrodded cores.
+\end_layout
+
+\begin_layout Standard
+The dominance ratio is mathematically defined as the ratio of the first
+ harmonic eigenvalue to the fundamental mode eigenvalue.
+ Physically, the dominance ratio is impacted by geometry and material compositio
+n.
+ Therefore, since these components remain constant when refining the mesh,
+ we expect that the dominance ratio should not change significantly.
+ We computed the dominance ratio as the ratio of the last L2-norm of the
+ nodal power to the previous L2-norm of the nodal power.
+ It agreed well with Matlab's estimate from its Arnoldi solver which gives
+ multiple eigenvalues.
+ 
+\series bold
+Note that we started from a random source guess to excite the first harmonic.
+
+\series default
+ It was also evident that the number of fission source iterations increased.
+ Whereas before, we started from a flat symmetric guess so the power iteration
+ converged at the asymptotic rate of the ratio of the second harmonic to
+ the fundamental eigenvalue.
+ The plotis shown below.
+ From the results, the dominance ratio is not very sensitive with spatial
+ resolution.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partC/dr.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Part D and Part E - Iterative Convergence of Point Jacobi and Gauss Seided
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Plot the number of fission source iterations needed to achieve L2 norm of
+ changes of nodal powers for successive fission source iterations < 1.e-6
+ vs.
+ flux iteration point-wise L2 norm for flux convergence criteria of 1.e-1,
+ 1.e-2, 1.e-3, 1.e-4, and 1.e-5 for the rodded and unrodded cores.
+ 
+\end_layout
+
+\begin_layout Standard
+For this section, we are studying the effect of the tolerance on the inner
+ iterations.
+ In general, the higher the tolerance in the inner iterations, the more
+ work the fission source iterations will have to do.
+ The plot below sums up the results for the unrodded and rodded cases with
+ point jacobi and gauss seidel.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partDE/inner.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As we can see, the lower the tolerance in the inner iterations, less fission
+ source iterations occur.
+ We also see that for loose inner convergence criteria point jacobi is always
+ greater than gauss seidel.
+ This could be due to the fact that there is only one inner iteration occurring
+ during this time.
+ For one iteration, gauss seidel converges faster and thus lead to fewer
+ fission source iterations.
+\end_layout
+
+\begin_layout Section*
+Part F: Real vs.
+ Fluxes
+\end_layout
+
+\begin_layout Paragraph
+What are the spatially and iteratively converged real and adjoint eigenvalues
+ for the rodded and unrodded problems? 
+\end_layout
+
+\begin_layout Standard
+See plot
+\end_layout
+
+\begin_layout Paragraph
+What is the static rod worth in pcm?
+\end_layout
+
+\begin_layout Standard
+See plot
+\end_layout
+
+\begin_layout Paragraph*
+Plot the spatially and iteratively converged real and adjoint fluxes for
+ the rodded and unrodded problems
+\end_layout
+
+\begin_layout Standard
+See plot
+\end_layout
+
+\end_body
+\end_document
