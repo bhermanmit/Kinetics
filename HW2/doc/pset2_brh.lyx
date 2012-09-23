@@ -182,7 +182,11 @@ http://github.com/bhermanmit/Kinetics/tree/master/HW2/src
 \end_layout
 
 \begin_layout Standard
-This code was verified in 2-D by running the LRA BWR benchmark.
+The code use an xml-based input and outputs results in HDF5 format for postproce
+ssing in languages such as python.
+ All of the plots in this report were made with GNUPLOT.
+ This code was verified in 2-D by running the LRA BWR benchmark.
+ The input file used for this comparison is listed in the Appendix.
  The material map how the LRA core is arranged is shown below.
 \end_layout
 
@@ -830,6 +834,8 @@ Plot the number of fission source iterations needed to achieve L2 norm of
 \begin_layout Standard
 For this section, we are studying the effect of the tolerance on the inner
  iterations.
+ The Fortran source code for all of the sparse matrix routines are listed
+ in the Appendix including the Point Jacobi and Gauss Seidel solvers.
  In general, the higher the tolerance in the inner iterations, the more
  work the fission source iterations will have to do.
  The plot below sums up the results for the unrodded and rodded cases with
@@ -862,13 +868,163 @@ Part F: Real vs.
  Fluxes
 \end_layout
 
+\begin_layout Standard
+For this problem, a 0.2 cm spatial mesh was used with an eigenvalue tolerance
+ of 1e-8, nodal power tolerance of 1e-9 and inner iteration tolerance of
+ 1e-10.
+ The mathematical adjoint is reported here where the transport of the forward
+ diffusion equation operators were used.
+\end_layout
+
 \begin_layout Paragraph
 What are the spatially and iteratively converged real and adjoint eigenvalues
  for the rodded and unrodded problems? 
 \end_layout
 
 \begin_layout Standard
-See plot
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="4">
+<features booktabs="true" tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0pt">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Case
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Forward 
+\begin_inset Formula $k_{eff}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Adjoint 
+\begin_inset Formula $k_{eff}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\Delta k$
+\end_inset
+
+ (pcm)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unrodded
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.368001
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.368001
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Rodded
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.364616
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.364616
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+0
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As expect, since we took the mathematical adjoint, we achieve the same eigenvalu
+e to the tolerance reported above.
 \end_layout
 
 \begin_layout Paragraph
@@ -876,7 +1032,39 @@ What is the static rod worth in pcm?
 \end_layout
 
 \begin_layout Standard
-See plot
+Since we have both the unrodded and rodded eigenvalues the static rod worth
+ can be calculated as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho_{unrod}=1-\frac{1}{k_{unrod}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho_{rod}=1-\frac{1}{k_{rod}}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\Delta\rho=\rho_{unrod}-\rho_{rod}=\frac{1}{k_{unrod}}-\frac{1}{k_{rod}}\approx-180\,\mathrm{pcm}
+\]
+
+\end_inset
+
+ The reactivity worth of the rod in delta reactivity is -180 pcm.
+ 
 \end_layout
 
 \begin_layout Paragraph*
@@ -885,7 +1073,71 @@ Plot the spatially and iteratively converged real and adjoint fluxes for
 \end_layout
 
 \begin_layout Standard
-See plot
+The plots for the rodded and unrodded cases are shown below.
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partF/adjoint_unrod.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partF/adjoint_rod.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As expected, in the fuel the group 1 adjoint flux is less than the group
+ 2 adjoint flux since fast neutrons are not as important to the overall
+ fission rate when compared to thermal neutrons.
+ However, in the moderator, fast neutrons slow down to the thermal range
+ where they have much higher probability of eventually causing a fission.
+ We see this effect on both graphs where the group 1 adjoint flux becomes
+ greater than than group 2 adjoint flux.
+ For the rodded case, we see the same dip in the adjoint fluxes since neutrons
+ in the rodded region have less of a chance of causing fission.
+\end_layout
+
+\begin_layout Section*
+\start_of_appendix
+Example Input File
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand verbatiminput
+filename "../benchmarks/LRABWR/input.xml"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Inner Solver Sparse Matrix Routines
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "../src/math.F90"
+lstparams "basicstyle={\\small},breakatwhitespace=false,breaklines=true,commentstyle={\\color[rgb]{0.133,0.545,0.133}},frame=shadowbox,identifierstyle={\\ttfamily},keywordstyle={\\bfseries\\ttfamily\\color[rgb]{0,0,1}},language=Fortran,linewidth=7in,numbers=none,prebreak={\\raisebox{0ex}[0ex][0ex]{\\ensuremath{\\hookleftarrow}}},showstringspaces=false,stepnumber=1,stringstyle={\\ttfamily\\color[rgb]{0.627,0.126,0.941}},tabsize=4,xleftmargin={-0.5in}"
+
+\end_inset
+
+
 \end_layout
 
 \end_body
