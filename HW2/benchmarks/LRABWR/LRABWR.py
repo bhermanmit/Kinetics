@@ -84,7 +84,7 @@ set size ratio -1
 set lmargin at screen 0.10
 set rmargin at screen 0.90
 set bmargin at screen 0.15
-set tmargin at screen 0.95
+set tmargin at screen 0.90
 set xrange [0.0:165.0]
 set yrange [0.0:165.0]
 set xlabel "Core x dimeimsion [-]"
@@ -131,7 +131,7 @@ set size ratio -1
 set lmargin at screen 0.10
 set rmargin at screen 0.90
 set bmargin at screen 0.15
-set tmargin at screen 0.95
+set tmargin at screen 0.90
 set xrange [0.0:165.0]
 set yrange [0.0:165.0]
 set xlabel "Core x dimeimsion [-]"
@@ -178,7 +178,7 @@ set size ratio -1
 set lmargin at screen 0.10
 set rmargin at screen 0.90
 set bmargin at screen 0.15
-set tmargin at screen 0.95
+set tmargin at screen 0.90
 set xrange [0.0:166.0]
 set yrange [0.0:166.0]
 set xlabel "Core x dimeimsion [-]"
@@ -225,7 +225,7 @@ set size ratio -1
 set lmargin at screen 0.10
 set rmargin at screen 0.90
 set bmargin at screen 0.15
-set tmargin at screen 0.95
+set tmargin at screen 0.90
 set xrange [0.0:166.0]
 set yrange [0.0:166.0]
 set xlabel "Core x dimeimsion [-]"
