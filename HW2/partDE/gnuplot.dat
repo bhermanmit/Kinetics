@@ -1,0 +1,34 @@
+
+set terminal pdf
+set output "inner.pdf"
+set key horizontal
+set key bmargin center
+set log x
+set log y
+set xlabel "Inner Iteration Tolerance [-]"
+set ylabel "Number of Fission Source Iterations [-]"
+plot '-' using 1:2 with linespoint title "G-S UNRODDED", '-' using 1:2 with linespoint title "P-J UNRODDED", '-' using 1:2 with linespoint title "G-S RODDED", '-' using 1:2 with linespoint title "P-J RODDED"
+  0.1 181309 
+0.01 179726 
+0.001 168945 
+0.0001 76117 
+1e-05 458 
+e
+0.1 297087 
+0.01 294133 
+0.001 288612 
+0.0001 153097 
+1e-05 458 
+e
+0.1 157839 
+0.01 154949 
+0.001 144934 
+0.0001 73959 
+1e-05 428 
+e
+0.1 251857 
+0.01 246370 
+0.001 240510 
+0.0001 143869 
+1e-05 428 
+e
