@@ -31,4 +31,5 @@ HW1/src/pkes/pkes
 HW1/src/pkes/templates/*.f90
 HW1/src/ipkes/templates/*.f90
 *.bin
+*.info
 fort*
