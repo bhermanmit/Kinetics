@@ -161,7 +161,7 @@ contains
     cmfd % power_o = cmfd % power_n
 
     ! begin power iteration
-    do i = 1,10000
+    do i = 1,1000000
 
       ! compute source vector
       S_o =  csr_matvec_mult(prod%row_csr,prod%col,prod%val,phi,prod%n)
@@ -253,7 +253,7 @@ contains
     ! print out to user (TODO: make formatted)
     write(*,100) iter,k_n,norm,inner,time_inner%elapsed
 
- 100 format(I5,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3,5X,"INNER:",I0,2X,1PE9.3)
+ 100 format(I0,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3,5X,"INNER:",I0,2X,1PE9.3)
 
   end subroutine convergence
 
