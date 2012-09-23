@@ -16,12 +16,12 @@ include OBJECTS
 # User Options
 #===============================================================================
 
-COMPILER = gnu
+COMPILER = petsc
 DEBUG    = no
 PROFILE  = no
-OPTIMIZE = no
+OPTIMIZE = yes
 USE_MPI  = no
-USE_HDF5 = no
+USE_HDF5 = yes
 
 #===============================================================================
 # Add git SHA-1 hash

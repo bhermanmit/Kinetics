@@ -50,6 +50,7 @@ module global
 
   character(len=50) :: solver_type = "jacobi"
   character(len=50) :: guess = "flat"
+  character(len=50) :: adjoint = ""
 
 !-solver tolerances
 

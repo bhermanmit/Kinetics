@@ -20,7 +20,7 @@ contains
     use error,            only: fatal_error
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
-                                solver_type, ktol, stol, itol, guess
+                                solver_type, ktol, stol, itol, guess, adjoint
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -189,6 +189,9 @@ contains
 
     ! get starting guess
     guess = trim(guess_)
+
+    ! get adjoint
+    adjoint = trim(adjoint_)
 
     ! get solver tolerances
     ktol = ktol_
