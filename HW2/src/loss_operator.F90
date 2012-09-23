@@ -223,7 +223,8 @@ contains
 
   subroutine build_loss_matrix(this)
 
-    use global,           only: geometry, material, mpi_err
+    use constants,        only: ONE
+    use global,           only: geometry, material, mpi_err, adjoint
     use material_header,  only: material_type
 
     type(loss_operator_type) :: this
@@ -298,10 +299,12 @@ contains
         ! define (x,y,z) and (-,+) indices
         xyz_idx = int(ceiling(real(l)/real(2)))  ! x=1, y=2, z=3
         dir_idx = 2 - mod(l,2) ! -=1, +=2
+        if (trim(adjoint) == 'math') dir_idx = mod(dir_idx,2) + 1
 
         ! calculate spatial indices of neighbor
         neig_idx = (/i,j,k/)                ! begin with i,j,k
         shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
+        if (trim(adjoint) == 'math') shift_idx = -1*shift_idx ! change neighbor adjoint in math def
         neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
 
         ! check for global boundary
@@ -362,6 +365,8 @@ contains
       jnet = (jo(2) - jo(1))/hxyz(1) + (jo(4) - jo(3))/hxyz(2) +               &
      &       (jo(6) - jo(5))/hxyz(3)
 
+      if (trim(adjoint) == 'math') jnet = -ONE*jnet
+
       ! calculate loss of neutrons
       val = jnet + m % totalxs(g) - m % scattxs(g,g)
 
@@ -384,8 +389,11 @@ contains
         call indices_to_matrix(h,i,j,k,scatt_mat_idx)
 
         ! record value in matrix (negate it)
-        val = -m % scattxs(g,h)
-
+        if ((trim(adjoint) == 'math') .or. (trim(adjoint) == 'physical')) then
+          val = -m % scattxs(h,g)
+        else
+          val = -m % scattxs(g,h)
+        end if
         call MatSetValue(this%M,irow,scatt_mat_idx-1,val, INSERT_VALUES,ierr)
         this % row(kount) = irow + 1
         this % col(kount) = scatt_mat_idx
