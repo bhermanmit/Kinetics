@@ -52,5 +52,7 @@
   <variable name="adjoint_"  tag="adjoint"  type="word" length="50" default="''" />
   <variable name="run_kinetics_" tag = "run_kinetics" type="logical" default=".false." />
   <variable name="kinetics_" tag="kinetics" type="kinetics_xml" dimension="1" />
+  <variable name="time_"     tag="time"     type="double" />
+  <variable name="nt_"       tag="nt"       type="integer" />
 
 </template>

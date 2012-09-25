@@ -21,7 +21,7 @@ contains
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
-                                run_kinetics
+                                run_kinetics, nt, time, dt
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -66,6 +66,13 @@ contains
 
     ! kinetics run
     run_kinetics = run_kinetics_
+
+    ! get time info if running kinetics
+    if (run_kinetics) then
+      nt = nt_
+      time = time_
+      dt = time / dble(nt)
+    end if
 
     ! read in geometry indices
     geometry % ncx = geometry_ % nx

@@ -82,4 +82,10 @@ module global
   type(operator_type) :: prod  ! static calculation production operator
   type(operator_type) :: kine  ! kinetics operator (implicit Euler)
 
+!-time step info
+
+  integer :: nt
+  real(8) :: time
+  real(8) :: dt
+
 end module global
