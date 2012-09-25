@@ -77,5 +77,6 @@ module global
 
   type(operator_type) :: loss
   type(operator_type) :: prod
+  type(operator_type) :: kinetics
 
 end module global

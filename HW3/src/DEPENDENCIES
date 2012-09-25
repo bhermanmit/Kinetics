@@ -42,6 +42,10 @@ input_xml.o: templates/input_t.o
 jacobian_operator.o: loss_operator.o
 jacobian_operator.o: prod_operator.o
 
+kinetics_operator.o: global.o
+kinetics_operator.o: material_header.o
+kinetics_operator.o: math.o
+
 loss_operator.o: global.o
 loss_operator.o: material_header.o
 loss_operator.o: math.o
