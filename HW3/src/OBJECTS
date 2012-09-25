@@ -10,6 +10,7 @@ hdf5_interface.o \
 initialize.o \
 input_xml.o \
 jacobian_operator.o \
+kinetics_header.o \
 kinetics_operator.o \
 loss_operator.o \
 main.o \

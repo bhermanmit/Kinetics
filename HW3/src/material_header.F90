@@ -23,6 +23,8 @@ module material_header
 
     ! fission spectrum 
     real(8), allocatable :: chi(:)
+    real(8), allocatable :: chip(:)
+    real(8), allocatable :: chid(:)
 
     ! axial buckling
     real(8) :: buckling
@@ -63,6 +65,8 @@ contains
     allocate(this % nfissxs(ng,ng))
     allocate(this % diffcof(ng))
     allocate(this % chi(ng))
+    allocate(this % chid(ng))
+    allocate(this % chip(ng))
 
     ! zero out everything
     this % totalxs = ZERO 
@@ -73,6 +77,8 @@ contains
     this % nfissxs = ZERO
     this % diffcof = ZERO
     this % chi     = ZERO
+    this % chid    = ZERO
+    this % chip    = ZERO
 
   end subroutine allocate_material_type
 
@@ -150,6 +156,8 @@ contains
     deallocate(this % nfissxs)
     deallocate(this % diffcof)
     deallocate(this % chi)
+    deallocate(this % chid)
+    deallocate(this % chip)
 
   end subroutine deallocate_material_type
 

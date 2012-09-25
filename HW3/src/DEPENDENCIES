@@ -19,6 +19,7 @@ finalize.o: timing.o
 
 global.o: cmfd_header.o
 global.o: geometry_header.o
+global.o: kinetics_header.o
 global.o: material_header.o
 global.o: operator_header.o
 global.o: timing.o

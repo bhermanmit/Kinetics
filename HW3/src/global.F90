@@ -5,6 +5,7 @@ module global
   use constants,        only: MAX_LINE_LEN
   use cmfd_header,      only: cmfd_type
   use geometry_header,  only: geometry_type
+  use kinetics_header,  only: kinetics_type
   use material_header,  only: material_type
   use operator_header,  only: operator_type
   use timing,           only: Timer
@@ -23,6 +24,7 @@ module global
   type(cmfd_type)                          :: cmfd        ! holds result
   type(geometry_type), target              :: geometry    ! holds geometry info
   type(material_type), allocatable, target :: material(:) ! holds material info
+  type(kinetics_type), allocatable, target :: kinetics(:) ! holds kinetics info
 
 !-material information
 
@@ -47,11 +49,12 @@ module global
   integer :: n_procs          ! number of processors
   integer :: mpi_err          ! error code
 
-!-solver type
+!-running options
 
   character(len=50) :: solver_type = "jacobi"
   character(len=50) :: guess = "flat"
   character(len=50) :: adjoint = ""
+  logical           :: run_kinetics = .false.
 
 !-solver tolerances
 
@@ -75,8 +78,8 @@ module global
 
 !-operators
 
-  type(operator_type) :: loss
-  type(operator_type) :: prod
-  type(operator_type) :: kinetics
+  type(operator_type) :: loss  ! static calculation loss operator
+  type(operator_type) :: prod  ! static calculation production operator
+  type(operator_type) :: kine  ! kinetics operator (implicit Euler)
 
 end module global

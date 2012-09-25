@@ -20,7 +20,8 @@ contains
     use error,            only: fatal_error
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
-                                solver_type, ktol, stol, itol, guess, adjoint
+                                solver_type, ktol, stol, itol, guess, adjoint, &
+                                run_kinetics
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -48,6 +49,23 @@ contains
 
     ! read in input file
     call read_xml_file_input_t(filename)
+
+    ! get solver type
+    solver_type = trim(solver_)
+
+    ! get starting guess
+    guess = trim(guess_)
+
+    ! get adjoint
+    adjoint = trim(adjoint_)
+
+    ! get solver tolerances
+    ktol = ktol_
+    stol = stol_
+    itol = itol_
+
+    ! kinetics run
+    run_kinetics = run_kinetics_
 
     ! read in geometry indices
     geometry % ncx = geometry_ % nx
@@ -164,6 +182,25 @@ contains
         m % chi_based = .true.
       end if
 
+      if (run_kinetics) then
+        if (.not.associated(material_(i) % chip)) then
+          m % chip = m % chi
+        else if (m % chi_based) then
+          m % chip = material_(i) % chip
+        else
+          message = "Need to set a chi for kinetics!"
+          call fatal_error()
+        end if
+
+        if (.not.associated(material_(i) % chid)) then
+          m % chid = m % chi
+        else if (m % chi_based) then
+          m % chid = material_(i) % chid
+        else
+          message = "Need to set a chi for Kinetics!"
+        end if
+      end if
+
       if (associated(material_(i) % nfissxs) .and. m % chi_based) then
         m % fissvec = material_(i) % nfissxs
       else
@@ -183,20 +220,6 @@ contains
       end if
 
     end do
-
-    ! get solver type
-    solver_type = trim(solver_)
-
-    ! get starting guess
-    guess = trim(guess_)
-
-    ! get adjoint
-    adjoint = trim(adjoint_)
-
-    ! get solver tolerances
-    ktol = ktol_
-    stol = stol_
-    itol = itol_
 
   end subroutine read_input_xml
 
