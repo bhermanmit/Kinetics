@@ -38,6 +38,7 @@ initialize.o: timing.o
 input_xml.o: constants.o
 input_xml.o: error.o
 input_xml.o: global.o
+input_xml.o: kinetics_header.o
 input_xml.o: material_header.o
 input_xml.o: output.o
 input_xml.o: templates/input_t.o 

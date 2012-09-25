@@ -21,7 +21,8 @@ contains
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
-                                run_kinetics, nt, time, dt
+                                run_kinetics, nt, time, dt, kinetics, n_kins
+    use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
     use xml_data_input_t
@@ -225,6 +226,22 @@ contains
       else
         m % buckling = 0.0_8
       end if
+
+    end do
+
+    ! read in kinetics mods
+    n_kins = size(kinetics_)
+    allocate(kinetics(n_kins))
+    do i = 1, n_kins
+
+      ! allocate kineics 
+      call allocate_kinetics_type(kinetics(i),size(kinetics_(i)%time))
+
+      ! set values
+      kinetics(i) % mat_id  = kinetics_(i) % mat_id
+      kinetics(i) % xs_id   = kinetics_(i) % xs_id
+      kinetics(i) % time    = kinetics_(i) % time
+      kinetics(i) % val     = kinetics_(i) % value
 
     end do
 

@@ -82,6 +82,10 @@ module global
   type(operator_type) :: prod  ! static calculation production operator
   type(operator_type) :: kine  ! kinetics operator (implicit Euler)
 
+!-number of kinetics mods
+
+  integer :: n_kins
+
 !-time step info
 
   integer :: nt

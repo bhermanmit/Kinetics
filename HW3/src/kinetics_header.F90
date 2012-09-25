@@ -23,15 +23,17 @@ contains
 ! ALLOCATE_KINETICS_TYPE
 !===============================================================================
 
-  subroutine allocate_kinetics_type(this)
-
-!---external references
+  subroutine allocate_kinetics_type(this,n)
 
 !---arguments
 
+    integer :: n
     type(kinetics_type) :: this
 
 !---begin execution
+
+    allocate(this % val(n))
+    allocate(this % time(n))
 
   end subroutine allocate_kinetics_type
 
@@ -46,6 +48,9 @@ contains
     type(kinetics_type) :: this
 
 !---begin execution
+
+    deallocate(this % val)
+    deallocate(this % time)
 
   end subroutine deallocate_kinetics_type
 
