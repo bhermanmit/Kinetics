@@ -18,28 +18,13 @@ contains
 
   subroutine kinetics_execute(inner_solver)
 
-!---external references
-
-    use cmfd_header,  only: compute_core_power
-    use constants,    only: ONE
-    use global,       only: cmfd, geometry, material
-
 !---arguments
 
     external :: inner_solver
 
-!---local variables
-
-    real(8) :: pow
-
 !---begin execution
 
-    ! normalize initial power to unity
-    pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
-    cmfd % phi = cmfd % phi * ONE / pow
-    pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material) 
-    print *, 'POWER IS:',pow
-    stop
+    call init_data()
 
   end subroutine kinetics_execute
 
@@ -51,11 +36,23 @@ contains
 
 !---external references
 
+    use cmfd_header,        only: compute_core_power
+    use constants,          only: ONE
+    use global,             only: cmfd, geometry, material, kine
+    use kinetics_operator,  only: init_K_operator
+
 !---local variables
+
+    real(8) :: pow
 
 !---begin execution
 
+    ! normalize initial power to unity and set initial power
+    pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
+    cmfd % phi = cmfd % phi * ONE / pow
+
     ! set up matrices
+    call init_K_operator(kine)
 
   end subroutine init_data
 
