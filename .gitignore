@@ -30,6 +30,10 @@ HW1/src/ipkes/ipkes
 HW1/src/pkes/pkes
 HW1/src/pkes/templates/*.f90
 HW1/src/ipkes/templates/*.f90
+HW2/src/cmfd
+HW2/src/templates/input_t.f90
+HW2/src/xml-fortran/xmlreader
+
 *.bin
 *.info
 fort*
