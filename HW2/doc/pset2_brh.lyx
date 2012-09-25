@@ -182,12 +182,12 @@ http://github.com/bhermanmit/Kinetics/tree/master/HW2/src
 \end_layout
 
 \begin_layout Standard
-The code use an xml-based input and outputs results in HDF5 format for postproce
-ssing in languages such as python.
+The code uses an xml-based input and outputs results in HDF5 format for
+ postprocessing in languages such as python.
  All of the plots in this report were made with GNUPLOT.
  This code was verified in 2-D by running the LRA BWR benchmark.
  The input file used for this comparison is listed in the Appendix.
- The material map how the LRA core is arranged is shown below.
+ The material map arrangement for the LRA core is shown below.
 \end_layout
 
 \begin_layout Standard
@@ -373,7 +373,7 @@ We will begin the derivation by writing expressions for the net current
 \begin_inset Formula $l+1/2,m,n$
 \end_inset
 
-, approaching the surface from the left
+, approaching the surface from the negative sense
 \end_layout
 
 \begin_layout Itemize
@@ -412,7 +412,7 @@ is the group
 \begin_inset Formula $l+1/2,m,n$
 \end_inset
 
-, approaching the surface from the right
+, approaching the surface from the positive sense
 \end_layout
 
 \begin_layout Itemize
@@ -435,7 +435,7 @@ is the group
 \begin_inset Formula $D_{l+1,m,n}^{g}$
 \end_inset
 
- are the cell-average diffusion coefficients in their respective cells
+ are the cell-averaged diffusion coefficients in their respective cells
 \end_layout
 
 \begin_layout Itemize
@@ -526,8 +526,8 @@ is the group
 
 \begin_layout Standard
 We can approximate each of these spatial derivatives by taking either a
- forward or back difference between the surface averaged flux and cell averaged
- flux, which we approximate to be the flux at the center of the cell.
+ forward or backward difference between the surface-averaged flux and cell-avera
+ged flux, which we approximate to be the flux at the center of the cell.
  Therefore each equation becomes
 \end_layout
 
@@ -647,8 +647,8 @@ h_{l+1}^{u}D_{l,m,n}^{g}\left(\overline{\phi}_{u_{l+1/2,m,n}}^{g}-\overline{\ove
 
 \end_inset
 
- Now that we have an expression for the surface flux we can substitute into
- any of the current relations to get an expression for the net current.
+ Now that we have an expression for the surface flux we can substitute it
+ into any of the current relations to get an expression for the net current.
  It is
 \end_layout
 
@@ -766,8 +766,7 @@ From the plots, the convergence rate is not quite second order.
  Also, because we get close to the reference spatial distribution a very
  steep slope of the convergence exists at the end.
  For the purposes of this homework and time, a 0.2 cm mesh will be used in
- subsequent parts of the homework.
- 
+ subsequent analyses.
 \end_layout
 
 \begin_layout Section*
@@ -790,8 +789,11 @@ n.
  we expect that the dominance ratio should not change significantly.
  We computed the dominance ratio as the ratio of the last L2-norm of the
  nodal power to the previous L2-norm of the nodal power.
- It agreed well with Matlab's estimate from its Arnoldi solver which gives
- multiple eigenvalues.
+ It agreed well with Matlab's estimate from its Arnoldi solver (
+\begin_inset Formula $\mathtt{eigs}$
+\end_inset
+
+) which gives multiple eigenvalues.
  
 \series bold
 Note that we started from a random source guess to excite the first harmonic.
@@ -801,7 +803,7 @@ Note that we started from a random source guess to excite the first harmonic.
  Whereas before, we started from a flat symmetric guess so the power iteration
  converged at the asymptotic rate of the ratio of the second harmonic to
  the fundamental eigenvalue.
- The plotis shown below.
+ The plot is shown below.
  From the results, the dominance ratio is not very sensitive with spatial
  resolution.
 \end_layout
@@ -872,7 +874,7 @@ Part F: Real vs.
 For this problem, a 0.2 cm spatial mesh was used with an eigenvalue tolerance
  of 1e-8, nodal power tolerance of 1e-9 and inner iteration tolerance of
  1e-10.
- The mathematical adjoint is reported here where the transport of the forward
+ The mathematical adjoint is reported here where the transpose of the forward
  diffusion equation operators were used.
 \end_layout
 

@@ -188,6 +188,7 @@ contains
 
     ! allocate temp
     allocate(tmp(n))
+    vol = ONE/dble(n)
 
     ! start counter
     iter = 1
@@ -223,7 +224,7 @@ contains
         tmp(irow) = tmp(irow)/val(diag(irow))
 
         ! get region number
-        vol = geometry % fvol_map(ceiling(real(irow)/real(geometry%nfg)))
+!       vol = geometry % fvol_map(ceiling(real(irow)/real(geometry%nfg)))
 
         ! sum the difference
         sum2 = sum2 + vol*(tmp(irow) - x(irow))**2
@@ -288,6 +289,8 @@ contains
     ! allocate temp
     allocate(tmp(n))
 
+    vol = ONE/dble(n)
+
     ! start counter
     iter = 1
 
@@ -322,8 +325,8 @@ contains
         tmp(irow) = tmp(irow)/val(diag(irow))
 
         ! get region number
-        idx = ceiling(real(irow)/real(geometry%nfg))
-        vol = geometry % fvol_map(idx)
+!       idx = ceiling(real(irow)/real(geometry%nfg))
+!       vol = geometry % fvol_map(idx)
 
         ! sum for norm
         sum2 = sum2 + vol*(tmp(irow) - x(irow))**2
