@@ -4,7 +4,8 @@ module cmfd_header
 
   implicit none
   private
-  public :: allocate_cmfd_type, deallocate_cmfd_type, calc_power
+  public :: allocate_cmfd_type, deallocate_cmfd_type, calc_power,              &
+            compute_core_power
 
 !-module variables
 
@@ -12,6 +13,7 @@ module cmfd_header
 
     ! eigenvector/eigenvalue from cmfd run
     real(8), allocatable :: phi(:)
+    real(8), allocatable :: phi_o(:)
     real(8) :: keff = 0.0_8
 
     ! nodal powers
@@ -112,6 +114,59 @@ contains
   end subroutine calc_power
 
 !===============================================================================
+! COMPUTE_CORE_POWER
+!===============================================================================
+
+  function compute_core_power(this, n, geometry, material) result(power)
+
+!---external references
+
+    use constants,        only: ZERO
+    use geometry_header,  only: geometry_type
+    use material_header,  only: material_type
+
+!---arguments
+
+    integer :: n
+    type(cmfd_type) :: this
+    type(geometry_type)          :: geometry
+    type(material_type), target  :: material(:)
+    real(8) :: power
+
+!---local variables
+
+    integer :: irow
+    integer :: g
+    integer :: idx
+    real(8) :: vol
+    type(material_type), pointer :: m
+
+!---begin execution
+
+    ! zero out the core power
+    power = ZERO
+
+    ! begin loop around rows
+    do irow = 1, n
+
+      ! get index
+      idx = ceiling(real(irow)/real(geometry%nfg))
+      g = mod(irow,geometry%nfg) + 1
+
+      ! get volume
+      vol = geometry % fvol_map(idx)
+
+      ! set material pointer
+      m => material(geometry % fmat_map(idx))
+
+      ! accumulate power
+      power = power + m % fissvec(g) * this % phi(irow) * vol
+
+    end do
+
+  end function compute_core_power
+
+!===============================================================================
 ! DEALLOCATE_CMFD_TYPE
 !===============================================================================
 
@@ -123,9 +178,10 @@ contains
 
 !---begin execution
 
-    deallocate(this % phi)
-    deallocate(this % power_o)
-    deallocate(this % power_n)
+    if(allocated(this % phi)) deallocate(this % phi)
+    if(allocated(this % phi_o)) deallocate(this % phi_o)
+    if(allocated(this % power_o)) deallocate(this % power_o)
+    if(allocated(this % power_n)) deallocate(this % power_n)
 
   end subroutine deallocate_cmfd_type
 

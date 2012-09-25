@@ -12,6 +12,7 @@ input_xml.o \
 jacobian_operator.o \
 kinetics_header.o \
 kinetics_operator.o \
+kinetics_solver.o \
 loss_operator.o \
 main.o \
 material_header.o \

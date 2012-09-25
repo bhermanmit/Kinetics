@@ -18,6 +18,7 @@ contains
 
     use error,       only: fatal_error
     use global,      only: solver_type, message
+    use kinetics_solver,  only: kinetics_execute
     use math,        only: csr_jacobi, csr_gauss_seidel
     use output,      only: header
     use power_iter,  only: power_execute
@@ -39,6 +40,9 @@ contains
         call fatal_error()
 
     end select
+
+    ! call kinetics
+    call kinetics_execute(csr_gauss_seidel)
 
   end subroutine execute_cmfd
 
