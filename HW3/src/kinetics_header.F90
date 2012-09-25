@@ -12,6 +12,8 @@ module kinetics_header
 
     character(len=15) :: xs_id
     integer :: mat_id
+    integer :: h, g
+    integer :: idxt = 1
     real(8), allocatable :: val(:)
     real(8), allocatable :: time(:)    
 

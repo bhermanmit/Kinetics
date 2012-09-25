@@ -37,7 +37,9 @@
 
   <typedef name="kinetics_xml">
     <component name="mat_id" type="integer" />
-    <component name="xs_id"  type="word" />
+    <component name="xs_id"  type="word" length="15" />
+    <component name="h"      type="integer" />
+    <component name="g"      type="integer" />
     <component name="value"  type="double-array" />
     <component name="time"   type="double-array" />
   </typedef>

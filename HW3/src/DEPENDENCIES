@@ -52,8 +52,11 @@ kinetics_operator.o: math.o
 
 kinetics_solver.o: cmfd_header.o
 kinetics_solver.o: constants.o
+kinetics_solver.o: error.o
 kinetics_solver.o: global.o
+kinetics_solver.o: kinetics_header.o
 kinetics_solver.o: kinetics_operator.o
+kinetics_solver.o: material_header.o
 
 loss_operator.o: global.o
 loss_operator.o: material_header.o

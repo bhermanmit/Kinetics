@@ -239,7 +239,9 @@ contains
 
       ! set values
       kinetics(i) % mat_id  = kinetics_(i) % mat_id
-      kinetics(i) % xs_id   = kinetics_(i) % xs_id
+      kinetics(i) % xs_id   = trim(kinetics_(i) % xs_id)
+      kinetics(i) % g       = kinetics_(i) % g
+      kinetics(i) % h       = kinetics_(i) % h
       kinetics(i) % time    = kinetics_(i) % time
       kinetics(i) % val     = kinetics_(i) % value
 
