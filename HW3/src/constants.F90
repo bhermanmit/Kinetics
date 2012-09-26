@@ -47,7 +47,7 @@ module constants
                                       0.000152_8/)
 
   ! Prompt Neutron Lifetime
-  real(8), parameter :: vel1  = 2200._8*100._8*(0.100e4_8/0.0253_8)**0.5_8
-  real(8), parameter :: vel2  = 2200._8*100._8*(0.100_8/0.0253_8)**0.5_8
+  real(8), parameter :: vel(2) = (/2200._8*100._8*(0.100e4_8/0.0253_8)**0.5_8, & 
+                                  2200._8*100._8*(0.100_8/0.0253_8)**0.5_8/)
 
 end module constants
