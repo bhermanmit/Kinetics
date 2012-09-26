@@ -29,6 +29,10 @@ module material_header
     ! axial buckling
     real(8) :: buckling
 
+    ! kinetics factors
+    real(8), allocatable :: kinrem(:)
+    real(8), allocatable :: kinfis(:)
+
     ! logicals for preprocessing
     logical :: abs_based = .false.
     logical :: rem_based = .false.
@@ -148,16 +152,18 @@ contains
 !---begin execution
 
     ! deallocate all
-    deallocate(this % totalxs)
-    deallocate(this % absorxs)
-    deallocate(this % removxs)
-    deallocate(this % fissvec)
-    deallocate(this % scattxs)
-    deallocate(this % nfissxs)
-    deallocate(this % diffcof)
-    deallocate(this % chi)
-    deallocate(this % chid)
-    deallocate(this % chip)
+    if (allocated(this % totalxs)) deallocate(this % totalxs)
+    if (allocated(this % absorxs)) deallocate(this % absorxs)
+    if (allocated(this % removxs)) deallocate(this % removxs)
+    if (allocated(this % fissvec)) deallocate(this % fissvec)
+    if (allocated(this % scattxs)) deallocate(this % scattxs)
+    if (allocated(this % nfissxs)) deallocate(this % nfissxs)
+    if (allocated(this % diffcof)) deallocate(this % diffcof)
+    if (allocated(this % chi))     deallocate(this % chi)
+    if (allocated(this % chid))    deallocate(this % chid)
+    if (allocated(this % chip))    deallocate(this % chip)
+    if (allocated(this % kinrem))  deallocate(this % kinrem)
+    if (allocated(this % kinfis))  deallocate(this % kinfis)
 
   end subroutine deallocate_material_type
 

@@ -227,6 +227,11 @@ contains
         m % buckling = 0.0_8
       end if
 
+      if (run_kinetics) then
+        allocate(m % kinrem(geometry % ncg))
+        allocate(m % kinfis(geometry % ncg))
+      end if
+
     end do
 
     ! read in kinetics mods

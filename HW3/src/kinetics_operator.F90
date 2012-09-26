@@ -348,7 +348,8 @@ contains
      &       (jo(6) - jo(5))/hxyz(3)
 
       ! calculate loss of neutrons
-      val = jnet + m % totalxs(g) - m % scattxs(g,g) - m % fissvec(g)
+      val = jnet + m % totalxs(g) + m % kinrem(g) - m % scattxs(g,g)           &
+                 - m % fissvec(g) * m % kinfis(g)
 
       ! record diagonal term
       this % row(kount) = irow + 1
@@ -368,7 +369,7 @@ contains
         call indices_to_matrix(h,i,j,k,scatt_mat_idx)
 
         ! record value in matrix (negate it)
-        val = -m % scattxs(g,h) - m % fissvec(g)
+        val = -m % scattxs(g,h) - m % fissvec(h) * m % kinfis(g)
         this % row(kount) = irow + 1
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val

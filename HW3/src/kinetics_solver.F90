@@ -211,8 +211,10 @@ contains
 
 !---external references
 
+    use constants,        only: ONE, vel, beta, lambda
     use error,            only: fatal_error
-    use global,           only: material, kinetics, n_kins, message
+    use global,           only: material, kinetics, n_kins, message, dt,       &
+                                n_materials, cmfd
     use kinetics_header,  only: kinetics_type
     use material_header,  only: material_type
 
@@ -269,6 +271,21 @@ contains
 
     end do
 
+    ! loop through materials and compute kinetics factors
+    do i = 1, n_materials
+
+      ! point to materal
+      m => material(i)
+
+      ! compute additive factor that goes on to the removal xs
+      m % kinrem = ONE/(vel * dt)
+
+      ! compute multiplicative factor that goes on fission xs
+      m % kinfis = (ONE - sum(beta)) * m % chip / cmfd % keff +                &
+      m % chid * sum((lambda * beta * dt)/((ONE + lambda*dt) * cmfd % keff))
+
+    end do
+
   end subroutine change_data
 
 !==============================================================================
@@ -311,7 +328,6 @@ contains
       rhs(irow) = cmfd % phi(irow)/(vel(g)*dt) + sum((m%chid(g)*lambda*        &
                                             cmfd % C(irow,:))/(ONE + lambda*dt))
     end do
-
 
   end subroutine build_rhs
 
