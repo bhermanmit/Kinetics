@@ -295,7 +295,7 @@ contains
     iter = 1
 
     ! loop until converged
-    do while(iter <= 1000000)
+    do while(iter <= 10000000)
 
       ! set norm sum to zero
       sum2 = ZERO

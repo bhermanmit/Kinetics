@@ -57,6 +57,7 @@ kinetics_solver.o: global.o
 kinetics_solver.o: kinetics_header.o
 kinetics_solver.o: kinetics_operator.o
 kinetics_solver.o: material_header.o
+kinetics_solver.o: math.o
 
 loss_operator.o: global.o
 loss_operator.o: material_header.o

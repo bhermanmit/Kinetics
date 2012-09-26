@@ -42,8 +42,9 @@ contains
 
     use cmfd_header,        only: compute_core_power
     use constants,          only: ONE
-    use global,             only: cmfd, geometry, material, kine
+    use global,             only: cmfd, geometry, material, kine, prod
     use kinetics_operator,  only: init_K_operator
+    use math,               only: csr_matvec_mult
 
 !---local variables
 
@@ -52,7 +53,9 @@ contains
 !---begin execution
 
     ! normalize initial power to unity and set initial power
-    pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
+!   pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
+    pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,        &
+              cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
 
     ! compute steady state precursors
@@ -104,7 +107,7 @@ contains
       end do
 
     end do
-  
+write(87,*) cmfd % C(:,1)
   end subroutine compute_initial_precursors
 
 !===============================================================================
@@ -116,8 +119,12 @@ contains
 
 !---external references
 
-    use global,             only: nt, dt, kine, cmfd
+    use cmfd_header,        only: compute_core_power
+    use error,              only: fatal_error
+    use global,             only: nt, dt, kine, cmfd, geometry, material,      &
+                                  itol, prod, message
     use kinetics_operator,  only: build_kinetics_matrix
+    use math,               only: csr_matvec_mult
 
 !---arguments
 
@@ -126,14 +133,18 @@ contains
 !---local variables
 
     integer :: i
+    integer :: iters
     integer :: n
+    integer :: nz
     real(8) :: curr_time
+    real(8) :: pow
     real(8), allocatable :: rhs(:)
 
 !--begin execution
 
    ! allocate RHS
    n = size(cmfd % phi)
+   nz = size(kine % col)
    allocate(rhs(n))
 
    ! begin loop around time
@@ -150,11 +161,22 @@ contains
 
      ! build right hand side
      call build_rhs(rhs,n)
- 
+
      ! solve matrices
-
+     call inner_solver(kine % row_csr, kine % col, kine % val, kine % diag,    &
+                       cmfd % phi, rhs, n, nz, itol,iters)
+     if (iters >= 10000000) then 
+       message = "Inner Iteration limit exceed during transient!"
+       call fatal_error()
+     end if
+ 
      ! compute end of time step precursor concentration
+     call compute_final_precursors()
 
+     ! compute power
+     pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
+              cmfd%phi,prod%n))
+     write(*,*) 'INNERS: ', iters, pow
    end do
 
    ! deallocate RHS
@@ -319,14 +341,14 @@ contains
 
       ! get index
       idx = ceiling(real(irow)/real(geometry%nfg))
-      g = mod(irow,geometry%nfg) + 1
+      g = geometry % nfg - mod(irow,geometry%nfg)
 
       ! set material pointer
       m => material(geometry % fmat_map(idx))
 
       ! compute the precursor
       rhs(irow) = cmfd % phi(irow)/(vel(g)*dt) + sum((m%chid(g)*lambda*        &
-                                            cmfd % C(irow,:))/(ONE + lambda*dt))
+                                            cmfd % C(idx,:))/(ONE + lambda*dt))
     end do
 
   end subroutine build_rhs

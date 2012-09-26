@@ -163,7 +163,7 @@ contains
       m => material(geometry % fmat_map(idx))
 
       ! accumulate power
-      power = power + m % fissvec(g) * this % phi(irow) * vol
+      power = power + m % fissvec(g) * this % phi(irow) * vol / this % keff
 
     end do
 
