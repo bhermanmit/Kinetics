@@ -52,10 +52,59 @@ contains
     pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
     cmfd % phi = cmfd % phi * ONE / pow
 
+    ! compute steady state precursors
+    call compute_initial_precursors()
+
     ! set up matrices
     call init_K_operator(kine)
 
   end subroutine init_data
+
+!===============================================================================
+! COMPUTE_INITIAL_PRECURSORS
+!===============================================================================
+
+  subroutine compute_initial_precursors()
+
+!---external references
+
+    use constants,        only: NUM_PRECS, beta, lambda
+    use global,           only: geometry, material, cmfd
+    use material_header,  only: material_type
+
+!---local variables
+
+    integer :: i
+    integer :: j
+    real(8) :: fiss
+    type(material_type), pointer :: m => null()
+
+!---begin execution
+
+    ! allocate precurors
+    if (.not.allocated(cmfd % C_o)) allocate(cmfd%C_o(geometry%nfx*geometry%nfy*&
+                                                     geometry%nfz,NUM_PRECS))
+    if (.not.allocated(cmfd % C_n)) allocate(cmfd%C_n(geometry%nfx*geometry%nfy*&
+                                                     geometry%nfz,NUM_PRECS))
+
+    ! begin loop around space
+    do j = 1,size(cmfd%C_o,1)
+
+      ! compute fission reaction rate over all groups
+      m => material(geometry % fmat_map(j))
+      fiss = sum(m % fissvec * cmfd % phi(geometry % nfg * (j - 1) + 1: &
+                                                   j * geometry % nfg))
+                                                   
+      ! begin loop around precursor groups
+      do i = 1, NUM_PRECS
+
+        cmfd % C_o(j,i) = beta(i)/(lambda(i) * cmfd % keff) * fiss 
+
+      end do
+write(21,*) cmfd % C_o(j,1)
+    end do
+  
+  end subroutine compute_initial_precursors
 
 !===============================================================================
 ! EXECUTE_KINETICS_ITER  in the main kinetics iteration routine 

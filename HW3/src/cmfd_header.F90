@@ -20,6 +20,10 @@ module cmfd_header
     real(8), allocatable :: power_o(:)
     real(8), allocatable :: power_n(:)
 
+    ! precursors
+    real(8), allocatable :: C_o(:,:)
+    real(8), allocatable :: C_n(:,:)
+
     ! final iteration and norm
     integer :: iter
     real(8) :: norm
