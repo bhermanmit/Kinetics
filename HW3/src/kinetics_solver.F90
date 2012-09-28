@@ -2,13 +2,23 @@ module kinetics_solver
 
 !-module references
 
+  use global,  only: mpi_err
+
 !-module options
 
   implicit none
   private
   public :: kinetics_execute 
 
+!-module external references
+
+# include "finclude/petsc.h90"
+
 !-module variables
+
+  KSP :: ksp
+  Vec :: phi
+  PC  :: pc
 
 contains
 
@@ -18,6 +28,10 @@ contains
 
   subroutine kinetics_execute(inner_solver)
 
+!---external references
+
+    use global,  only: kine
+
 !---arguments
 
     external :: inner_solver
@@ -26,6 +40,16 @@ contains
 
     ! initialize the time 0 data
     call init_data()
+
+    ! initialize solver
+    call init_solver()
+
+    ! set up krylov info
+    call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
+    call KSPSetUp(ksp,mpi_err)
+
+    ! calculate preconditioner (ILU)
+!   call PCFactorGetMatrix(pc,kine%oper,mpi_err)
 
     ! run through the kinetics iterations
     call execute_kinetics_iter(inner_solver)
@@ -67,6 +91,33 @@ contains
     if (.not.allocated(cmfd%time)) allocate(cmfd % time(nt+1))
 
   end subroutine init_data
+
+!===============================================================================
+! INIT_SOLVER
+!===============================================================================
+
+  subroutine init_solver()
+
+!---external references
+
+    use global,  only: itol
+
+!---begin execution
+
+    ! set up krylov solver
+    call KSPCreate(PETSC_COMM_SELF,ksp,mpi_err)
+    call KSPSetTolerances(ksp,itol,PETSC_DEFAULT_DOUBLE_PRECISION,     &
+   &                      PETSC_DEFAULT_DOUBLE_PRECISION,                      &
+   &                      PETSC_DEFAULT_INTEGER,mpi_err)
+    call KSPSetType(ksp,KSPGMRES,mpi_err)
+    call KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,mpi_err)
+    call KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,mpi_err)
+    call KSPGetPC(ksp,pc,mpi_err)
+    call PCSetType(pc,PCILU,mpi_err)
+    call PCFactorSetLevels(pc,5,mpi_err)
+    call KSPSetFromOptions(ksp,mpi_err)
+
+  end subroutine init_solver
 
 !===============================================================================
 ! COMPUTE_INITIAL_PRECURSORS

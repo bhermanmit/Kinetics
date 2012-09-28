@@ -385,6 +385,9 @@ contains
     ! assemble matrix
     call csr_sort_vectors(this)
 
+    ! create PETSC matrix
+    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr-1,this%col-1,this%val,this%oper,mpi_err)
+
     ! print out operator to file
     call print_K_operator(this)
 
@@ -484,10 +487,10 @@ contains
     PetscViewer :: viewer
 
     ! write out matrix in binary file (debugging)
-!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'lossmat.bin' &
-!  &     ,FILE_MODE_WRITE,viewer,ierr)
-!   call MatView(this%M,viewer,ierr)
-!   call PetscViewerDestroy(viewer,ierr)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'lossmat.bin' &
+   &     ,FILE_MODE_WRITE,viewer,ierr)
+    call MatView(this%oper,viewer,ierr)
+    call PetscViewerDestroy(viewer,ierr)
 
   end subroutine print_K_operator
 
