@@ -386,11 +386,16 @@ contains
     call csr_sort_vectors(this)
 
     ! create PETSC matrix
-    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr-1,this%col-1,this%val,this%oper,mpi_err)
-
+this % row_csr = this % row_csr - 1
+this % col = this % col - 1
+  call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,this%col,this%val,this%oper,mpi_err)
+  write(100,*) this % row_csr
+  write(101,*) this % col
+  write(102,*) this % val
     ! print out operator to file
     call print_K_operator(this)
-
+print *,'HELLO!!!!!!!!!!!!!!!!!!!!!!!!!!'
+stop
   end subroutine build_kinetics_matrix
 
 !===============================================================================
@@ -487,7 +492,7 @@ contains
     PetscViewer :: viewer
 
     ! write out matrix in binary file (debugging)
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'lossmat.bin' &
+    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'lossmat.bin' &
    &     ,FILE_MODE_WRITE,viewer,ierr)
     call MatView(this%oper,viewer,ierr)
     call PetscViewerDestroy(viewer,ierr)

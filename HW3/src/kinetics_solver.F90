@@ -45,8 +45,8 @@ contains
     call init_solver()
 
     ! set up krylov info
-    call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
-    call KSPSetUp(ksp,mpi_err)
+!   call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
+!   call KSPSetUp(ksp,mpi_err)
 
     ! calculate preconditioner (ILU)
 !   call PCFactorGetMatrix(pc,kine%oper,mpi_err)
