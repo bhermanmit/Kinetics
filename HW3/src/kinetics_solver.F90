@@ -18,6 +18,7 @@ module kinetics_solver
 
   KSP :: ksp
   Vec :: phi
+  Vec :: b
   PC  :: pc
 
 contains
@@ -43,13 +44,6 @@ contains
 
     ! initialize solver
     call init_solver()
-
-    ! set up krylov info
-!   call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
-!   call KSPSetUp(ksp,mpi_err)
-
-    ! calculate preconditioner (ILU)
-!   call PCFactorGetMatrix(pc,kine%oper,mpi_err)
 
     ! run through the kinetics iterations
     call execute_kinetics_iter(inner_solver)
@@ -193,39 +187,51 @@ contains
     real(8) :: pow
     real(8), allocatable :: rhs(:)
 
-!--begin execution
+!---begin execution
 
-   ! allocate RHS
-   n = size(cmfd % phi)
-   nz = size(kine % col)
-   allocate(rhs(n))
+    ! allocate RHS
+    n = size(cmfd % phi)
+    nz = size(kine % col)
+    allocate(rhs(n))
 
-   ! set initial output
-   cmfd % time(1) = ZERO
-   cmfd % core_power(1) = ONE
+    ! set initial output
+    cmfd % time(1) = ZERO
+    cmfd % core_power(1) = ONE
 
-   ! begin loop around time
-   do i = 1, nt
+    ! associate petsc vectors
+    call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,cmfd%phi,phi,mpi_err)
+    call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,rhs,b,mpi_err)
 
-     ! compute current time
-     curr_time = dble(i)*dt
+    ! begin loop around time
+    do i = 1, nt
+
+      ! compute current time
+      curr_time = dble(i)*dt
     
-     ! change the material via kinetics mods
-     call change_data(curr_time)
+      ! change the material via kinetics mods
+      call change_data(curr_time)
 
-     ! build matrices
-     call build_kinetics_matrix(kine)
+      ! build matrices
+      call build_kinetics_matrix(kine)
 
-     ! build right hand side
-     call build_rhs(rhs,n)
+      ! build right hand side
+      call build_rhs(rhs,n)
 
-     ! solve matrices
-     call inner_solver(kine % row_csr, kine % col, kine % val, kine % diag,    &
-                       cmfd % phi, rhs, n, nz, itol,iters)
-     if (iters >= 10000000) then 
-       message = "Inner Iteration limit exceed during transient!"
-       call fatal_error()
-     end if
+      ! set up krylov info
+      call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
+      call KSPSetUp(ksp,mpi_err)
+
+      ! calculate preconditioner (ILU)
+      call PCFactorGetMatrix(pc,kine%oper,mpi_err)
+
+      ! solve matrices
+      call KSPSolve(ksp,b,phi,mpi_err)     
+!     call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,    &
+!                       cmfd % phi, rhs, n, nz, itol,iters)
+!     if (iters >= 10000000) then 
+!       message = "Inner Iteration limit exceed during transient!"
+!       call fatal_error()
+!     end if
  
      ! compute end of time step precursor concentration
      call compute_final_precursors()
@@ -233,7 +239,7 @@ contains
      ! compute power
      pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
               cmfd%phi,prod%n))
-     write(*,*) 'INNERS: ', iters, pow
+     write(*,*) pow
      cmfd % time(i+1) = curr_time
      cmfd % core_power(i+1) = pow
    end do

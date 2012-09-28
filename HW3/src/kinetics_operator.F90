@@ -38,11 +38,6 @@ contains
     ! get preallocation
     call preallocate_kinetics_matrix(this)
 
-    ! create the Petsc Matrix
-!   call MatCreateAIJ(PETSC_COMM_WORLD,this%localn,this%localn,PETSC_DECIDE,&
-!  & PETSC_DECIDE,PETSC_NULL_INTEGER,this%d_nnz,PETSC_NULL_INTEGER,this%o_nnz, &
-!  & this%oper,mpi_err)
-
   end subroutine init_K_operator
 
 !===============================================================================
@@ -330,7 +325,6 @@ contains
           this % col(kount) = neig_mat_idx
           this % val(kount) = val
           kount = kount + 1
-!         call MatSetValue(this%oper,irow,neig_mat_idx-1,val,INSERT_VALUES,mpi_err)
 
           ! compute leakage coefficient for target to cell
           jo(l) = shift_idx*dtilde
@@ -362,7 +356,6 @@ contains
       this % col(kount) = irow + 1 
       this % val(kount) = val
       kount = kount + 1
-!     call MatSetValue(this%oper,irow,irow,val,INSERT_VALUES,mpi_err)
 
       ! begin loop over off diagonal in-scattering
       SCATTR: do h = 1,ng
@@ -381,7 +374,6 @@ contains
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val
         kount = kount + 1
-!       call MatSetValue(this%oper,irow,scatt_mat_idx-1,val,INSERT_VALUES,mpi_err)
 
       end do SCATTR
 
@@ -392,14 +384,14 @@ contains
 
     ! assemble matrix
     call csr_sort_vectors(this)
-!   call MatAssemblyBegin(this%oper,MAT_FLUSH_ASSEMBLY,mpi_err)
-!   call MatAssemblyEnd(this%oper,MAT_FINAL_ASSEMBLY,mpi_err)
-this % row_csr = this % row_csr - 1
-this % col = this % col - 1
-call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,this%col,this%val,this%oper,mpi_err)
+    this % row_csr = this % row_csr - 1
+    this % col = this % col - 1
+    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
+                                   this%col,this%val,this%oper,mpi_err)
+
     ! print out operator to file
     call print_K_operator(this)
-stop
+
   end subroutine build_kinetics_matrix
 
 !===============================================================================
