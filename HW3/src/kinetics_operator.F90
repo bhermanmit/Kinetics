@@ -2,6 +2,7 @@ module kinetics_operator
 
 !-module references
 
+  use global,           only: mpi_err
   use operator_header,  only: operator_type
 
 !-module options
@@ -20,7 +21,6 @@ module kinetics_operator
   integer  :: ny   ! maximum number of y cells
   integer  :: nz   ! maximum number of z cells
   integer  :: ng   ! maximum number of groups
-  integer  :: ierr ! petsc error code
 
 contains
 
@@ -37,6 +37,11 @@ contains
 
     ! get preallocation
     call preallocate_kinetics_matrix(this)
+
+    ! create the Petsc Matrix
+!   call MatCreateAIJ(PETSC_COMM_WORLD,this%localn,this%localn,PETSC_DECIDE,&
+!  & PETSC_DECIDE,PETSC_NULL_INTEGER,this%d_nnz,PETSC_NULL_INTEGER,this%o_nnz, &
+!  & this%oper,mpi_err)
 
   end subroutine init_K_operator
 
@@ -94,8 +99,8 @@ contains
     integer :: scatt_mat_idx ! matrix index for h-->g scattering terms
 
     ! get rank and max rank of procs
-    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,sizen,ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,mpi_err)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,sizen,mpi_err)
 
     ! get local problem size
     n = this%n
@@ -325,6 +330,7 @@ contains
           this % col(kount) = neig_mat_idx
           this % val(kount) = val
           kount = kount + 1
+!         call MatSetValue(this%oper,irow,neig_mat_idx-1,val,INSERT_VALUES,mpi_err)
 
           ! compute leakage coefficient for target to cell
           jo(l) = shift_idx*dtilde
@@ -356,6 +362,7 @@ contains
       this % col(kount) = irow + 1 
       this % val(kount) = val
       kount = kount + 1
+!     call MatSetValue(this%oper,irow,irow,val,INSERT_VALUES,mpi_err)
 
       ! begin loop over off diagonal in-scattering
       SCATTR: do h = 1,ng
@@ -374,6 +381,7 @@ contains
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val
         kount = kount + 1
+!       call MatSetValue(this%oper,irow,scatt_mat_idx-1,val,INSERT_VALUES,mpi_err)
 
       end do SCATTR
 
@@ -384,17 +392,13 @@ contains
 
     ! assemble matrix
     call csr_sort_vectors(this)
-
-    ! create PETSC matrix
+!   call MatAssemblyBegin(this%oper,MAT_FLUSH_ASSEMBLY,mpi_err)
+!   call MatAssemblyEnd(this%oper,MAT_FINAL_ASSEMBLY,mpi_err)
 this % row_csr = this % row_csr - 1
 this % col = this % col - 1
-  call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,this%col,this%val,this%oper,mpi_err)
-  write(100,*) this % row_csr
-  write(101,*) this % col
-  write(102,*) this % val
+call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,this%col,this%val,this%oper,mpi_err)
     ! print out operator to file
     call print_K_operator(this)
-print *,'HELLO!!!!!!!!!!!!!!!!!!!!!!!!!!'
 stop
   end subroutine build_kinetics_matrix
 
@@ -492,10 +496,10 @@ stop
     PetscViewer :: viewer
 
     ! write out matrix in binary file (debugging)
-    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'lossmat.bin' &
-   &     ,FILE_MODE_WRITE,viewer,ierr)
-    call MatView(this%oper,viewer,ierr)
-    call PetscViewerDestroy(viewer,ierr)
+    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'kinemat.bin' &
+   & ,viewer,mpi_err)
+    call MatView(this%oper,viewer,mpi_err)
+    call PetscViewerDestroy(viewer,mpi_err)
 
   end subroutine print_K_operator
 
@@ -508,7 +512,7 @@ stop
     type(operator_type) :: this
 
     ! deallocate matrix
-!   call MatDestroy(this%M,ierr)
+!   call MatDestroy(this%M,mpi_err)
 
     ! deallocate CSR objects
     if (allocated(this % row)) deallocate(this % row)
