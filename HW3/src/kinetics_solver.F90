@@ -40,9 +40,8 @@ contains
 
 !---external references
 
-    use cmfd_header,        only: compute_core_power
     use constants,          only: ONE
-    use global,             only: cmfd, geometry, material, kine, prod
+    use global,             only: cmfd, geometry, material, kine, prod, nt
     use kinetics_operator,  only: init_K_operator
     use math,               only: csr_matvec_mult
 
@@ -53,7 +52,6 @@ contains
 !---begin execution
 
     ! normalize initial power to unity and set initial power
-!   pow = compute_core_power(cmfd, size(cmfd%phi), geometry, material)
     pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,        &
               cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
@@ -63,6 +61,10 @@ contains
 
     ! set up matrices
     call init_K_operator(kine)
+
+    ! allocate output arrays
+    if (.not.allocated(cmfd%core_power)) allocate(cmfd % core_power(nt+1))
+    if (.not.allocated(cmfd%time)) allocate(cmfd % time(nt+1))
 
   end subroutine init_data
 
@@ -107,7 +109,7 @@ contains
       end do
 
     end do
-write(87,*) cmfd % C(:,1)
+
   end subroutine compute_initial_precursors
 
 !===============================================================================
@@ -119,7 +121,7 @@ write(87,*) cmfd % C(:,1)
 
 !---external references
 
-    use cmfd_header,        only: compute_core_power
+    use constants,          only: ZERO, ONE
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
                                   itol, prod, message
@@ -146,6 +148,10 @@ write(87,*) cmfd % C(:,1)
    n = size(cmfd % phi)
    nz = size(kine % col)
    allocate(rhs(n))
+
+   ! set initial output
+   cmfd % time(1) = ZERO
+   cmfd % core_power(1) = ONE
 
    ! begin loop around time
    do i = 1, nt
@@ -177,6 +183,8 @@ write(87,*) cmfd % C(:,1)
      pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
               cmfd%phi,prod%n))
      write(*,*) 'INNERS: ', iters, pow
+     cmfd % time(i+1) = curr_time
+     cmfd % core_power(i+1) = pow
    end do
 
    ! deallocate RHS

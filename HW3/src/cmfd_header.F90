@@ -23,6 +23,10 @@ module cmfd_header
     ! precursors
     real(8), allocatable :: C(:,:)
 
+    ! transient
+    real(8), allocatable :: time(:)
+    real(8), allocatable :: core_power(:)
+
     ! final iteration and norm
     integer :: iter
     real(8) :: norm
