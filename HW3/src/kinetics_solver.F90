@@ -281,7 +281,7 @@ contains
       ! begin loop around precursor groups
       do i = 1, NUM_PRECS
 
-        cmfd % C(j,i) = beta(i)/((ONE + dt*lambda(i)) * cmfd % keff) * fiss +  &
+        cmfd % C(j,i) = beta(i)*dt/((ONE + dt*lambda(i)) * cmfd % keff) * fiss +  &
                         cmfd % C(j,i)/(ONE + dt*lambda(i))
 
       end do
