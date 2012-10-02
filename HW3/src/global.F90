@@ -37,6 +37,7 @@ module global
   type(Timer) :: time_build  ! timer for mat building
   type(Timer) :: time_power  ! timer for power iteration
   type(Timer) :: time_inner  ! timer for inner iterations
+  type(Timer) :: time_kine   ! timer for kinetics
 
 !-petsc error code
 

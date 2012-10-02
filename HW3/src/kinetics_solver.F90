@@ -60,7 +60,7 @@ contains
 
     use constants,          only: ONE
     use global,             only: cmfd, geometry, material, kine, prod, nt
-    use kinetics_operator,  only: init_K_operator
+    use kinetics_operator,  only: init_K_operator, build_kinetics_matrix
     use math,               only: csr_matvec_mult
 
 !---local variables
@@ -79,6 +79,9 @@ contains
 
     ! set up matrices
     call init_K_operator(kine)
+    call build_kinetics_matrix(kine)
+    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,kine%n,kine%n,kine%row_csr,&
+                                   kine%col,kine%val,kine%oper,mpi_err)
 
     ! allocate output arrays
     if (.not.allocated(cmfd%core_power)) allocate(cmfd % core_power(nt+1))
@@ -169,9 +172,10 @@ contains
     use constants,          only: ZERO, ONE
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
-                                  itol, prod, message
+                                  itol, prod, message, time_kine, time_inner
     use kinetics_operator,  only: build_kinetics_matrix
     use math,               only: csr_matvec_mult
+    use timing,             only: timer_start, timer_stop, timer_reset
 
 !---arguments
 
@@ -202,6 +206,10 @@ contains
     call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,cmfd%phi,phi,mpi_err)
     call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,rhs,b,mpi_err)
 
+    ! set up krylov info
+    call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
+    call KSPSetUp(ksp,mpi_err)
+
     ! begin loop around time
     do i = 1, nt
 
@@ -217,15 +225,12 @@ contains
       ! build right hand side
       call build_rhs(rhs,n)
 
-      ! set up krylov info
-      call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
-      call KSPSetUp(ksp,mpi_err)
-
       ! calculate preconditioner (ILU)
       call PCFactorGetMatrix(pc,kine%oper,mpi_err)
 
       ! solve matrices
-      call KSPSolve(ksp,b,phi,mpi_err)     
+      call KSPSolve(ksp,b,phi,mpi_err)
+
 !     call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,    &
 !                       cmfd % phi, rhs, n, nz, itol,iters)
 !     if (iters >= 10000000) then 

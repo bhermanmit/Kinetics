@@ -201,7 +201,8 @@ contains
     allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
     allocate(this % row_csr(row_end - row_start + 2))
     allocate(this % diag(row_end - row_start + 1))
-
+!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
+!                                  this%col,this%val,this%oper,mpi_err)
   end subroutine preallocate_kinetics_matrix
 
 !===============================================================================
@@ -386,11 +387,11 @@ contains
     call csr_sort_vectors(this)
     this % row_csr = this % row_csr - 1
     this % col = this % col - 1
-    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
-                                   this%col,this%val,this%oper,mpi_err)
+!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
+!                                  this%col,this%val,this%oper,mpi_err)
 
     ! print out operator to file
-    call print_K_operator(this)
+!   call print_K_operator(this)
 
   end subroutine build_kinetics_matrix
 
