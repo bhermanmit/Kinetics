@@ -1,0 +1,15 @@
+
+set terminal pdf 
+set output "partA_end.pdf"
+set key horizontal
+set key bmargin center
+set log x
+set xlabel "Coarse Mesh to Fine Mesh Ratio [-]"
+set ylabel "End Power Deviation [%]"
+set title "End Power Deviation from Grid Refinement"
+plot '-' using 1:2 with linespoint linewidth 3.0
+  5.0 2.0915559919
+10.0 1.2048306621
+50.0 0.124088282238
+100.0 0.0951847856674
+e
