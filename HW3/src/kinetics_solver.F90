@@ -239,7 +239,7 @@ contains
      ! compute power
      pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
               cmfd%phi,prod%n))
-     write(*,*) pow
+     write(*,*) 'Step:', i,' /',nt,' POWER:',pow
      cmfd % time(i+1) = curr_time
      cmfd % core_power(i+1) = pow
    end do
