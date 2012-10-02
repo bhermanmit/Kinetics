@@ -1,0 +1,19 @@
+
+set terminal pdf 
+set output "partB_spaceerror.pdf"
+set key left top
+set log x
+set log y
+set grid
+set xlabel "Mesh Size [cm]"
+set ylabel "Error in Power from Reference [-]"
+set title "Fraction Error in Core Power vs. Time step (Ref. dx = 1 cm)"
+plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Core Power", '-' using 1:2 with linespoint linewidth 3.0 title "End Core Power"
+  2.0 0.0812077913058
+5.0 0.0570809198954
+10.0 0.91151054006
+e
+2.0 0.0814248649485
+5.0 0.0569911806247
+10.0 0.912185627565
+e

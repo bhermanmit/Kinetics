@@ -1,0 +1,36 @@
+
+set terminal pdf 
+set output "partB_timestep.pdf"
+set key horizontal
+set key bmargin center
+set log x
+set log y
+set grid
+set xlabel "Inverse of time step [1/s]"
+set ylabel "Power Deviation [%]"
+set title "Power Deviation from Grid Refinement"
+plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Power", '-' using 1:2 with linespoint linewidth 3.0 title "Final Power"
+  100.0 100.0
+200.0 99.9830774133
+500.0 93.4702515693
+1000.0 72.0776509883
+2000.0 46.0482181633
+5000.0 21.4111464358
+10000.0 11.178790859
+20000.0 5.62478839712
+50000.0 2.14379810447
+100000.0 0.957987274863
+200000.0 0.360217930687
+e
+100.0 100.0
+200.0 99.9831247985
+500.0 93.4734132917
+1000.0 72.0853345334
+2000.0 46.056208106
+5000.0 21.4160331154
+10000.0 11.1816903676
+20000.0 5.6262692925
+50000.0 2.14437840688
+100000.0 0.958248147959
+200000.0 0.36031671533
+e

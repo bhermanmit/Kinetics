@@ -1,0 +1,25 @@
+
+set terminal pdf 
+set output "partB_timeerror.pdf"
+set key left top
+set log y
+set log x
+set grid
+set xlabel "Time step multiplier [-]"
+set ylabel "Error in Power from Reference [-]"
+set title "Fraction Error in Core Power vs. Time step (Ref. dt = 1e-5 s)"
+plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Core Power", '-' using 1:2 with linespoint linewidth 3.0 title "End Core Power"
+  2.0 0.0121178914227
+4.0 0.0368401323725
+8.0 0.0882971338381
+16.0 0.199827315758
+32.0 0.46241551911
+64.0 1.19648270254
+e
+2.0 0.012121227576
+4.0 0.0368504366812
+8.0 0.0883226230371
+16.0 0.199888733474
+32.0 0.462577422888
+64.0 1.19701547399
+e
