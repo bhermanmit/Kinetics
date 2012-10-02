@@ -48,7 +48,7 @@ class result:
 def gnuplot_file(results):
 
   datastr = ""
-  i = 0
+  i = 1
   while i < len(results):
     item = results[i] 
     datastr += "{factor} {maxpower}\n".format(factor=item.factor,       \
@@ -57,7 +57,7 @@ def gnuplot_file(results):
 
   datastr += "e\n"
 
-  i = 0
+  i = 1
   while i < len(results):
     item = results[i]
     datastr += "{factor} {endpower}\n".format(factor=item.factor,       \
@@ -70,9 +70,12 @@ def gnuplot_file(results):
 set terminal pdf 
 set output "partA_timeerror.pdf"
 set key left top
+set log y
+set log x
 set xlabel "Time step multiplier [-]"
 set ylabel "Error in Power from Reference [-]"
-set title "Fraction Error in Core Power vs. Time step (Ref. dt = 0.005s)"
+set title "Fraction Error in Core Power vs. Time step (Ref. dt = 0.02s)"
+set grid
 plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Core Power", '-' using 1:2 with linespoint linewidth 3.0 title "End Core Power"
   """
 
@@ -98,6 +101,8 @@ def process_all():
   temp = result('./time_16/output.h5',16.0)
   results.append(temp)
   temp = result('./time_32/output.h5',32.0)
+  results.append(temp)
+  temp = result('./time_64/output.h5',64.0)
   results.append(temp)
 
   # set reference

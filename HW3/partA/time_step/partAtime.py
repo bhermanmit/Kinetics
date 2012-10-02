@@ -35,21 +35,21 @@ class result:
 
   def process_max_power(self):
 
-    self.max_power = abs(max(self.power) - self.power_ref) / self.power_ref * 100.0
+    self.max_power = abs(max(self.power) - self.power_ref) / max(self.power) * 100.0
 
 #-------------------------------------------------------------------------------
 
   def process_end_power(self):
 
-    self.end_power = abs(self.power[len(self.power)-1] - self.power_ref) / self.power_ref * 100.0
+    self.end_power = abs(self.power[len(self.power)-1] - self.power_ref) / self.power[len(self.power)-1] * 100.0
 
 ################################################################################
 
 def gnuplot_file(results):
 
   datastr = ""
-  i = 1
-  while i < len(results):
+  i = 0
+  while i < len(results)-1:
     item = results[i] 
     datastr += "{factor} {maxpower}\n".format(factor=item.factor,       \
                                           maxpower=item.max_power)
@@ -57,26 +57,8 @@ def gnuplot_file(results):
 
   datastr += "e\n"
 
-  outstr = """
-set terminal pdf 
-set output "partA_max.pdf"
-set key horizontal
-set key bmargin center
-set log x
-set xlabel "Coarse Mesh to Fine Mesh Ratio [-]"
-set ylabel "Max Power Deviation [%]"
-set title "Max Power Deviation from Grid Refinement"
-plot '-' using 1:2 with linespoint linewidth 3.0
-  """
-
-  outstr += datastr
-
-  with open("gnuplot_max.dat",'w') as f:
-    f.write(outstr)
-
-  datastr = ""
-  i = 1
-  while i < len(results):
+  i = 0
+  while i < len(results)-1:
     item = results[i]
     datastr += "{factor} {endpower}\n".format(factor=item.factor,       \
                                           endpower=item.end_power)
@@ -86,19 +68,21 @@ plot '-' using 1:2 with linespoint linewidth 3.0
 
   outstr = """
 set terminal pdf 
-set output "partA_end.pdf"
+set output "partA_timestep.pdf"
 set key horizontal
 set key bmargin center
 set log x
-set xlabel "Coarse Mesh to Fine Mesh Ratio [-]"
-set ylabel "End Power Deviation [%]"
-set title "End Power Deviation from Grid Refinement"
-plot '-' using 1:2 with linespoint linewidth 3.0
+set log y
+set grid
+set xlabel "Inverse of time step [1/s]"
+set ylabel "Power Deviation [%]"
+set title "Power Deviation from Grid Refinement (ref dt = 1e-4 s)"
+plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Power", '-' using 1:2 with linespoint linewidth 3.0 title "Final Power"
   """
 
   outstr += datastr
 
-  with open("gnuplot_end.dat",'w') as f:
+  with open("gnuplot_timestep.dat",'w') as f:
     f.write(outstr)
 
 
@@ -120,6 +104,7 @@ set output "partA_powers.pdf"
 set xlabel "Time [s]"
 set ylabel "Relative Core Power [-]"
 set title "Core Power Evolution During Transient"
+set grid
 plot '-' using 1:2 with lines linewidth 2.0 title "dt = 1 s", '-' using 1:2 with lines linewidth 2.0 title "dt = 0.5 s", '-' using 1:2 with lines linewith 2.0 title "dt = 0.1 s",'-' using 1:2 with lines linewidth 2.0 title "dt = 0.005 s", '-' using 1:2 with lines linewidth 2.0 title "dt = 0.001s"
   """
   outstr += datastr
@@ -141,7 +126,8 @@ set output "partA_powerconv.pdf"
 set xlabel "Time [s]"
 set ylabel "Relative Core Power [-]"
 set title "Core Power Evolution During Transient"
-plot '-' using 1:2 with lines linewidth 2.0 title "dt = 0.005 s"
+set grid
+plot '-' using 1:2 with lines linewidth 2.0 title "dt = 0.1 s"
   """
   outstr += datastr
 
@@ -158,21 +144,29 @@ def process_all():
   results = []
   temp = result('./time1/output.h5',1.0)
   results.append(temp)
-  temp = result('./time05/output.h5',5.0)
+  temp = result('./time2/output.h5',2.0)
   results.append(temp)
-  temp = result('./time01/output.h5',10.0)
+  temp = result('./time5/output.h5',5.0)
   results.append(temp)
-  temp = result('./time005/output.h5',50.0)
+  temp = result('./time10/output.h5',10.0)
   results.append(temp)
-  temp = result('./time001/output.h5',100.0)
+  temp = result('./time20/output.h5',20.0)
+  results.append(temp)
+  temp = result('./time50/output.h5',50.0)
+  results.append(temp)
+  temp = result('./time100/output.h5',100.0)
+  results.append(temp)
+  temp = result('./time10000/output.h5',10000.0)
   results.append(temp)
 
   # begin loop around results
-  i = 1
-  while i < len(results):
-    result.power_ref = max(results[i-1].power)
+  i = 0
+  while i < len(results)-1:
+#   result.power_ref = max(results[i+1].power)
+    result.power_ref = max(results[7].power)
     results[i].process_max_power()
-    result.power_ref = results[i-1].power[len(results[i-1].power)-1]
+#   result.power_ref = results[i+1].power[len(results[i+1].power)-1]
+    result.power_ref = results[7].power[len(results[7].power)-1]
     results[i].process_end_power()
     i += 1
 

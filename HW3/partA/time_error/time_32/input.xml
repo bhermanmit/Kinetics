@@ -72,7 +72,7 @@
 <!-- Kinetics -->
   <run_kinetics> .true. </run_kinetics>
   <time> 50.0 </time>
-  <nt> 31 </nt>
+  <nt> 78 </nt>
 
   <kinetics>
     <mat_id> 5 </mat_id>

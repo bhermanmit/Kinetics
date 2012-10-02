@@ -48,7 +48,7 @@ class result:
 def gnuplot_file(results):
 
   datastr = ""
-  i = 0
+  i = 1
   while i < len(results):
     item = results[i] 
     datastr += "{factor} {maxpower}\n".format(factor=item.factor,       \
@@ -57,7 +57,7 @@ def gnuplot_file(results):
 
   datastr += "e\n"
 
-  i = 0
+  i = 1
   while i < len(results):
     item = results[i]
     datastr += "{factor} {endpower}\n".format(factor=item.factor,       \
@@ -70,6 +70,9 @@ def gnuplot_file(results):
 set terminal pdf 
 set output "partA_spaceerror.pdf"
 set key left top
+set log x
+set log y
+set grid
 set xlabel "Mesh Size [cm]"
 set ylabel "Error in Power from Reference [-]"
 set title "Fraction Error in Core Power vs. Time step (Ref. dx = 1 cm)"

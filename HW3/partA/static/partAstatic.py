@@ -34,6 +34,8 @@ def process_all():
   beta = 0.006648
 
   static = (rodout.keff - rodin.keff)/rodout.keff/beta
+  print "UNRODDED"+str(rodout.keff)
+  print "RODDED"+str(rodin.keff)
   print static
 
 ################################################################################
