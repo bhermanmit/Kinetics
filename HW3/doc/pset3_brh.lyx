@@ -1,0 +1,773 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\date{}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\renewcommand{\headrulewidth}{0pt}
+\rfoot{\scriptsize Bryan Herman}
+\usepackage{color}
+\usepackage{algorithmic}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize 12
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\bullet 0 0 0 -1
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\shape smallcaps
+\size giant
+Problem Set 3
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+22.S904 Nuclear Reactor Kinetics
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Due: 3 October 2012
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace bigskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\size largest
+Bryan Herman
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100line%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Diffusion Code
+\end_layout
+
+\begin_layout Standard
+A general three-dimensional second order finite volume code was written
+ to solve the neutron diffusion equation for both steady state and transient
+ applications.
+ 
+\series bold
+The source code can be reviewed at:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\series bold
+http://github.com/bhermanmit/Kinetics/tree/master/HW3/src
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Section*
+Derivation of Transient Diffusion Equations
+\end_layout
+
+\begin_layout Standard
+We can begin the derivation with the multigroup form of the neutron diffusion
+ equation and precursor balance equation:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline*}
+\frac{1}{v_{g}\left(\vec{r}\right)}\frac{\partial}{\partial t}\phi_{g}\left(\vec{r},t\right)=\nabla\cdot D_{g}\left(\vec{r},t\right)\nabla\phi_{g}\left(\vec{r},t\right)-\Sigma_{tg}\left(\vec{r},t\right)\phi_{g}\left(\vec{r},t\right)+\sum_{h}\Sigma_{s,h\rightarrow g}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)\\
++\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)+\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}\left(\vec{r},t\right)\qquad g=1,...,G
+\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\partial}{\partial t}C_{i}\left(\vec{r},t\right)=-\lambda_{i}C_{i}\left(\vec{r},t\right)+\frac{\beta_{i}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)\qquad i=1,...,I.
+\]
+
+\end_inset
+
+In these equations we assume that velocity and other kinetics parameters
+ are not strongly varying with time.
+ In general, these parameters could be interpolated on from resulting lattice
+ calculations.
+ We can now discretize this set of equations in time using implicit Euler.
+ The time step will be denoted as 
+\begin_inset Formula $n$
+\end_inset
+
+.
+ The form of the equation is now
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline*}
+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\left[\phi_{g}^{n+1}\left(\vec{r}\right)-\phi_{g}^{n}\left(\vec{r}\right)\right]=\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)-\Sigma_{tg}^{n+1}\left(\vec{r}\right)\phi_{g}^{n+1}\left(\vec{r}\right)+\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
++\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)+\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)
+\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{1}{dt^{n}}\left[C_{i}^{n+1}\left(\vec{r}\right)-C_{i}^{n}\left(\vec{r}\right)\right]=-\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right).
+\]
+
+\end_inset
+
+ We move all the 
+\begin_inset Formula $n+1$
+\end_inset
+
+ terms to the left hand side and everything else to the left,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline*}
+-\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+-\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)-\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)
+\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+C_{i}^{n+1}\left(\vec{r}\right)\left(1+\lambda_{i}dt^{n}\right)-\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)=C_{i}^{n}\left(\vec{r}\right).
+\]
+
+\end_inset
+
+ Now, we solve the precursor equation for 
+\begin_inset Formula $C_{i}^{n+1}\left(\vec{r}\right)$
+\end_inset
+
+ and plug it into the neutron diffusion equation,
+\begin_inset Formula 
+\[
+C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right).
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline*}
+-\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+-\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+-\sum_{i}\chi_{ig}^{d}\lambda_{i}\left[\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\right]=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right).
+\end{multline*}
+
+\end_inset
+
+ We can now collect terms and rearrange again,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right).
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline*}
+-\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+-\left\{ \left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\right\} \sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right).
+\end{multline*}
+
+\end_inset
+
+ We make one last approximation and that is the delay spectrum is independent
+ of the percursor group.
+ This is the way we have implemented it in the code is that the user may
+ supply one set of delayed spectrum information.
+ This will not affect two group calculations as the spectrum is all produced
+ in group 1.
+ The final equations to be solved are
+\begin_inset Formula 
+\begin{multline*}
+-\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+-\left\{ \left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}+\frac{\chi_{g}^{d}}{k_{crit}}\sum_{i}\frac{\lambda_{i}\beta_{i}\left(\vec{r}\right)dt^{n}}{\left(1+\lambda_{i}dt^{n}\right)}\right\} \sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
+=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)
+\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right).
+\]
+
+\end_inset
+
+ The first equation looks very similar to the steady state fixed source
+ form of the neutron diffusion equation.
+ Here, we have an extra term on the total cross section and nu-fission cross
+ section.
+ The algorithm to perform the transient analysis is shown below.
+ 
+\begin_inset Float algorithm
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Transient Analysis
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{algorithmic}[1]
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE Solve steady state eigenvalue
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE Compute steady state precursor concentrations
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+STATE Begin time-step loop
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+FOR{$i=1,2,3,...n_timesteps$}
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute modified cross sections
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute kinetics modifications to removal and fission
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Build matrix
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Build right hand side source
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Solve for end of time step fluxes
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute end of time step precursors
+\end_layout
+
+\begin_layout Plain Layout
+
+	
+\backslash
+STATE Compute core power
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+ENDFOR
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{algorithmic}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ To solve for the end of time step fluxes we implement PETSc GMRES solver
+ with ILU level 5 preconditioning.
+\end_layout
+
+\begin_layout Section*
+Part A
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+What is the static rod worth (in fraction of beta)? 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta\rho=\frac{k_{unrod}-k_{rod}}{k_{unrod}}=\frac{1.367999-1.364613}{1.367999}=0.37231\beta.
+\]
+
+\end_inset
+
+ 
+\series bold
+What is the dominance ratio of the static rod-inserted base case? 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+DR=0.99127
+\]
+
+\end_inset
+
+
+\series bold
+ What uniform time step size is required to converge the peak core power
+ and final core power to 1%? 
+\end_layout
+
+\begin_layout Standard
+To answer the question we ran an array of time step sizes.
+ A plot is shown below that shows this convergence.
+ The plot shows the percent error from a reference time step size of 1e-4
+ seconds.
+ From the plot, convergence is met when the time step is 0.1s.
+ We also see that the max power takes a smaller time step to converge than
+ the final power for the given convergence criterion.
+ We also see a pretty linear convergence rate on a log-log plot.
+ This would indicate a first order time discretization scheme.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partA/time_step/partA_timestep.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot normalized core power vs.
+ time for the converged time-step.
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partA/time_step/partA_powerconv.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot fractional error in peak and final core powers vs.
+ time step when the converged time step is multiplied by 1, 2, 4, 8, 16,
+ 32, and 64.
+ 
+\end_layout
+
+\begin_layout Standard
+Since our converged time step was 0.1 seconds, multiplying it by 64 would
+ not yield enough time steps to run the problem.
+ Therefore, we just choose a time step of 0.02 seconds.
+ The resulting plot is shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partA/time_error/partA_timeerror.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The max power line is very choppy which indicates are time step is not small
+ enough to reach asymptotic convergence rate.
+ The final core power line shows a smoother convergence rate which is about
+ first order.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot fractional error in peak and final core powers vs.
+ spatial mesh (using converged time step) for mesh of 1.0, 2.0, 5.0, and 10.0
+ cm.
+ 
+\end_layout
+
+\begin_layout Standard
+We still use a time step of 0.02s for this convergence study.
+ The resulting plot is shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partA/space_error/partA_spaceerror.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can't make any conclusions about the convergence rate in space the indicated
+ mesh sizes are too coarse still.
+\end_layout
+
+\begin_layout Section*
+Part B
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+What is the static rod worth (in fraction of beta)? 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Delta\rho=\frac{k_{unrod}-k_{rod}}{k_{unrod}}=\frac{1.367999-1.356805}{1.367999}=1.23088\beta.
+\]
+
+\end_inset
+
+ Therefore, the core will go prompt super critical when we run this case.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+What is the dominance ratio of the static rod-inserted base case? 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+DR=0.9992
+\]
+
+\end_inset
+
+ We see that the dominance ratio is higher than the previous case.
+ Because the rod is worth more, it decouples the core even more.
+ Thus, the dominance ratio increases.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+What uniform time step size is required to converge the peak core power
+ and final core power to 1%? 
+\end_layout
+
+\begin_layout Standard
+To answer the question we ran an array of time step sizes.
+ A plot is shown below that shows this convergence.
+ The plot shows the percent error from successive time step sizes.
+ From the plot, convergence is met when the time step is 1e-5 seconds.
+ We also see that the max power takes a similar time step to converge as
+ the final power.
+ We also see a pretty linear convergence rate on a log-log plot when it
+ reaches asymptotic convergence.
+ This would indicate a first order time discretization scheme.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/time_step/partB_timestep.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot normalized core power vs.
+ time for the converged time-step.
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/time_step/partB_powerconv.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We see that the core power increases enormously because it is super critical
+ off of prompt neutrons only.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot fractional error in peak and final core powers vs.
+ time step when the converged time step is multiplied by 1, 2, 4, 8, 16,
+ 32, and 64.
+ 
+\end_layout
+
+\begin_layout Standard
+Since our converged time step was 0.2 seconds, multiplying it by 64 would
+ not yield enough time steps to run the problem.
+ Therefore, we just choose a time step of 0.02 seconds.
+ The resulting plot is shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/time_error/partB_timeerror.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Compared with Part A, this plot is very smooth and shows about a first order
+ convergence rate.
+\end_layout
+
+\begin_layout Standard
+\noindent
+
+\series bold
+Plot fractional error in peak and final core powers vs.
+ spatial mesh (using converged time step) for mesh of 1.0, 2.0, 5.0, and 10.0
+ cm.
+ 
+\end_layout
+
+\begin_layout Standard
+We still use a time step of 0.02s for this convergence study.
+ The resulting plot is shown below.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../partB/space_error/partB_spaceerror.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can't make any conclusions about the convergence rate in space the indicated
+ mesh sizes are too coarse still.
+\end_layout
+
+\end_body
+\end_document
