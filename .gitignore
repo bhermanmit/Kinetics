@@ -33,6 +33,9 @@ HW1/src/ipkes/templates/*.f90
 HW2/src/cmfd
 HW2/src/templates/input_t.f90
 HW2/src/xml-fortran/xmlreader
+HW3/src/cmfd
+HW3/src/templates/input_t.f90
+HW3/src/xml-fortran/xmlreader
 
 *.bin
 *.info
