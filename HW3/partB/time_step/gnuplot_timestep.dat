@@ -8,7 +8,7 @@ set log y
 set grid
 set xlabel "Inverse of time step [1/s]"
 set ylabel "Power Deviation [%]"
-set title "Power Deviation from Grid Refinement"
+set title "Power Deviation from Grid Refinement (ref dt = 2e-6 s)"
 plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Power", '-' using 1:2 with linespoint linewidth 3.0 title "Final Power"
   100.0 100.0
 200.0 99.9830774133

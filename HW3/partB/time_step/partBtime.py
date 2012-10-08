@@ -77,7 +77,7 @@ set log y
 set grid
 set xlabel "Inverse of time step [1/s]"
 set ylabel "Power Deviation [%]"
-set title "Power Deviation from Grid Refinement"
+set title "Power Deviation from Grid Refinement (ref dt = 2e-6 s)"
 plot '-' using 1:2 with linespoint linewidth 3.0 title "Max Power", '-' using 1:2 with linespoint linewidth 3.0 title "Final Power"
   """
 
@@ -118,8 +118,8 @@ plot '-' using 1:2 with lines linewidth 2.0 title "dt = 1e-2 s", '-' using 1:2 w
 
   datastr = ""
   i = 0
-  while i < len(results[6].power):
-    datastr += "{time} {power}\n".format(time=results[6].time[i],power=results[6].power[i])
+  while i < len(results[9].power):
+    datastr += "{time} {power}\n".format(time=results[9].time[i],power=results[9].power[i])
     i += 1
 
   datastr += "e\n"

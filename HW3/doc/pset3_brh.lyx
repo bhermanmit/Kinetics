@@ -195,7 +195,7 @@ We can begin the derivation with the multigroup form of the neutron diffusion
 \begin_inset Formula 
 \begin{multline*}
 \frac{1}{v_{g}\left(\vec{r}\right)}\frac{\partial}{\partial t}\phi_{g}\left(\vec{r},t\right)=\nabla\cdot D_{g}\left(\vec{r},t\right)\nabla\phi_{g}\left(\vec{r},t\right)-\Sigma_{tg}\left(\vec{r},t\right)\phi_{g}\left(\vec{r},t\right)+\sum_{h}\Sigma_{s,h\rightarrow g}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)\\
-+\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)+\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}\left(\vec{r},t\right)\qquad g=1,...,G
++\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}\left(\vec{r},t\right)\phi_{h}\left(\vec{r},t\right)+\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}C_{i}\left(\vec{r},t\right)\qquad g=1,...,G
 \end{multline*}
 
 \end_inset
@@ -225,7 +225,7 @@ In these equations we assume that velocity and other kinetics parameters
 \begin_inset Formula 
 \begin{multline*}
 \frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\left[\phi_{g}^{n+1}\left(\vec{r}\right)-\phi_{g}^{n}\left(\vec{r}\right)\right]=\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)-\Sigma_{tg}^{n+1}\left(\vec{r}\right)\phi_{g}^{n+1}\left(\vec{r}\right)+\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
-+\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)+\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)
++\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)+\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)
 \end{multline*}
 
 \end_inset
@@ -252,7 +252,7 @@ In these equations we assume that velocity and other kinetics parameters
 \begin_inset Formula 
 \begin{multline*}
 -\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
--\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)-\sum_{i}\chi_{ig}^{d}\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)
+-\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)-\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)
 \end{multline*}
 
 \end_inset
@@ -282,7 +282,7 @@ C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec
 \begin{multline*}
 -\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
 -\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
--\sum_{i}\chi_{ig}^{d}\lambda_{i}\left[\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\right]=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right).
+-\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}\left[\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)+\frac{\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\right]=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right).
 \end{multline*}
 
 \end_inset
@@ -303,7 +303,7 @@ C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec
 \begin{multline*}
 -\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
 -\left\{ \left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}\beta_{i}\left(\vec{r}\right)dt^{n}}{k_{crit}\left(1+\lambda_{i}dt^{n}\right)}\right\} \sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
-=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right).
+=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\sum_{i}\frac{\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right).
 \end{multline*}
 
 \end_inset
@@ -319,7 +319,7 @@ C_{i}^{n+1}\left(\vec{r}\right)=\frac{1}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec
 \begin{multline*}
 -\nabla\cdot D_{g}^{n+1}\left(\vec{r}\right)\nabla\phi_{g}^{n+1}\left(\vec{r}\right)+\left[\Sigma_{tg}^{n+1}\left(\vec{r}\right)+\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\right]\phi_{g}^{n+1}\left(\vec{r}\right)-\sum_{h}\Sigma_{s,h\rightarrow g}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
 -\left\{ \left[1-\beta\left(\vec{r}\right)\right]\frac{\chi_{g}^{p}\left(\vec{r}\right)}{k_{crit}}+\frac{\chi_{g}^{d}}{k_{crit}}\sum_{i}\frac{\lambda_{i}\beta_{i}\left(\vec{r}\right)dt^{n}}{\left(1+\lambda_{i}dt^{n}\right)}\right\} \sum_{h}\nu\Sigma_{sh}^{n+1}\left(\vec{r}\right)\phi_{h}^{n+1}\left(\vec{r}\right)\\
-=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\sum_{i}\frac{\chi_{ig}^{d}\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)
+=\frac{1}{v_{g}\left(\vec{r}\right)dt^{n}}\phi_{g}^{n}\left(\vec{r}\right)+\chi_{g}^{d}\left(\vec{r}\right)\sum_{i}\frac{\lambda_{i}}{1+\lambda_{i}dt^{n}}C_{i}^{n}\left(\vec{r}\right)
 \end{multline*}
 
 \end_inset
@@ -664,7 +664,7 @@ What uniform time step size is required to converge the peak core power
 \begin_layout Standard
 To answer the question we ran an array of time step sizes.
  A plot is shown below that shows this convergence.
- The plot shows the percent error from successive time step sizes.
+ The plot shows the percent error from a reference time step of 2e-6.
  From the plot, convergence is met when the time step is 1e-5 seconds.
  We also see that the max power takes a similar time step to converge as
  the final power.
