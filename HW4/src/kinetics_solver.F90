@@ -73,9 +73,7 @@ contains
     pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
               cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
-    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
-              cmfd%phi,prod%n))
-write(883,*) pow
+
     ! compute steady state precursors
     call compute_initial_precursors()
 
@@ -174,7 +172,8 @@ write(883,*) pow
     use constants,          only: ZERO, ONE, beta
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
-                                  itol, prod, message, time_kine, time_inner, loss, prod
+                                  itol, prod, message, time_kine, time_inner,  &
+                                  loss, prod, kinetics
     use kinetics_operator,  only: build_kinetics_matrix
     use loss_operator,      only: init_M_operator, build_loss_matrix
     use prod_operator,      only: init_F_operator, build_prod_matrix
@@ -226,8 +225,8 @@ write(883,*) pow
     if(.not.allocated(cmfd % pnl)) allocate(cmfd % pnl(nt))
 
     ! build petsc matrices
-    call build_loss_matrix(loss)
-    call build_prod_matrix(prod)
+    call build_loss_matrix(loss,'')
+    call build_prod_matrix(prod,'')
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,loss%n,loss%n,loss%row_csr,&
                                    loss%col,loss%val,loss%oper,mpi_err)
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
@@ -240,7 +239,7 @@ write(883,*) pow
       curr_time = dble(i)*dt
     
       ! change the material via kinetics mods
-      call change_data(curr_time)
+      call change_data(kinetics,curr_time)
 
       ! build matrices
       call build_kinetics_matrix(kine)
@@ -321,13 +320,13 @@ write(883,*) pow
 ! CHANGE_DATA
 !===============================================================================
 
-  subroutine change_data(t)
+  subroutine change_data(kinetics,t)
 
 !---external references
 
     use constants,        only: ONE, vel, beta, lambda
     use error,            only: fatal_error
-    use global,           only: material, kinetics, n_kins, message, dt,       &
+    use global,           only: material, n_kins, message, dt,       &
                                 n_materials, cmfd
     use kinetics_header,  only: kinetics_type
     use material_header,  only: material_type
@@ -335,6 +334,7 @@ write(883,*) pow
 !---arguments
 
     real(8) :: t
+    type(kinetics_type), target :: kinetics(:)
 
 !---local variables
 
@@ -472,8 +472,8 @@ write(883,*) pow
 !---begin execution
 
     ! build operators
-    call build_loss_matrix(loss)
-    call build_prod_matrix(prod)
+    call build_loss_matrix(loss,'')
+    call build_prod_matrix(prod,'')
 
     ! we need F - M, store it back in M
     call MatAXPY(loss%oper,-1.0_8/cmfd%keff,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)

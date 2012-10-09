@@ -44,6 +44,15 @@
     <component name="time"   type="double-array" />
   </typedef>
 
+  <typedef name="shape_xml">
+    <component name="mat_id" type="integer" />
+    <component name="xs_id"  type="word" length="15" />
+    <component name="h"      type="integer" />
+    <component name="g"      type="integer" />
+    <component name="value"  type="double-array" />
+    <component name="weight" type="word" length="50" default="'unity'" />
+  </typedef>
+
   <variable name="geometry_" tag="geometry" type="geometry_xml" />
   <variable name="material_" tag="material" type="material_xml" dimension="1" />
   <variable name="ktol_"     tag="ktol"     type="double" default="1.e-8" />
@@ -56,5 +65,8 @@
   <variable name="kinetics_" tag="kinetics" type="kinetics_xml" dimension="1" />
   <variable name="time_"     tag="time"     type="double" />
   <variable name="nt_"       tag="nt"       type="integer" />
+  <variable name="mode_"     tag="mode"     type="word" length="50" default="'static'" />
+  <variable name="pke_run_"  tag="pke_run"  type="logical" default=".false." />
+  <variable name="pke_shape_" tag="pke_shape" type="shape_xml" dimension="1" />
 
 </template>

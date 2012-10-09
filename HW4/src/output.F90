@@ -205,7 +205,7 @@ contains
 !---external references
 
     use global,  only: cmfd, geometry, ktol, stol, itol, hdf5_err,             &
-                       run_kinetics, dt, nt
+                       dt, nt
     use hdf5_interface
 
 !---local variables
@@ -262,14 +262,14 @@ contains
                          size(cmfd%power_n))
 
     ! write transient output
-    if (run_kinetics) then
+ !  if (run_kinetics) then
       call hdf5_make_integer(hdf5_output_file,"timesteps", nt)
       call hdf5_make_double(hdf5_output_file, "dt",dt)
       call hdf5_make_array(hdf5_output_file,"time", cmfd % time,     &
                            size(cmfd % time))
       call hdf5_make_array(hdf5_output_file,"core_power", cmfd % core_power,     &
                            size(cmfd % core_power))
-    end if
+!   end if
 
     ! close file
     call hdf5_close_file()

@@ -163,12 +163,13 @@ contains
 ! BUILD_PROD_MATRIX creates the matrix representing loss of neutrons
 !===============================================================================
 
-  subroutine build_prod_matrix(this)
+  subroutine build_prod_matrix(this,adjoint)
 
-    use global,           only: geometry, material, adjoint 
+    use global,           only: geometry, material
     use material_header,  only: material_type
 
     type(operator_type) :: this
+    character(len=*) :: adjoint
 
     integer :: i                  ! iteration counter for x
     integer :: j                  ! iteration counter for y
@@ -187,7 +188,7 @@ contains
     real(8) :: nfissxs            ! nufission cross section h-->g
     real(8) :: val                ! temporary variable for nfissxs
     type(material_type), pointer :: m
-integer, save :: save1 = 1
+
     ! get row bounds for this processor
 !   call MatGetOwnershipRange(this%F,row_start,row_finish,ierr)
     row_start = 0
@@ -238,8 +239,9 @@ integer, save :: save1 = 1
 
     ! print out operator to file
     call print_F_operator(this)
-this % row_csr = this % row_csr - 1
-this % col = this % col - 1
+    this % row_csr = this % row_csr - 1
+    this % col = this % col - 1
+
   end subroutine build_prod_matrix
 
 !===============================================================================

@@ -3,9 +3,6 @@ cmfd_execute.o: math.o
 cmfd_execute.o: output.o
 cmfd_execute.o: point_kinetics.o
 cmfd_execute.o: power_iter.o
-cmfd_execute.o: power_solver.o
-mfd_execute.o: slepc_solver.o
-cmfd_execute.o: snes_solver.o
 
 cmfd_header.o: geometry_header.o
 cmfd_header.o: material_header.o
@@ -44,9 +41,6 @@ input_xml.o: kinetics_header.o
 input_xml.o: material_header.o
 input_xml.o: output.o
 input_xml.o: templates/input_t.o 
-
-jacobian_operator.o: loss_operator.o
-jacobian_operator.o: prod_operator.o
 
 kinetics_operator.o: global.o
 kinetics_operator.o: material_header.o
@@ -91,19 +85,8 @@ power_iter.o: math.o
 power_iter.o: prod_operator.o
 power_iter.o: timing.o
 
-power_solver.o: loss_operator.o
-power_solver.o: prod_operator.o
-
 prod_operator.o: global.o
 prod_operator.o: material_header.o
-
-slepc_solver.o: loss_operator.o
-slepc_solver.o: prod_operator.o
-
-snes_solver.o: jacobian_operator.o
-snes_solver.o: loss_operator.o
-snes_solver.o: prod_operator.o
-snes_solver.o: slepc_solver.o
 
 string.o: constants.o
 string.o: error.o

@@ -26,6 +26,7 @@ module global
   type(geometry_type), target              :: geometry    ! holds geometry info
   type(material_type), allocatable, target :: material(:) ! holds material info
   type(kinetics_type), allocatable, target :: kinetics(:) ! holds kinetics info
+  type(kinetics_type), allocatable, target :: pke_shape(:)! shape function data
 
 !-material information
 
@@ -55,8 +56,10 @@ module global
 
   character(len=50) :: solver_type = "jacobi"
   character(len=50) :: guess = "flat"
-  character(len=50) :: adjoint = ""
-  logical           :: run_kinetics = .false.
+  character(len=50) :: adjoint = "none"
+  character(len=50) :: mode = "static"
+  character(len=50) :: weight = "unity"
+  logical           :: pke_run = .false. 
 
 !-solver tolerances
 
@@ -89,6 +92,7 @@ module global
 !-number of kinetics mods
 
   integer :: n_kins
+  integer :: n_pkes
 
 !-time step info
 

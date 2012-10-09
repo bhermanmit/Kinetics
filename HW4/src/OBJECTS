@@ -9,7 +9,6 @@ global.o \
 hdf5_interface.o \
 initialize.o \
 input_xml.o \
-jacobian_operator.o \
 kinetics_header.o \
 kinetics_operator.o \
 kinetics_solver.o \
@@ -22,9 +21,6 @@ output.o \
 pke_header.o \
 point_kinetics.o \
 power_iter.o \
-power_solver.o \
 prod_operator.o \
-slepc_solver.o \
-snes_solver.o \
 string.o \
 timing.o

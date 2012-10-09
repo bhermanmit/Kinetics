@@ -21,7 +21,8 @@ contains
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
-                                run_kinetics, nt, time, dt, kinetics, n_kins
+                                nt, time, dt, kinetics, n_kins, mode, pke_run, &
+                                pke_shape, weight, n_pkes
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -51,8 +52,14 @@ contains
     ! read in input file
     call read_xml_file_input_t(filename)
 
+    ! calculation mode
+    mode = mode_
+
     ! get solver type
     solver_type = trim(solver_)
+
+    ! run point kinetics
+    pke_run = pke_run_
 
     ! get starting guess
     guess = trim(guess_)
@@ -65,11 +72,8 @@ contains
     stol = stol_
     itol = itol_
 
-    ! kinetics run
-    run_kinetics = run_kinetics_
-
     ! get time info if running kinetics
-    if (run_kinetics) then
+    if (trim(mode) == 'kinetics') then
       nt = nt_
       time = time_
       dt = time / dble(nt)
@@ -190,7 +194,7 @@ contains
         m % chi_based = .true.
       end if
 
-      if (run_kinetics) then
+      if (trim(mode) == 'kinetics') then
         if (.not.associated(material_(i) % chip)) then
           m % chip = m % chi
         else if (m % chi_based) then
@@ -227,7 +231,7 @@ contains
         m % buckling = 0.0_8
       end if
 
-      if (run_kinetics) then
+      if (trim(mode) == 'kinetics') then
         allocate(m % kinrem(geometry % ncg))
         allocate(m % kinfis(geometry % ncg))
       end if
@@ -251,6 +255,30 @@ contains
       kinetics(i) % val     = kinetics_(i) % value
 
     end do
+
+    ! read in shape function data
+    if (trim(mode) == 'point_kinetics') then
+
+      ! allocate object
+      n_pkes = size(pke_shape_)
+      allocate(pke_shape(n_pkes))
+
+      do i = 1, n_pkes
+
+        ! allocate
+        call allocate_kinetics_type(pke_shape(i),1)
+
+        ! set values
+        pke_shape(i) % mat_id = pke_shape_(i) % mat_id
+        pke_shape(i) % xs_id  = trim(pke_shape_(i) % xs_id)
+        pke_shape(i) % g      = pke_shape_(i) % g
+        pke_shape(i) % h      = pke_shape_(i) % h
+        pke_shape(i) % val    = pke_shape_(i) % value
+        weight = pke_shape_(i) % weight
+
+      end do
+
+    end if
 
   end subroutine read_input_xml
 

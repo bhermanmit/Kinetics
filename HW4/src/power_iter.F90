@@ -34,7 +34,7 @@ contains
 ! CMFD_POWER_EXECUTE
 !===============================================================================
 
-  subroutine power_execute(inner_solver)
+  subroutine power_execute(inner_solver,adjoint)
 
 !---external references
 
@@ -44,6 +44,7 @@ contains
 !---arguments
 
     external :: inner_solver
+    character(len=*) :: adjoint
 
     ! set pointers
     if (adjoint == 'math' .or. adjoint == 'physical') then
@@ -63,10 +64,10 @@ contains
     call timer_start(time_build)
 
     ! set up M loss matrix
-    call build_loss_matrix(left)
+    call build_loss_matrix(left,adjoint)
 
     ! set up F production matrix
-    call build_prod_matrix(right)
+    call build_prod_matrix(right,adjoint)
 
     ! stop build timer and start power iter timer
     call timer_stop(time_build)

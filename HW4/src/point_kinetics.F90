@@ -4,7 +4,7 @@ module point_kinetics
 
   implicit none
   private
-  public :: run_pkes, generate_pkparams
+  public :: run_pkes, generate_pkparams, generate_pke_shapes
 
 !-module external references
 
@@ -31,9 +31,6 @@ contains
     integer :: i  ! loop counter
 
 !---begin execution
-
-    ! print header for run
-    call header("POINT KINETICS SIMULATION", level=1)
 
     ! allocate point kinetics
     call allocate_pke_type(pke,nt)
@@ -128,6 +125,67 @@ write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter)
   end subroutine set_init
 
 !===============================================================================
+! GENERATE PKE SHAPES
+!===============================================================================
+
+  subroutine generate_pke_shapes()
+
+!---references
+
+    use error,  only: fatal_error
+    use global,  only: n_pkes, pke_shape, material, message
+    use kinetics_header,  only: kinetics_type
+    use material_header,  only: material_type
+    use math,     only: csr_gauss_seidel
+    use power_iter, only: power_execute
+
+!---local variables
+
+    integer :: i
+    type(kinetics_type), pointer :: k
+    type(material_type), pointer :: m
+
+!---begin execution
+
+    ! modify the data
+    do i = 1, n_pkes
+
+      ! point to kinetics object
+      k => pke_shape(i)
+
+      ! point to material object
+      m => material(k % mat_id)
+
+      ! begin case structure to replace value
+      select case (trim(k % xs_id))
+
+        case ('absxs')
+
+          ! remove scattering component from total xs
+          m % totalxs(k % g) = m % totalxs(k % g) - sum(m % scattxs(:,k % g))
+
+          ! change absorption
+          m % absorxs(k % g) = pke_shape(i) % val(1)
+          m % totalxs(k % g) = pke_shape(i) % val(1)
+
+          ! re-add back in scattering
+          m % totalxs(k % g) = m % totalxs(k % g) + sum(m % scattxs(:,k % g))
+
+        case DEFAULT
+
+          message = 'Kinetics modification not supported!'
+          call fatal_error()
+
+      end select
+
+    end do
+
+    ! call power iteration
+    call power_execute(csr_gauss_seidel,'none')
+stop
+  end subroutine generate_pke_shapes
+
+!===============================================================================
 ! GENERATE_PKPARAMS
 !===============================================================================
 
@@ -136,7 +194,7 @@ write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter)
 !---references
 
     use constants,        only: beta
-    use global,           only: nt, dt, loss, prod, cmfd, mpi_err
+    use global,           only: nt, dt, loss, prod, cmfd, mpi_err, kinetics
     use kinetics_solver,  only: change_data
     use loss_operator,    only: init_M_operator, build_loss_matrix,            &
                                 destroy_M_operator
@@ -165,8 +223,8 @@ write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter)
     if(.not.allocated(cmfd % rho)) allocate(cmfd % rho(nt))
 
     ! build petsc matrices
-    call build_loss_matrix(loss)
-    call build_prod_matrix(prod)
+    call build_loss_matrix(loss,'')
+    call build_prod_matrix(prod,'')
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,loss%n,loss%n,loss%row_csr,&
                                    loss%col,loss%val,loss%oper,mpi_err)
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
@@ -179,11 +237,11 @@ write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter)
       curr_time = dble(i)*dt
 
       ! change the material via kinetics mods
-      call change_data(curr_time)
+      call change_data(kinetics,curr_time)
 
       ! build operators
-      call build_loss_matrix(loss)
-      call build_prod_matrix(prod)
+      call build_loss_matrix(loss,'')
+      call build_prod_matrix(prod,'')
 
       ! we need F - M, store it back in M
       call MatAXPY(loss%oper,-1.0_8/cmfd%keff,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
@@ -250,5 +308,7 @@ write(835,*) cmfd % rho(i) / sum(beta)
     end do
 
   end subroutine multiply_volume
+
+
 
 end module point_kinetics

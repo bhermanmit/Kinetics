@@ -21,6 +21,7 @@ module loss_operator
   integer  :: nz   ! maximum number of z cells
   integer  :: ng   ! maximum number of groups
   integer  :: ierr ! petsc error code
+  logical  :: adjoint ! set up adjoint
 
 contains
 
@@ -211,13 +212,14 @@ contains
 ! BUILD_LOSS_MATRIX creates the matrix representing loss of neutrons
 !===============================================================================
 
-  subroutine build_loss_matrix(this)
+  subroutine build_loss_matrix(this,adjoint)
 
     use constants,        only: ONE
-    use global,           only: geometry, material, mpi_err, adjoint
+    use global,           only: geometry, material, mpi_err
     use material_header,  only: material_type
 
     type(operator_type) :: this
+    character(len=*) :: adjoint
 
     integer :: nxyz(3,2)            ! single vector containing bound. locations
     integer :: i                    ! iteration counter for x
@@ -397,9 +399,9 @@ contains
 
     ! print out operator to file
     call print_M_operator(this)
-this % row_csr = this % row_csr - 1
-this % col = this % col - 1
-write(840,*) this % col
+    this % row_csr = this % row_csr - 1
+    this % col = this % col - 1
+
   end subroutine build_loss_matrix
 
 !===============================================================================
