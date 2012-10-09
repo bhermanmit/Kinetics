@@ -8,6 +8,7 @@ module global
   use kinetics_header,  only: kinetics_type
   use material_header,  only: material_type
   use operator_header,  only: operator_type
+  use pke_header,       only: pke_type
   use timing,           only: Timer
 
 # ifdef HDF5
@@ -94,5 +95,9 @@ module global
   integer :: nt
   real(8) :: time
   real(8) :: dt
+
+!-Point Kinetics object
+
+  type(pke_type) :: pke
 
 end module global

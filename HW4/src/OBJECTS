@@ -19,6 +19,7 @@ material_header.o \
 math.o \
 operator_header.o \
 output.o \
+pke_header.o \
 point_kinetics.o \
 power_iter.o \
 power_solver.o \

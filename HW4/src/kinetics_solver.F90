@@ -70,10 +70,12 @@ contains
 !---begin execution
 
     ! normalize initial power to unity and set initial power
-    pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,        &
+    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
               cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
-
+    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
+              cmfd%phi,prod%n))
+write(883,*) pow
     ! compute steady state precursors
     call compute_initial_precursors()
 
@@ -169,11 +171,13 @@ contains
 
 !---external references
 
-    use constants,          only: ZERO, ONE
+    use constants,          only: ZERO, ONE, beta
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
-                                  itol, prod, message, time_kine, time_inner
+                                  itol, prod, message, time_kine, time_inner, loss, prod
     use kinetics_operator,  only: build_kinetics_matrix
+    use loss_operator,      only: init_M_operator, build_loss_matrix
+    use prod_operator,      only: init_F_operator, build_prod_matrix
     use math,               only: csr_matvec_mult
     use timing,             only: timer_start, timer_stop, timer_reset
 
@@ -189,7 +193,8 @@ contains
     integer :: nz
     real(8) :: curr_time
     real(8) :: pow
-    real(8), allocatable :: rhs(:)
+    real(8), allocatable :: rhs(:), temp1(:), temp2(:)
+    real(8) :: rho_num, rho_den
 
 !---begin execution
 
@@ -209,6 +214,24 @@ contains
     ! set up krylov info
     call KSPSetOperators(ksp, kine%oper, kine%oper, SAME_NONZERO_PATTERN, mpi_err)
     call KSPSetUp(ksp,mpi_err)
+
+    ! initialize operators
+    call init_M_operator(loss)
+    call init_F_operator(prod)
+
+    ! allocate vectors
+    allocate(temp1(loss % n))
+    allocate(temp2(prod % n))
+    if(.not.allocated(cmfd % rho)) allocate(cmfd % rho(nt))
+    if(.not.allocated(cmfd % pnl)) allocate(cmfd % pnl(nt))
+
+    ! build petsc matrices
+    call build_loss_matrix(loss)
+    call build_prod_matrix(prod)
+    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,loss%n,loss%n,loss%row_csr,&
+                                   loss%col,loss%val,loss%oper,mpi_err)
+    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
+                                   prod%col,prod%val,prod%oper,mpi_err)
 
     ! begin loop around time
     do i = 1, nt
@@ -231,26 +254,25 @@ contains
       ! solve matrices
       call KSPSolve(ksp,b,phi,mpi_err)
 
-!     call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,    &
-!                       cmfd % phi, rhs, n, nz, itol,iters)
-!     if (iters >= 10000000) then 
-!       message = "Inner Iteration limit exceed during transient!"
-!       call fatal_error()
-!     end if
- 
      ! compute end of time step precursor concentration
      call compute_final_precursors()
 
      ! compute power
-     pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
+     pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,       &
               cmfd%phi,prod%n))
      write(*,*) 'Step:', i,' /',nt,' POWER:',pow
+     write(779,*) pow
      cmfd % time(i+1) = curr_time
      cmfd % core_power(i+1) = pow
+
+     call compute_pkes(i,temp1,temp2)
+
    end do
 
    ! deallocate RHS
    deallocate(rhs)
+   deallocate(temp1)
+   deallocate(temp2)
 
   end subroutine execute_kinetics_iter 
 
@@ -422,6 +444,111 @@ contains
     end do
 
   end subroutine build_rhs
+
+!===============================================================================
+! COMPUTE PKES
+!===============================================================================
+
+  subroutine compute_pkes(i,temp1,temp2)
+
+!---references
+
+    use constants,          only: beta,vel
+    use global,             only: cmfd, loss, prod
+    use math,               only: csr_matvec_mult
+    use loss_operator,      only: init_M_operator, build_loss_matrix
+    use prod_operator,      only: init_F_operator, build_prod_matrix
+
+!---arguments
+
+    integer :: i
+    real(8) :: temp1(:), temp2(:)
+
+!---local variables
+
+    integer :: irow
+    real(8) :: rho_num, rho_den, pnl_num, pnl_den 
+
+!---begin execution
+
+    ! build operators
+    call build_loss_matrix(loss)
+    call build_prod_matrix(prod)
+
+    ! we need F - M, store it back in M
+    call MatAXPY(loss%oper,-1.0_8/cmfd%keff,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
+    call MatScale(loss%oper,-1.0_8,mpi_err)
+
+    ! perform reactivity numerator operator multiplication
+    temp1 =  csr_matvec_mult(loss%row_csr+1,loss%col+1,loss%val,cmfd%phi,loss%n)
+    temp2 =  csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val,cmfd%phi,prod%n)
+
+    ! multiply by volume
+    call multiply_volume(temp1,loss%n)
+    call multiply_volume(temp2,loss%n)
+
+!     rho_num = dot_product(cmfd%phi_adj,temp1) 
+!     rho_den = dot_product(cmfd%phi_adj,temp2)
+
+    rho_num = sum(temp1)
+    rho_den = sum(temp2)*1.0_8/cmfd%keff
+
+    ! calc reactivity
+    cmfd % rho(i) = rho_num/rho_den/sum(beta)
+    do irow = 1,loss%n
+      if (mod(irow,2) == 0) then
+        temp1(irow) = 1.0_8/vel(2)*cmfd%phi(irow)
+      else
+        temp1(irow) = 1.0_8/vel(1)*cmfd%phi(irow)
+      end if
+    end do
+
+    call multiply_volume(temp1,loss%n)
+    pnl_num = sum(temp1)
+    pnl_den = rho_den 
+    cmfd % pnl(i) = pnl_num/pnl_den 
+    write(834,*) cmfd % rho(i), cmfd % pnl(i)
+
+  end subroutine compute_pkes
+
+!===============================================================================
+! MULTIPLY_VOLUME
+!===============================================================================
+
+  subroutine multiply_volume(vec,n)
+
+!---external references
+
+    use global,  only: geometry
+
+!---arguments
+
+    integer :: n
+    real(8) :: vec(n)
+
+!---local variables
+
+    integer :: irow
+    integer :: idx
+    real(8) :: vol
+
+!---begin execution
+
+    ! begin loop around rows
+    do irow = 1, n
+
+      ! compute index
+      idx = ceiling(real(irow)/real(geometry%nfg))
+
+      ! get region number
+      vol = geometry % fvol_map(idx)
+
+      ! sum nodal power
+      vec(irow) = vec(irow) * vol
+
+    end do
+
+  end subroutine multiply_volume
 
 !==============================================================================
 ! FINALIZE

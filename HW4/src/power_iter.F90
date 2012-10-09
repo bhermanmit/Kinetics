@@ -79,7 +79,7 @@ contains
     call timer_stop(time_power)
 
     ! deallocate petsc objects
-    call finalize()
+!   call finalize()
 
   end subroutine power_execute
 
@@ -109,11 +109,11 @@ contains
     n = left%n
 
     ! set up flux vector
-    allocate(phi(n))
+    if(.not.allocated(phi)) allocate(phi(n))
 
     ! set up source vectors
-    allocate(S_n(n))
-    allocate(S_o(n))
+    if(.not.allocated(S_n)) allocate(S_n(n))
+    if(.not.allocated(S_o)) allocate(S_o(n))
 
     ! set initial guess
     k_n = ONE 

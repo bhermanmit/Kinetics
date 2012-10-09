@@ -35,6 +35,9 @@ contains
     ! get indices
     call get_M_indices(this)
 
+    ! check to destroy
+    call destroy_M_operator(this)
+
     ! get preallocation
     call preallocate_loss_matrix(this)
 

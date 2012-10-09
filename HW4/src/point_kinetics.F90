@@ -4,13 +4,128 @@ module point_kinetics
 
   implicit none
   private
-  public :: generate_pkparams
+  public :: run_pkes, generate_pkparams
 
 !-module external references
 
 # include "finclude/petsc.h90"
 
 contains
+
+!===============================================================================
+! RUN_PKES
+!===============================================================================
+
+  subroutine run_pkes()
+
+!---external references
+
+    use constants,  only: NUM_PRECS
+    use global,     only: nt, dt, pke 
+    use output,     only: header
+    use pke_header, only: allocate_pke_type
+    use math,       only: expm_pade
+
+!---local variables
+
+    integer :: i  ! loop counter
+
+!---begin execution
+
+    ! print header for run
+    call header("POINT KINETICS SIMULATION", level=1)
+
+    ! allocate point kinetics
+    call allocate_pke_type(pke,nt)
+
+    ! set up initial conditions
+    call set_init()
+
+    ! begin loop through time steps
+    do i = 1, nt
+
+      ! set up coefficient matrix
+      call setup_coefmat(i)
+
+      ! solve matrix exponential
+      call expm_pade(pke % coef, NUM_PRECS + 1, dt, pke % expm)  ! my code
+
+      ! get new vector
+      pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))
+write(774,*) pke%N(1,i+1)
+    end do
+
+  end subroutine run_pkes
+
+!===============================================================================
+! SETUP_COEFMAT
+!===============================================================================
+
+  subroutine setup_coefmat(iter)
+
+!---external references
+
+    use constants,  only: beta, NUM_PRECS, lambda
+    use global,     only: pke, cmfd
+
+!---arguments
+
+    integer :: iter
+
+!---local variables
+
+    integer :: i ! loop counter
+
+!---begin execution
+
+    ! set up coeffient matrix manually for time 0
+    pke % coef(1,1) = (cmfd % rho(iter)*sum(beta) - sum(beta))/cmfd % pnl(1)
+
+    ! begin loop around rest of matrix
+    do i = 2, NUM_PRECS + 1
+
+      ! set row 1
+      pke % coef(1,i) = lambda(i - 1)
+
+      ! set diagonal
+      pke % coef(i,i) = -lambda(i - 1)
+
+      ! set column 1
+      pke % coef(i,1) = beta(i-1) / cmfd % pnl(1)
+
+    end do
+write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter) 
+  end subroutine setup_coefmat
+
+!===============================================================================
+! SET_INIT
+!===============================================================================
+
+  subroutine set_init()
+
+!---external references
+
+    use constants,  only: ONE, beta, lambda, NUM_PRECS
+    use global,     only: pke, cmfd
+
+!---local variables
+
+    integer :: i ! loop counter
+
+!---begin execution  
+
+    ! set power at 1.0
+    pke % N(1,1) = ONE
+
+    ! loop through precursors
+    do i = 1, NUM_PRECS
+
+      ! set initial value
+      pke % N(i+1,1) = beta(i)/(cmfd % pnl(1)*lambda(i)) * pke % N(1,1)
+
+    end do
+
+  end subroutine set_init
 
 !===============================================================================
 ! GENERATE_PKPARAMS
@@ -20,6 +135,7 @@ contains
 
 !---references
 
+    use constants,        only: beta
     use global,           only: nt, dt, loss, prod, cmfd, mpi_err
     use kinetics_solver,  only: change_data
     use loss_operator,    only: init_M_operator, build_loss_matrix,            &
@@ -71,6 +187,7 @@ contains
 
       ! we need F - M, store it back in M
       call MatAXPY(loss%oper,-1.0_8/cmfd%keff,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
+      call MatScale(loss%oper,-1.0_8,mpi_err)
 
       ! perform reactivity numerator operator multiplication
       temp1 =  csr_matvec_mult(loss%row_csr+1,loss%col+1,loss%val,cmfd%phi,loss%n)
@@ -82,11 +199,11 @@ contains
 
       ! perform dot product
       rho_num = dot_product(cmfd%phi_adj,temp1)
-      rho_den = dot_product(cmfd%phi_adj,temp2)
+      rho_den = dot_product(cmfd%phi_adj,temp2)*1.0_8/cmfd%keff
 
       ! calc reactivity
       cmfd % rho(i) = rho_num/rho_den
-write(834,*) cmfd % rho(i)
+write(835,*) cmfd % rho(i) / sum(beta)
     end do
 
     ! deallocate vectors

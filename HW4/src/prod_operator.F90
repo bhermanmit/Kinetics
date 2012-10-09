@@ -35,6 +35,9 @@ contains
     ! get indices
     call get_F_indices(this)
 
+    ! check to destroy
+    call destroy_F_operator(this)
+
     ! get preallocation
     call preallocate_prod_matrix(this)
 

@@ -36,6 +36,7 @@ module cmfd_header
 
     ! reactivity for point kinetics
     real(8), allocatable :: rho(:)
+    real(8), allocatable :: pnl(:)
 
   end type cmfd_type
 
