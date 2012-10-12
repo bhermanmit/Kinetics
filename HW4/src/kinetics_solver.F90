@@ -8,7 +8,7 @@ module kinetics_solver
 
   implicit none
   private
-  public :: kinetics_execute, change_data 
+  public :: kinetics_execute, change_data, compute_pkes 
 
 !-module external references
 
@@ -86,6 +86,9 @@ contains
     ! allocate output arrays
     if (.not.allocated(cmfd%core_power)) allocate(cmfd % core_power(nt+1))
     if (.not.allocated(cmfd%time)) allocate(cmfd % time(nt+1))
+
+    ! bank static keff
+    cmfd % kcrit = cmfd % keff
 
   end subroutine init_data
 
@@ -240,6 +243,7 @@ contains
     
       ! change the material via kinetics mods
       call change_data(kinetics,curr_time)
+      call  change_kinetics()
 
       ! build matrices
       call build_kinetics_matrix(kine)
@@ -385,6 +389,28 @@ contains
 
     end do
 
+  end subroutine change_data
+
+!==============================================================================
+! CHANGE_KINETICS
+!==============================================================================
+
+  subroutine change_kinetics()
+
+!---external references
+
+    use constants,        only: ONE, vel, beta, lambda
+    use global,           only: material, n_kins, message, dt,       &
+                                n_materials, cmfd
+    use material_header,  only: material_type
+
+!---local variables
+
+    integer :: i
+    type(material_type), pointer :: m => null()
+
+!---begin execution
+
     ! loop through materials and compute kinetics factors
     do i = 1, n_materials
 
@@ -400,7 +426,7 @@ contains
 
     end do
 
-  end subroutine change_data
+  end subroutine change_kinetics
 
 !==============================================================================
 ! BUILD_RHS
@@ -476,7 +502,7 @@ contains
     call build_prod_matrix(prod,'')
 
     ! we need F - M, store it back in M
-    call MatAXPY(loss%oper,-1.0_8/cmfd%keff,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
+    call MatAXPY(loss%oper,-1.0_8/cmfd%kcrit,prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
     call MatScale(loss%oper,-1.0_8,mpi_err)
 
     ! perform reactivity numerator operator multiplication
@@ -487,23 +513,26 @@ contains
     call multiply_volume(temp1,loss%n)
     call multiply_volume(temp2,loss%n)
 
-!     rho_num = dot_product(cmfd%phi_adj,temp1) 
-!     rho_den = dot_product(cmfd%phi_adj,temp2)
-
-    rho_num = sum(temp1)
-    rho_den = sum(temp2)*1.0_8/cmfd%keff
+    ! perform weighting (unity will occur if adjoint flux is 1)
+    rho_num = dot_product(cmfd%phi_adj,temp1) 
+    rho_den = dot_product(cmfd%phi_adj,temp2)/cmfd % kcrit
 
     ! calc reactivity
     cmfd % rho(i) = rho_num/rho_den/sum(beta)
+
+    ! loop around forward shape function and multiply by inverse velocity
     do irow = 1,loss%n
       if (mod(irow,2) == 0) then
-        temp1(irow) = 1.0_8/vel(2)*cmfd%phi(irow)
+        temp1(irow) = 1.0_8/vel(2)*cmfd%phi(irow)*cmfd%phi_adj(irow)
       else
-        temp1(irow) = 1.0_8/vel(1)*cmfd%phi(irow)
+        temp1(irow) = 1.0_8/vel(1)*cmfd%phi(irow)*cmfd%phi_adj(irow)
       end if
     end do
 
+    ! get rate by multiplying by volume
     call multiply_volume(temp1,loss%n)
+
+    ! compute pnl
     pnl_num = sum(temp1)
     pnl_den = rho_den 
     cmfd % pnl(i) = pnl_num/pnl_den 

@@ -16,6 +16,7 @@ module cmfd_header
     real(8), allocatable :: phi_o(:)
     real(8), allocatable :: phi_adj(:)
     real(8) :: keff = 0.0_8
+    real(8) :: kcrit = 0.0_8
 
     ! nodal powers
     real(8), allocatable :: power_o(:)

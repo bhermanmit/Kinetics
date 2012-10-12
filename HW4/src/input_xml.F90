@@ -22,7 +22,8 @@ contains
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
                                 nt, time, dt, kinetics, n_kins, mode, pke_run, &
-                                pke_shape, weight, n_pkes
+                                pke_shape_for, pke_shape_adj, weight,          &
+                                n_pkes_for, n_pkes_adj
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -73,7 +74,7 @@ contains
     itol = itol_
 
     ! get time info if running kinetics
-    if (trim(mode) == 'kinetics') then
+    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics') then
       nt = nt_
       time = time_
       dt = time / dble(nt)
@@ -259,24 +260,49 @@ contains
     ! read in shape function data
     if (trim(mode) == 'point_kinetics') then
 
-      ! allocate object
-      n_pkes = size(pke_shape_)
-      allocate(pke_shape(n_pkes))
+      ! weight function
+      weight = weight_ 
 
-      do i = 1, n_pkes
+      ! allocate object
+      n_pkes_for = size(pke_shape_for)
+      allocate(pke_shape_for(n_pkes_for))
+
+      do i = 1, n_pkes_for
 
         ! allocate
-        call allocate_kinetics_type(pke_shape(i),1)
+        call allocate_kinetics_type(pke_shape_for(i),1)
 
         ! set values
-        pke_shape(i) % mat_id = pke_shape_(i) % mat_id
-        pke_shape(i) % xs_id  = trim(pke_shape_(i) % xs_id)
-        pke_shape(i) % g      = pke_shape_(i) % g
-        pke_shape(i) % h      = pke_shape_(i) % h
-        pke_shape(i) % val    = pke_shape_(i) % value
-        weight = pke_shape_(i) % weight
+        pke_shape_for(i) % mat_id = pke_shape_for_(i) % mat_id
+        pke_shape_for(i) % xs_id  = trim(pke_shape_for_(i) % xs_id)
+        pke_shape_for(i) % g      = pke_shape_for_(i) % g
+        pke_shape_for(i) % h      = pke_shape_for_(i) % h
+        pke_shape_for(i) % val    = pke_shape_for_(i) % value
 
       end do
+
+      ! check for adjoint shape function
+      if (trim(weight) == 'adjoint') then
+
+        ! allocate object
+        n_pkes_adj = size(pke_shape_adj)
+        allocate(pke_shape_adj(n_pkes_adj))
+
+        do i = 1, n_pkes_adj
+
+          ! allocate
+          call allocate_kinetics_type(pke_shape_adj(i),1)
+
+          ! set values
+          pke_shape_adj(i) % mat_id = pke_shape_adj_(i) % mat_id
+          pke_shape_adj(i) % xs_id  = trim(pke_shape_adj_(i) % xs_id)
+          pke_shape_adj(i) % g      = pke_shape_adj_(i) % g
+          pke_shape_adj(i) % h      = pke_shape_adj_(i) % h
+          pke_shape_adj(i) % val    = pke_shape_adj_(i) % value
+
+        end do
+
+      end if
 
     end if
 

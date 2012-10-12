@@ -7,11 +7,9 @@ module finalize
   public :: finalize_run
 
 !-external packages
-
 # include <finclude/petsc.h90>
 # include <finclude/slepcsys.h>
 # include <finclude/slepceps.h>
-
 
 contains
 

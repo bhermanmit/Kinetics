@@ -175,7 +175,7 @@ ifeq ($(COMPILER),petsc)
   # Debugging
   ifeq ($(DEBUG),yes)
     F90FLAGS += -g -Wall -pedantic -fbounds-check \
-                -ffpe-trap=invalid,zero,overflow,underflow
+                -ffpe-trap=invalid,overflow,underflow
     LDFLAGS += -g
   endif
 

@@ -77,6 +77,7 @@ pke_header.o: constants.o
 point_kinetics.o: global.o
 point_kinetics.o: loss_operator.o
 point_kinetics.o: prod_operator.o
+point_kinetics.o: power_iter.o
 
 power_iter.o: constants.o
 power_iter.o: error.o

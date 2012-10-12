@@ -26,7 +26,8 @@ module global
   type(geometry_type), target              :: geometry    ! holds geometry info
   type(material_type), allocatable, target :: material(:) ! holds material info
   type(kinetics_type), allocatable, target :: kinetics(:) ! holds kinetics info
-  type(kinetics_type), allocatable, target :: pke_shape(:)! shape function data
+  type(kinetics_type), allocatable, target :: pke_shape_for(:) ! forward shape function data
+  type(kinetics_type), allocatable, target :: pke_shape_adj(:) ! adjoint shape function data
 
 !-material information
 
@@ -92,7 +93,8 @@ module global
 !-number of kinetics mods
 
   integer :: n_kins
-  integer :: n_pkes
+  integer :: n_pkes_for
+  integer :: n_pkes_adj
 
 !-time step info
 

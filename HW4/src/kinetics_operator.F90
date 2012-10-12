@@ -201,8 +201,7 @@ contains
     allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
     allocate(this % row_csr(row_end - row_start + 2))
     allocate(this % diag(row_end - row_start + 1))
-!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
-!                                  this%col,this%val,this%oper,mpi_err)
+
   end subroutine preallocate_kinetics_matrix
 
 !===============================================================================
