@@ -33,7 +33,7 @@ contains
 !---begin execution
 
     ! allocate point kinetics
-    call allocate_pke_type(pke,nt)
+    call allocate_pke_type(pke,1,nt)
 
     ! set up initial conditions
     call set_init()

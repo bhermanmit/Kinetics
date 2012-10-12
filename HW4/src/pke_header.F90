@@ -2,7 +2,7 @@ module pke_header
 
 !-external references
 
-  use constants,  only: NUM_PRECS
+  use constants,  only: NUM_PRECS, ZERO
 
 !-module options
 
@@ -14,9 +14,9 @@ module pke_header
 
   type, public :: pke_type
 
-    real(8), allocatable :: N(:,:)       ! power/prec vector for output
-    real(8) :: coef(NUM_PRECS+1,NUM_PRECS+1) ! coeffcient matrix
-    real(8) :: expm(NUM_PRECS+1,NUM_PRECS+1) ! result after matrix exponential
+    real(8), allocatable :: N(:,:)    ! power/prec vector for output
+    real(8), allocatable :: coef(:,:) ! coeffcient matrix
+    real(8), allocatable :: expm(:,:) ! result after matrix exponential
 
   end type pke_type
 
@@ -26,20 +26,25 @@ contains
 ! ALLOCATE_PKE_TYPE
 !===============================================================================
 
-  subroutine allocate_pke_type(this,nt)
+  subroutine allocate_pke_type(this,ng,nt)
 
 !---arguments
 
+    integer :: ng
     integer :: nt
     type(pke_type) :: this
 
 !---begin execution
 
     ! allocate
-    if (.not.allocated(this % N)) allocate(this % N(NUM_PRECS+1,nt+1))
+    if (.not.allocated(this % N)) allocate(this % N(NUM_PRECS+ng,nt+1))
+    if (.not.allocated(this % coef)) allocate(this % coef(NUM_PRECS+ng,NUM_PRECS+ng))
+    if (.not.allocated(this % expm)) allocate(this % expm(NUM_PRECS+ng,NUM_PRECS+ng))
 
     ! set to 0
-    this % N     = 0.0_8
+    this % N    = ZERO
+    this % coef = ZERO
+    this % expm = ZERO
 
   end subroutine allocate_pke_type
 
@@ -56,7 +61,9 @@ contains
 !---begin execution
 
     ! deallocate
-    if (allocated(this % N))        deallocate(this % N)
+    if (allocated(this % N)) deallocate(this % N)
+    if (allocated(this % coef)) deallocate(this % coef)
+    if (allocated(this % expm)) deallocate(this % expm)
 
   end subroutine deallocate_pke_type
 
