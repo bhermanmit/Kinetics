@@ -400,6 +400,7 @@ contains
     ! print out operator to file
     call print_M_operator(this)
     this % row_csr = this % row_csr - 1
+    this % row = this % row - 1
     this % col = this % col - 1
 
   end subroutine build_loss_matrix

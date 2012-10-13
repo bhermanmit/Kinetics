@@ -193,6 +193,7 @@ contains
     integer :: iters
     integer :: n
     integer :: nz
+    integer :: ng
     real(8) :: curr_time
     real(8) :: pow
     real(8), allocatable :: rhs(:), temp1(:), temp2(:)
@@ -204,6 +205,9 @@ contains
     n = size(cmfd % phi)
     nz = size(kine % col)
     allocate(rhs(n))
+
+    ! get number of groups
+    ng = geometry % nfg
 
     ! set initial output
     cmfd % time(1) = ZERO
@@ -226,6 +230,9 @@ contains
     allocate(temp2(prod % n))
     if(.not.allocated(cmfd % rho)) allocate(cmfd % rho(nt))
     if(.not.allocated(cmfd % pnl)) allocate(cmfd % pnl(nt))
+    if(.not.allocated(cmfd % prompt)) allocate(cmfd % prompt(ng,ng,nt))
+    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(ng,ng,nt))
+    if(.not.allocated(cmfd % vel)) allocate(cmfd % vel(ng,nt))
 
     ! build petsc matrices
     call build_loss_matrix(loss,'')
@@ -269,6 +276,7 @@ contains
      cmfd % core_power(i+1) = pow
 
      call compute_pkes(i,temp1,temp2)
+     call compute_gpkes(i)
 
    end do
 
@@ -541,6 +549,108 @@ contains
   end subroutine compute_pkes
 
 !===============================================================================
+! COMPUTE GPKES
+!===============================================================================
+
+  subroutine compute_gpkes(t)
+
+!---references
+
+    use constants,          only: beta, vel, ONE, ZERO
+    use global,             only: cmfd, loss, prod, geometry, material
+    use loss_operator,      only: build_loss_matrix
+    use prod_operator,      only: build_prod_matrix
+    use material_header,    only: material_type
+
+!---arguments
+
+    integer :: t
+
+!---local variables
+
+    integer :: irow, icol, igrp
+    integer :: h, g, i, j, k, ni, nj, nk
+    integer :: first, last
+    integer :: idx, idxn, matidx
+    real(8) :: vol, voln
+    type(material_type), pointer :: m
+
+!---begin execution
+
+    ! build operators
+    call build_loss_matrix(loss,'')
+
+    ! zero out values
+    cmfd % prompt(:,:,t) = ZERO
+    cmfd % delay(:,:,t) = ZERO
+    cmfd % vel(:,t) = ZERO 
+
+    ! begin loop around column in operator
+    ROWS: do irow = 1, size(loss % row_csr) - 1
+
+      ! set bounds
+      first = loss % row_csr(irow) + 1
+      last = loss % row_csr(irow+1)
+
+      ! get indices of this location
+      call matrix_to_indices(irow-1,g,i,j,k,geometry%nfg, geometry%nfx,  &
+                             geometry%nfy, geometry%nfz)
+
+      ! get index to get fine mesh indices
+      idx = ceiling(real(irow)/real(geometry % nfg))
+
+      ! get volume
+      vol = geometry % fdx_map(idx)*geometry % fdy_map(idx)*geometry % fdz_map(idx)
+
+      ! get material pointer
+      m => material(geometry % fmat_map(idx)) 
+
+      ! loop around columns in row
+      COLS: do icol = first, last
+
+        ! get indices of this location
+        call matrix_to_indices(loss%col(icol),h,ni,nj,nk,geometry%nfg, geometry%nfx,  &
+                               geometry%nfy, geometry%nfz)
+
+        ! get fine map index
+        idxn = ceiling(real(loss%col(icol)+1)/real(geometry % nfg))
+
+        ! get volume
+        voln = geometry % fdx_map(idxn)*geometry % fdy_map(idxn)*geometry % fdz_map(idxn)
+
+        ! take value multiply volume and add to appropriate location
+        cmfd % prompt(g,h,t) = cmfd % prompt(g,h,t) - cmfd%phi_adj(loss%col(icol)+1)* &
+                            loss%val(loss%col(icol)+1)*cmfd%phi(loss%col(icol)+1)*voln
+
+      end do COLS
+
+      ! loop around groups for fission
+      GRPS: do igrp = 1, geometry % nfg
+
+        ! get matrix index for this group
+        call indices_to_matrix(igrp,i,j,k,matidx,geometry%nfg,geometry%nfx,geometry%nfy,geometry%nfz) 
+
+        ! put in prompt fission value
+        cmfd % prompt(g,igrp,t) = cmfd % prompt(g,igrp,t) + cmfd%phi_adj(matidx)*    &
+          (ONE - sum(beta))*m%chip(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+
+        ! put in delayed fission value
+        cmfd % delay(g,igrp,t) = cmfd % delay(g,igrp,t) + cmfd % phi_adj(matidx)*    &
+          sum(beta)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+
+      end do GRPS
+
+      ! add to velocity term
+      cmfd % vel(g,t) = cmfd%phi_adj(irow)*cmfd%phi(irow)
+
+    end do ROWS
+
+    ! divide velocity parameter
+    cmfd % vel(:,t) = vel / cmfd % vel(:,t)
+
+  end subroutine compute_gpkes
+
+!===============================================================================
 ! MULTIPLY_VOLUME
 !===============================================================================
 
@@ -578,6 +688,53 @@ contains
     end do
 
   end subroutine multiply_volume
+
+!===============================================================================
+! MATRIX_TO_INDICES 
+!===============================================================================
+
+  subroutine matrix_to_indices(irow,g,i,j,k,ng,nx,ny,nz)
+
+    integer :: i                    ! iteration counter for x
+    integer :: j                    ! iteration counter for y
+    integer :: k                    ! iteration counter for z
+    integer :: g                    ! iteration counter for groups
+    integer :: ng
+    integer :: nx
+    integer :: ny
+    integer :: nz
+    integer, intent(in) :: irow     ! iteration counter over row (0 reference)
+
+    ! compute indices
+    g = mod(irow,ng) + 1
+    i = mod(irow,ng*nx)/ng + 1
+    j = mod(irow,ng*nx*ny)/(ng*nx)+ 1
+    k = mod(irow,ng*nx*ny*nz)/(ng*nx*ny) + 1
+
+  end subroutine matrix_to_indices
+
+!===============================================================================
+! INDICES_TO_MATRIX takes (x,y,z,g) indices and computes location in matrix 
+!===============================================================================
+
+  subroutine indices_to_matrix(g,i,j,k,matidx,ng,nx,ny,nz)
+
+    use global, only: cmfd
+
+    integer :: matidx         ! the index location in matrix
+    integer :: i               ! current x index
+    integer :: j               ! current y index
+    integer :: k               ! current z index
+    integer :: g               ! current group index
+    integer :: ng
+    integer :: nx
+    integer :: ny
+    integer :: nz
+
+    ! compute index
+    matidx = g + ng*(i - 1) + ng*nx*(j - 1) + ng*nx*ny*(k - 1)
+
+  end subroutine indices_to_matrix
 
 !==============================================================================
 ! FINALIZE

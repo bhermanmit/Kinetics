@@ -39,6 +39,11 @@ module cmfd_header
     real(8), allocatable :: rho(:)
     real(8), allocatable :: pnl(:)
 
+    ! parameters for general point kinetics
+    real(8), allocatable :: prompt(:,:,:)
+    real(8), allocatable :: delay(:,:,:)
+    real(8), allocatable :: vel(:,:)
+
   end type cmfd_type
 
 contains
