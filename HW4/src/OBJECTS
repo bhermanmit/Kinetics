@@ -4,6 +4,7 @@ cmfd_header.o \
 constants.o \
 error.o \
 finalize.o \
+general_pkes.o \
 geometry_header.o \
 global.o \
 hdf5_interface.o \

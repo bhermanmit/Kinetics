@@ -69,5 +69,6 @@
   <variable name="pke_shape_for_" tag="pke_shape_for" type="shape_xml" dimension="1" />
   <variable name="pke_shape_adj_" tag="pke_shape_adj" type="shape_xml" dimension="1" />
   <variable name="weight_"        tag="weight" type="word" length="50" default="'unity'" />
+  <variable name="pke_grp_"  tag="pke_grp" type="integer" default="1" />
 
 </template>

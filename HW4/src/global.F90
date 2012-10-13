@@ -46,7 +46,7 @@ module global
 
   integer :: ierr
 
-!-mpi parametesr
+!-mpi parameters
 
   logical :: master = .false. ! am i master
   integer :: rank             ! rank of processor
@@ -61,6 +61,7 @@ module global
   character(len=50) :: mode = "static"
   character(len=50) :: weight = "unity"
   logical           :: pke_run = .false. 
+  integer           :: pke_grp
 
 !-solver tolerances
 

@@ -17,6 +17,11 @@ finalize.o: material_header.o
 finalize.o: output.o
 finalize.o: timing.o
 
+general_pkes.o: global.o
+general_pkes.o: loss_operator.o
+general_pkes.o: prod_operator.o
+general_pkes.o: power_iter.o
+
 global.o: cmfd_header.o
 global.o: geometry_header.o
 global.o: kinetics_header.o

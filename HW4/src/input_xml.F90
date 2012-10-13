@@ -23,7 +23,7 @@ contains
                                 solver_type, ktol, stol, itol, guess, adjoint, &
                                 nt, time, dt, kinetics, n_kins, mode, pke_run, &
                                 pke_shape_for, pke_shape_adj, weight,          &
-                                n_pkes_for, n_pkes_adj
+                                n_pkes_for, n_pkes_adj, pke_grp
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -258,10 +258,14 @@ contains
     end do
 
     ! read in shape function data
-    if (trim(mode) == 'point_kinetics') then
+    if (trim(mode) == 'point_kinetics' .or. trim(mode) ==                      &
+                      'general_point_kinetics') then
 
       ! weight function
       weight = weight_ 
+
+      ! number of groups for general point kinetics
+      pke_grp = pke_grp_
 
       ! allocate object
       n_pkes_for = size(pke_shape_for)
