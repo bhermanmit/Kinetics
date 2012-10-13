@@ -8,7 +8,7 @@ module kinetics_solver
 
   implicit none
   private
-  public :: kinetics_execute, change_data, compute_pkes 
+  public :: kinetics_execute, change_data, compute_pkes, compute_gpkes 
 
 !-module external references
 

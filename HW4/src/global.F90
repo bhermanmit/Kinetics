@@ -106,5 +106,6 @@ module global
 !-Point Kinetics object
 
   type(pke_type) :: pke
+  type(pke_type) :: gpke
 
 end module global

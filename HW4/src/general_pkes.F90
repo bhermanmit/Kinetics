@@ -6,10 +6,6 @@ module general_pkes
   private
   public :: run_gpkes 
 
-!-module external references
-
-# include "finclude/petsc.h90"
-
 contains
 
 !===============================================================================
@@ -21,7 +17,7 @@ contains
 !---external references
 
     use constants,  only: NUM_PRECS
-    use global,     only: nt, dt, pke, pke_grp 
+    use global,     only: nt, dt, gpke, pke_grp 
     use output,     only: header
     use pke_header, only: allocate_pke_type
     use math,       only: expm_pade
@@ -33,7 +29,7 @@ contains
 !---begin execution
 
     ! allocate point kinetics
-    call allocate_pke_type(pke,pke_grp,nt)
+    call allocate_pke_type(gpke,pke_grp,nt)
 
     ! set up initial conditions
     call set_init()
@@ -45,10 +41,10 @@ contains
       call setup_coefmat(i)
 
       ! solve matrix exponential
-      call expm_pade(pke % coef, pke_grp + NUM_PRECS*pke_grp, dt, pke % expm)  ! my code
+      call expm_pade(gpke % coef, pke_grp + NUM_PRECS*pke_grp, dt, gpke % expm)  ! my code
 
       ! get new vector
-      pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))
+      gpke % N(:,i+1) = matmul(gpke % expm, gpke % N(:,i))
 
     end do
 
@@ -63,7 +59,7 @@ contains
 !---external references
 
     use constants,  only: beta, NUM_PRECS, lambda, ZERO
-    use global,     only: pke, cmfd, pke_grp
+    use global,     only: gpke, cmfd, pke_grp
 
 !---arguments
 
@@ -71,47 +67,43 @@ contains
 
 !---local variables
 
-    integer :: i ! loop counter
+    integer :: g,h,i 
 
 !---begin execution
 
     ! ZERO out coefficient matrix
-    pke % coeff = ZERO
+    gpke % coef = ZERO
 
     ! begin loop over group amplitude functions
     GROUPG: do g = 1,pke_grp
 
       ! loop around energy groups
-      GROUPH: do h = 1, pke_grp
+      do h = 1, pke_grp
 
         ! do amplitude 
-        pke % coeff(g,h) = cmfd % vel(g)*cmfd % prompt(g,h,iter)
+        gpke % coef(g,h) = cmfd % vel(g,iter)*cmfd % prompt(g,h,iter)
 
-        ! loop around precursor groups
-        PRECGROUP: do i = 1, NUM_PRECS 
+      end do
 
-          ! set value
-          pke % coeff(g,pke_grp+g+pke_grp*(i-1)) = cmfd % vel(g)*lambda(i)
+      ! loop around precursor groups
+      do i = 1, NUM_PRECS 
 
-        end do PRECGROUP
+        ! set value in amplitude rows
+        gpke % coef(g,pke_grp+g+pke_grp*(i-1)) = cmfd % vel(g,iter)*lambda(i)
 
-      end do GROUPG
+        ! set value in precurosr row
+        gpke % coef(pke_grp+g+pke_grp*(i-1),pke_grp+g+pke_grp*(i-1)) = -lambda(i) 
 
-    end do GROUPH
+        ! loop around energy group
+        do h = 1,pke_grp
 
-    ! begin loop around rest of matrix
-    do i = 2, NUM_PRECS + 1
+          gpke % coef(pke_grp+g+pke_grp*(i-1),pke_grp+h+pke_grp*(i-1)) = cmfd % delay(g,h,iter)
 
-      ! set row 1
-      pke % coef(1,i) = lambda(i - 1)
+        end do
 
-      ! set diagonal
-      pke % coef(i,i) = -lambda(i - 1)
-
-      ! set column 1
-      pke % coef(i,1) = beta(i-1) / cmfd % pnl(1)
-
-    end do
+      end do
+ 
+    end do GROUPG
 
   end subroutine setup_coefmat
 
@@ -149,7 +141,7 @@ contains
 ! GENERATE PKE SHAPES
 !===============================================================================
 
-  subroutine generate_pke_shapes()
+  subroutine generate_gpke_shapes()
 
 !---references
 
@@ -253,7 +245,7 @@ contains
       cmfd % phi_adj = ONE
     end if
 
-  end subroutine generate_pke_shapes
+  end subroutine generate_gpke_shapes
 
 !===============================================================================
 ! GENERATE_PKPARAMS
@@ -264,8 +256,8 @@ contains
 !---references
 
     use constants,        only: beta
-    use global,           only: nt, dt, loss, prod, cmfd, mpi_err, kinetics
-    use kinetics_solver,  only: change_data, compute_pkes
+    use global,           only: nt, dt, loss, prod, cmfd, mpi_err, kinetics, pke_grp 
+    use kinetics_solver,  only: change_data, compute_gpkes
     use loss_operator,    only: init_M_operator, build_loss_matrix,            &
                                 destroy_M_operator
     use math,             only: csr_matvec_mult
@@ -276,29 +268,19 @@ contains
 
     integer :: i
     real(8) :: curr_time
-    real(8), allocatable :: temp1(:)
-    real(8), allocatable :: temp2(:)
 
 !---begin execution
+
 
     ! initialize operators
     call init_M_operator(loss)
     call init_F_operator(prod)
 
-    ! allocate vectors
-    allocate(temp1(loss % n))
-    allocate(temp2(prod % n))
+    ! allocate
+    if(.not.allocated(cmfd % prompt)) allocate(cmfd % prompt(pke_grp,pke_grp,nt))
+    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(pke_grp,pke_grp,nt))
+    if(.not.allocated(cmfd % vel)) allocate(cmfd % vel(pke_grp,nt))
 
-    if(.not.allocated(cmfd % rho)) allocate(cmfd % rho(nt))
-    if(.not.allocated(cmfd % pnl)) allocate(cmfd % pnl(nt))
-
-    ! build petsc matrices
-    call build_loss_matrix(loss,'')
-    call build_prod_matrix(prod,'')
-    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,loss%n,loss%n,loss%row_csr,&
-                                   loss%col,loss%val,loss%oper,mpi_err)
-    call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
-                                   prod%col,prod%val,prod%oper,mpi_err)
     ! begin loop around timestep
     do i = 1, nt
 
@@ -309,13 +291,9 @@ contains
       call change_data(kinetics,curr_time)
 
       ! compute the pke parameters
-      call compute_pkes(i,temp1,temp2)
+      call compute_gpkes(i)
 
     end do
-
-    ! deallocate vectors
-    deallocate(temp1)
-    deallocate(temp2)
 
   end subroutine generate_pkparams 
 
