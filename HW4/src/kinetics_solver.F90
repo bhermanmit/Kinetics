@@ -70,9 +70,9 @@ contains
 !---begin execution
 
     ! normalize initial power to unity and set initial power
-    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
-              cmfd%phi,prod%n))
-    cmfd % phi = cmfd % phi * ONE / pow
+!   pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
+!             cmfd%phi,prod%n))
+!   cmfd % phi = cmfd % phi * ONE / pow
 print *,'SUM:',sum(cmfd % phi)
     ! compute steady state precursors
     call compute_initial_precursors()
@@ -652,10 +652,7 @@ print *,'SUM:',sum(cmfd % phi)
 
     ! divide velocity parameter
     cmfd % vel(:,t) = vel / cmfd % vel(:,t)
-print *,cmfd % prompt(:,:,t)
-print *,cmfd % delay(:,:,:,t)
-print *,cmfd % vel(:,t)
-stop
+
   end subroutine compute_gpkes
 
 !===============================================================================

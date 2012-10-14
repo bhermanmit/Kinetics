@@ -286,14 +286,15 @@ contains
 
 !---external references
 
-    use constants, only: ZERO
+    use constants, only: ZERO, ONE
     use global,  only: cmfd, geometry, material
     use material_header,  only: material_type
+    use math,  only: csr_matvec_mult
 
 !---local variables
 
     integer :: irow, g, idx
-    real(8) :: vol
+    real(8) :: vol, pow
     type(material_type), pointer :: m
 
 !---begin execution
@@ -321,6 +322,11 @@ contains
       cmfd % fsrc(g) = cmfd % fsrc(g) + m % fissvec(g)*cmfd%phi(irow)*vol
 
     end do
+
+    ! normalize so that power is one
+    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
+              cmfd%phi,prod%n))
+    cmfd % phi = cmfd % phi * ONE / pow
 
 end subroutine fission_src
 

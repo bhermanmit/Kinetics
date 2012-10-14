@@ -196,7 +196,7 @@ contains
         m % chi_based = .true.
       end if
 
-      if (trim(mode) == 'kinetics') then
+      if (trim(mode) == 'kinetics' .or. trim(mode) == 'general_point_kinetics') then
         if (.not.associated(material_(i) % chip)) then
           m % chip = m % chi
         else if (m % chi_based) then
