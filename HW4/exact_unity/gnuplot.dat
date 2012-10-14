@@ -1,0 +1,9 @@
+
+set terminal pdf
+set output "power.pdf"
+set xlabel "Time [s]"
+set ylabel "Relative Core Power [-]"
+set title "Core Power Evolution During Transient"
+set grid
+plot 'fort.779' using 1 with lines linewidth 2.0, 'fort.774' using 1 with lines linewidth 2.0
+q

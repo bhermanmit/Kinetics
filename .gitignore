@@ -36,6 +36,10 @@ HW2/src/xml-fortran/xmlreader
 HW3/src/cmfd
 HW3/src/templates/input_t.f90
 HW3/src/xml-fortran/xmlreader
+HW4/matlab/
+HW4/src/cmfd
+HW4/src/templates/input_t.f90
+HW4/src/xml-fortran/xmlreader
 
 *.bin
 *.info
