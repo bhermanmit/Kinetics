@@ -77,19 +77,19 @@ close(unit=774)
 !---begin execution
 
     ! set up coeffient matrix manually for time 0
-    pke % coef(1,1) = (cmfd % rho(iter)*sum(beta) - sum(beta))/cmfd % pnl(1)
+    pke % coef(1,1) = (cmfd % rho(iter)*sum(beta) - sum(beta))/cmfd % pnl(iter)
 
     ! begin loop around rest of matrix
     do i = 2, NUM_PRECS + 1
 
       ! set row 1
-      pke % coef(1,i) = lambda(i - 1)
+      pke % coef(1,i) = lambda(i - 1)/cmfd%pnl(iter)
 
       ! set diagonal
       pke % coef(i,i) = -lambda(i - 1)
 
       ! set column 1
-      pke % coef(i,1) = beta(i-1) / cmfd % pnl(1)
+      pke % coef(i,1) = beta(i-1)
 
     end do
 
@@ -119,7 +119,7 @@ close(unit=774)
     do i = 1, NUM_PRECS
 
       ! set initial value
-      pke % N(i+1,1) = beta(i)/(cmfd % pnl(1)*lambda(i)) * pke % N(1,1)
+      pke % N(i+1,1) = beta(i)/(lambda(i)) * pke % N(1,1)
 
     end do
 
