@@ -31,20 +31,20 @@ contains
 
     ! set up initial conditions
     call set_init()
-
+write(888,*) sum(gpke%N(1:pke_grp,1))
     ! begin loop through time steps
     do i = 1, nt
 
       ! set up coefficient matrix
       call setup_coefmat(i)
-write(333,*) gpke % coef
-stop
+! write(333,*) gpke % coef
+
       ! solve matrix exponential
       call expm1(pke_grp + NUM_PRECS*pke_grp, gpke%coef*dt, gpke % expm)
 
       ! get new vector
       gpke % N(:,i+1) = matmul(gpke % expm, gpke % N(:,i))
-
+write(888,*) sum(gpke%N(1:pke_grp,i+1))
 
     end do
 
@@ -127,7 +127,7 @@ stop
     ! set power at 1.0
     gpke % N(1:pke_grp,1) = cmfd % fsrc / sum(cmfd % fsrc) 
     gpke % N(pke_grp+1:pke_grp+pke_grp*NUM_PRECS,1) = ZERO
-
+    gpke % N(1:pke_grp,1) = 0.5_8
     ! loop through precursors
     do i = 1, NUM_PRECS
 
@@ -139,14 +139,15 @@ stop
 
           ! sum value
           gpke % N(pke_grp+g+pke_grp*(i-1),1) = gpke % N(pke_grp+g+pke_grp*(i-1),1) + &
-          ONE/lambda(i) * cmfd % delay(i,g,h,1) * gpke % N(g,1)
+          ONE/lambda(i) * cmfd % delay(i,g,h,1) * gpke % N(h,1)
 
         end do
 
       end do
 
     end do
-
+print *,'HERE'
+print *, gpke % N(:,1)
   end subroutine set_init
 
 !===============================================================================
