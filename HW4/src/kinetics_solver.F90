@@ -73,7 +73,7 @@ contains
     pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
               cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
-
+print *,'SUM:',sum(cmfd % phi)
     ! compute steady state precursors
     call compute_initial_precursors()
 
@@ -172,7 +172,7 @@ contains
 
 !---external references
 
-    use constants,          only: ZERO, ONE, beta
+    use constants,          only: ZERO, ONE, beta, NUM_PRECS
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
                                   itol, prod, message, time_kine, time_inner,  &
@@ -231,7 +231,7 @@ contains
     if(.not.allocated(cmfd % rho)) allocate(cmfd % rho(nt))
     if(.not.allocated(cmfd % pnl)) allocate(cmfd % pnl(nt))
     if(.not.allocated(cmfd % prompt)) allocate(cmfd % prompt(ng,ng,nt))
-    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(ng,ng,nt))
+    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(NUM_PRECS,ng,ng,nt))
     if(.not.allocated(cmfd % vel)) allocate(cmfd % vel(ng,nt))
 
     ! build petsc matrices
@@ -556,7 +556,7 @@ contains
 
 !---references
 
-    use constants,          only: beta, vel, ONE, ZERO
+    use constants,          only: beta, vel, ONE, ZERO, NUM_PRECS
     use global,             only: cmfd, loss, prod, geometry, material
     use loss_operator,      only: build_loss_matrix
     use prod_operator,      only: build_prod_matrix
@@ -568,7 +568,7 @@ contains
 
 !---local variables
 
-    integer :: irow, icol, igrp
+    integer :: irow, icol, igrp, iprec
     integer :: h, g, i, j, k, ni, nj, nk
     integer :: first, last
     integer :: idx, idxn, matidx
@@ -579,10 +579,11 @@ contains
 
     ! build operators
     call build_loss_matrix(loss,'')
+    call build_prod_matrix(prod,'')
 
     ! zero out values
     cmfd % prompt(:,:,t) = ZERO
-    cmfd % delay(:,:,t) = ZERO
+    cmfd % delay(:,:,:,t) = ZERO
     cmfd % vel(:,t) = ZERO 
 
     ! begin loop around column in operator
@@ -620,7 +621,7 @@ contains
 
         ! take value multiply volume and add to appropriate location
         cmfd % prompt(g,h,t) = cmfd % prompt(g,h,t) - cmfd%phi_adj(loss%col(icol)+1)* &
-                            loss%val(loss%col(icol)+1)*cmfd%phi(loss%col(icol)+1)*voln
+                            loss%val(icol)*cmfd%phi(loss%col(icol)+1)*voln
 
       end do COLS
 
@@ -635,19 +636,26 @@ contains
           (ONE - sum(beta))*m%chip(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
 
         ! put in delayed fission value
-        cmfd % delay(g,igrp,t) = cmfd % delay(g,igrp,t) + cmfd % phi_adj(matidx)*    &
-          sum(beta)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+        do iprec = 1, NUM_PRECS
+          cmfd % delay(iprec,g,igrp,t) = cmfd % delay(iprec,g,igrp,t) + cmfd % phi_adj(matidx)*    &
+            beta(iprec)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+        end do
 
       end do GRPS
+        if(g == 1) write(877,*) cmfd % phi(irow)
+        if(g == 2) write(878,*) cmfd % phi(irow)
 
-      ! add to velocity term
-      cmfd % vel(g,t) = cmfd%phi_adj(irow)*cmfd%phi(irow)
+
+      cmfd % vel(g,t) = cmfd % vel(g,t) + cmfd%phi_adj(irow)*cmfd%phi(irow)*vol
 
     end do ROWS
 
     ! divide velocity parameter
     cmfd % vel(:,t) = vel / cmfd % vel(:,t)
-
+print *,cmfd % prompt(:,:,t)
+print *,cmfd % delay(:,:,:,t)
+print *,cmfd % vel(:,t)
+stop
   end subroutine compute_gpkes
 
 !===============================================================================

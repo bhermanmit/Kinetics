@@ -74,7 +74,8 @@ contains
     itol = itol_
 
     ! get time info if running kinetics
-    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics') then
+    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics' .or.      &
+        trim(mode) == 'general_point_kinetics') then
       nt = nt_
       time = time_
       dt = time / dble(nt)
@@ -264,9 +265,6 @@ contains
       ! weight function
       weight = weight_ 
 
-      ! number of groups for general point kinetics
-      pke_grp = pke_grp_
-
       ! allocate object
       n_pkes_for = size(pke_shape_for)
       allocate(pke_shape_for(n_pkes_for))
@@ -309,6 +307,10 @@ contains
       end if
 
     end if
+
+    ! number of groups for general point kinetics
+    pke_grp = pke_grp_
+
 
   end subroutine read_input_xml
 

@@ -18,6 +18,7 @@ contains
 
     use constants,        only: ONE
     use error,            only: fatal_error
+    use general_pkes,     only: run_gpkes, generate_gpkparams, generate_gpke_shapes
     use global,           only: solver_type, message, mode,                    &
                                 adjoint, pke_run, weight, cmfd
     use kinetics_solver,  only: kinetics_execute
@@ -61,7 +62,8 @@ contains
         ! run point kinetics based on these exact generated values
         if (pke_run) then 
           call header('Point Kinetics w/ Kinetics Parameters',level=2)
-          call run_pkes()
+!         call run_pkes()
+          call run_gpkes()
         end if
 
       case('point_kinetics')
@@ -74,6 +76,17 @@ contains
         call generate_pkparams()
         call header('Running Point Kinetics', level=2)
         call run_pkes()
+
+      case('general_point_kinetics')
+        call header('General Point Kinetics w/ Static Shape Functions', level=1)
+        call header('Running Steady State Forward Solution', level=2)
+        call power_execute(csr_gauss_seidel,'none')
+        call header('Generating Shape Functions', level=2)
+        call generate_gpke_shapes()
+        call header('Generating General Point Kinetics Parameters', level=2)
+        call generate_gpkparams()
+        call header('Running General Point Kinetics', level=2)
+        call run_gpkes()
 
       case DEFAULT
         message = 'Calculation Mode not Supported!'

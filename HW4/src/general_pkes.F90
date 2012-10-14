@@ -4,7 +4,7 @@ module general_pkes
 
   implicit none
   private
-  public :: run_gpkes 
+  public :: run_gpkes, generate_gpkparams, generate_gpke_shapes
 
 contains
 
@@ -17,10 +17,8 @@ contains
 !---external references
 
     use constants,  only: NUM_PRECS
-    use global,     only: nt, dt, gpke, pke_grp 
-    use output,     only: header
+    use global,     only: nt, dt, gpke, pke_grp, cmfd 
     use pke_header, only: allocate_pke_type
-    use math,       only: expm_pade
 
 !---local variables
 
@@ -39,12 +37,14 @@ contains
 
       ! set up coefficient matrix
       call setup_coefmat(i)
-
+write(333,*) gpke % coef
+stop
       ! solve matrix exponential
-      call expm_pade(gpke % coef, pke_grp + NUM_PRECS*pke_grp, dt, gpke % expm)  ! my code
+      call expm1(pke_grp + NUM_PRECS*pke_grp, gpke%coef*dt, gpke % expm)
 
       ! get new vector
       gpke % N(:,i+1) = matmul(gpke % expm, gpke % N(:,i))
+
 
     end do
 
@@ -80,7 +80,7 @@ contains
       ! loop around energy groups
       do h = 1, pke_grp
 
-        ! do amplitude 
+        ! do amplitude
         gpke % coef(g,h) = cmfd % vel(g,iter)*cmfd % prompt(g,h,iter)
 
       end do
@@ -97,7 +97,7 @@ contains
         ! loop around energy group
         do h = 1,pke_grp
 
-          gpke % coef(pke_grp+g+pke_grp*(i-1),pke_grp+h+pke_grp*(i-1)) = cmfd % delay(g,h,iter)
+          gpke % coef(pke_grp+g+pke_grp*(i-1),h) = cmfd % delay(i,g,h,iter)
 
         end do
 
@@ -115,23 +115,35 @@ contains
 
 !---external references
 
-    use constants,  only: ONE, beta, lambda, NUM_PRECS
-    use global,     only: pke, cmfd
+    use constants,  only: ONE, beta, lambda, NUM_PRECS, ZERO
+    use global,     only: gpke, cmfd, pke_grp
 
 !---local variables
 
-    integer :: i ! loop counter
+    integer :: i, g, h ! loop counter
 
 !---begin execution  
 
     ! set power at 1.0
-    pke % N(1,1) = ONE
+    gpke % N(1:pke_grp,1) = cmfd % fsrc / sum(cmfd % fsrc) 
+    gpke % N(pke_grp+1:pke_grp+pke_grp*NUM_PRECS,1) = ZERO
 
     ! loop through precursors
     do i = 1, NUM_PRECS
 
-      ! set initial value
-      pke % N(i+1,1) = beta(i)/(cmfd % pnl(1)*lambda(i)) * pke % N(1,1)
+      ! loop around group g
+      do g = 1, pke_grp
+
+        ! loop around group h
+        do h = 1, pke_grp
+
+          ! sum value
+          gpke % N(pke_grp+g+pke_grp*(i-1),1) = gpke % N(pke_grp+g+pke_grp*(i-1),1) + &
+          ONE/lambda(i) * cmfd % delay(i,g,h,1) * gpke % N(g,1)
+
+        end do
+
+      end do
 
     end do
 
@@ -251,11 +263,11 @@ contains
 ! GENERATE_PKPARAMS
 !===============================================================================
 
-  subroutine generate_pkparams()
+  subroutine generate_gpkparams()
 
 !---references
 
-    use constants,        only: beta
+    use constants,        only: beta, NUM_PRECS
     use global,           only: nt, dt, loss, prod, cmfd, mpi_err, kinetics, pke_grp 
     use kinetics_solver,  only: change_data, compute_gpkes
     use loss_operator,    only: init_M_operator, build_loss_matrix,            &
@@ -271,14 +283,13 @@ contains
 
 !---begin execution
 
-
     ! initialize operators
     call init_M_operator(loss)
     call init_F_operator(prod)
 
     ! allocate
     if(.not.allocated(cmfd % prompt)) allocate(cmfd % prompt(pke_grp,pke_grp,nt))
-    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(pke_grp,pke_grp,nt))
+    if(.not.allocated(cmfd % delay)) allocate(cmfd % delay(NUM_PRECS,pke_grp,pke_grp,nt))
     if(.not.allocated(cmfd % vel)) allocate(cmfd % vel(pke_grp,nt))
 
     ! begin loop around timestep
@@ -295,6 +306,6 @@ contains
 
     end do
 
-  end subroutine generate_pkparams 
+  end subroutine generate_gpkparams 
 
 end module general_pkes 

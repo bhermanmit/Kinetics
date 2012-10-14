@@ -38,8 +38,8 @@ contains
 
     ! allocate
     if (.not.allocated(this % N)) allocate(this % N(NUM_PRECS*ng+ng,nt+1))
-    if (.not.allocated(this % coef)) allocate(this % coef(NUM_PRECS*ng+ng,NUM_PRECS+ng))
-    if (.not.allocated(this % expm)) allocate(this % expm(NUM_PRECS*ng+ng,NUM_PRECS+ng))
+    if (.not.allocated(this % coef)) allocate(this % coef(NUM_PRECS*ng+ng,NUM_PRECS*ng+ng))
+    if (.not.allocated(this % expm)) allocate(this % expm(NUM_PRECS*ng+ng,NUM_PRECS*ng+ng))
 
     ! set to 0
     this % N    = ZERO

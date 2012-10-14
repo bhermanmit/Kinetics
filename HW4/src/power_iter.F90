@@ -82,6 +82,9 @@ contains
     ! deallocate petsc objects
 !   call finalize()
 
+    ! compute final fission source
+    if (.not.(adjoint == 'math' .or. adjoint == 'physical')) call fission_src()
+
   end subroutine power_execute
 
 !===============================================================================
@@ -274,6 +277,52 @@ contains
  100 format(I0,5X,"EIG: ",F7.5,5X,"NORM: ",1PE9.3,5X,"INNER:",I0,2X,1PE9.3)
 
   end subroutine convergence
+
+!===============================================================================
+! CONVERGENCE checks the convergence of eigenvalue, eigenvector and source
+!===============================================================================
+
+  subroutine fission_src() 
+
+!---external references
+
+    use constants, only: ZERO
+    use global,  only: cmfd, geometry, material
+    use material_header,  only: material_type
+
+!---local variables
+
+    integer :: irow, g, idx
+    real(8) :: vol
+    type(material_type), pointer :: m
+
+!---begin execution
+
+    ! zero out fission src
+    cmfd % fsrc = ZERO
+
+    ! normalize flux
+!   cmfd % phi = cmfd % phi / sum(cmfd % phi)
+
+    ! begin loop rows
+    do irow = 1, right % n
+
+      ! get material
+      idx = ceiling(real(irow)/real(geometry % nfg)) 
+      m => material(geometry % fmat_map(idx))
+
+      ! get group number at this row
+      g = mod(irow-1,geometry%nfg) + 1
+
+      ! get volume
+      vol = geometry % fdx_map(idx)*geometry % fdy_map(idx)*geometry % fdz_map(idx)
+
+      ! bank fission rate
+      cmfd % fsrc(g) = cmfd % fsrc(g) + m % fissvec(g)*cmfd%phi(irow)*vol
+
+    end do
+
+end subroutine fission_src
 
 !==============================================================================
 ! FINALIZE

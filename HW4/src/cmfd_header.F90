@@ -41,8 +41,11 @@ module cmfd_header
 
     ! parameters for general point kinetics
     real(8), allocatable :: prompt(:,:,:)
-    real(8), allocatable :: delay(:,:,:)
+    real(8), allocatable :: delay(:,:,:,:)
     real(8), allocatable :: vel(:,:)
+
+    ! steady state fsrc in each group
+    real(8), allocatable :: fsrc(:)
 
   end type cmfd_type
 
@@ -75,6 +78,7 @@ contains
     ! allocate nodal power maps
     allocate(this % power_o(geometry % n_regs))
     allocate(this % power_n(geometry % n_regs))
+    allocate(this % fsrc(geometry % nfg))
 
   end subroutine allocate_cmfd_type
 
@@ -203,6 +207,7 @@ contains
     if(allocated(this % phi_adj)) deallocate(this % phi_adj)
     if(allocated(this % power_o)) deallocate(this % power_o)
     if(allocated(this % power_n)) deallocate(this % power_n)
+    if(allocated(this % fsrc)) deallocate(this % fsrc)
 
   end subroutine deallocate_cmfd_type
 

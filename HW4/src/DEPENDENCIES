@@ -1,3 +1,4 @@
+cmfd_execute.o: general_pkes.o
 cmfd_execute.o: kinetics_solver.o
 cmfd_execute.o: math.o
 cmfd_execute.o: output.o
@@ -17,7 +18,9 @@ finalize.o: material_header.o
 finalize.o: output.o
 finalize.o: timing.o
 
+general_pkes.o: expokit.o
 general_pkes.o: global.o
+general_pkes.o: kinetics_solver.o
 general_pkes.o: loss_operator.o
 general_pkes.o: prod_operator.o
 general_pkes.o: power_iter.o

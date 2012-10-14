@@ -2,7 +2,10 @@ objects = \
 cmfd_execute.o \
 cmfd_header.o \
 constants.o \
+dgpadm.o \
 error.o \
+expokit.o \
+expm.o \
 finalize.o \
 general_pkes.o \
 geometry_header.o \
