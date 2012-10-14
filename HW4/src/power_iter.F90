@@ -328,6 +328,9 @@ contains
               cmfd%phi,prod%n))
     cmfd % phi = cmfd % phi * ONE / pow
 
+    ! record sum for normalization
+    cmfd % factor = sum(cmfd % phi)
+
 end subroutine fission_src
 
 !==============================================================================

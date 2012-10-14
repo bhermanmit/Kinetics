@@ -73,7 +73,7 @@ contains
 !   pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,        &
 !             cmfd%phi,prod%n))
 !   cmfd % phi = cmfd % phi * ONE / pow
-print *,'SUM:',sum(cmfd % phi)
+
     ! compute steady state precursors
     call compute_initial_precursors()
 
@@ -573,6 +573,7 @@ print *,'SUM:',sum(cmfd % phi)
     integer :: first, last
     integer :: idx, idxn, matidx
     real(8) :: vol, voln
+    real(8) :: norm
     type(material_type), pointer :: m
 
 !---begin execution
@@ -585,6 +586,9 @@ print *,'SUM:',sum(cmfd % phi)
     cmfd % prompt(:,:,t) = ZERO
     cmfd % delay(:,:,:,t) = ZERO
     cmfd % vel(:,t) = ZERO 
+
+    ! compute normalization factor
+    norm = cmfd % factor / sum(cmfd % phi)
 
     ! begin loop around column in operator
     ROWS: do irow = 1, size(loss % row_csr) - 1
@@ -621,7 +625,7 @@ print *,'SUM:',sum(cmfd % phi)
 
         ! take value multiply volume and add to appropriate location
         cmfd % prompt(g,h,t) = cmfd % prompt(g,h,t) - cmfd%phi_adj(loss%col(icol)+1)* &
-                            loss%val(icol)*cmfd%phi(loss%col(icol)+1)*voln
+                            loss%val(icol)*cmfd%phi(loss%col(icol)+1)*norm*voln
 
       end do COLS
 
@@ -633,12 +637,12 @@ print *,'SUM:',sum(cmfd % phi)
 
         ! put in prompt fission value
         cmfd % prompt(g,igrp,t) = cmfd % prompt(g,igrp,t) + cmfd%phi_adj(matidx)*    &
-          (ONE - sum(beta))*m%chip(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+          (ONE - sum(beta))*m%chip(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*norm*vol
 
         ! put in delayed fission value
         do iprec = 1, NUM_PRECS
           cmfd % delay(iprec,g,igrp,t) = cmfd % delay(iprec,g,igrp,t) + cmfd % phi_adj(matidx)*    &
-            beta(iprec)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*vol
+            beta(iprec)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*norm*vol
         end do
 
       end do GRPS
@@ -646,7 +650,7 @@ print *,'SUM:',sum(cmfd % phi)
         if(g == 2) write(878,*) cmfd % phi(irow)
 
 
-      cmfd % vel(g,t) = cmfd % vel(g,t) + cmfd%phi_adj(irow)*cmfd%phi(irow)*vol
+      cmfd % vel(g,t) = cmfd % vel(g,t) + cmfd%phi_adj(irow)*cmfd%phi(irow)*norm*vol
 
     end do ROWS
 

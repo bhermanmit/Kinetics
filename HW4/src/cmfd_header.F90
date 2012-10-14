@@ -47,6 +47,9 @@ module cmfd_header
     ! steady state fsrc in each group
     real(8), allocatable :: fsrc(:)
 
+    ! flux normalization factor
+    real(8) :: factor
+
   end type cmfd_type
 
 contains
