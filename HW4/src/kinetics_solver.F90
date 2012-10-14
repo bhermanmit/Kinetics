@@ -242,6 +242,8 @@ contains
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
                                    prod%col,prod%val,prod%oper,mpi_err)
 
+    open(unit=779,file='kinetics_power.out')
+
     ! begin loop around time
     do i = 1, nt
 
@@ -284,6 +286,8 @@ contains
    deallocate(rhs)
    deallocate(temp1)
    deallocate(temp2)
+
+   close(unit=779)
 
   end subroutine execute_kinetics_iter 
 
@@ -624,7 +628,7 @@ contains
         voln = geometry % fdx_map(idxn)*geometry % fdy_map(idxn)*geometry % fdz_map(idxn)
 
         ! take value multiply volume and add to appropriate location
-        cmfd % prompt(g,h,t) = cmfd % prompt(g,h,t) - cmfd%phi_adj(loss%col(icol)+1)* &
+        cmfd % prompt(g,h,t) = cmfd % prompt(g,h,t) - cmfd%phi_adj(irow)* &
                             loss%val(icol)*cmfd%phi(loss%col(icol)+1)*norm*voln
 
       end do COLS
@@ -636,19 +640,16 @@ contains
         call indices_to_matrix(igrp,i,j,k,matidx,geometry%nfg,geometry%nfx,geometry%nfy,geometry%nfz) 
 
         ! put in prompt fission value
-        cmfd % prompt(g,igrp,t) = cmfd % prompt(g,igrp,t) + cmfd%phi_adj(matidx)*    &
+        cmfd % prompt(g,igrp,t) = cmfd % prompt(g,igrp,t) + cmfd%phi_adj(irow)*    &
           (ONE - sum(beta))*m%chip(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*norm*vol
 
         ! put in delayed fission value
         do iprec = 1, NUM_PRECS
-          cmfd % delay(iprec,g,igrp,t) = cmfd % delay(iprec,g,igrp,t) + cmfd % phi_adj(matidx)*    &
+          cmfd % delay(iprec,g,igrp,t) = cmfd % delay(iprec,g,igrp,t) + cmfd % phi_adj(irow)*    &
             beta(iprec)*m%chid(g)/cmfd%kcrit*m%fissvec(igrp)*cmfd%phi(matidx)*norm*vol
         end do
 
       end do GRPS
-        if(g == 1) write(877,*) cmfd % phi(irow)
-        if(g == 2) write(878,*) cmfd % phi(irow)
-
 
       cmfd % vel(g,t) = cmfd % vel(g,t) + cmfd%phi_adj(irow)*cmfd%phi(irow)*norm*vol
 

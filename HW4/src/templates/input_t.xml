@@ -65,7 +65,7 @@
   <variable name="time_"     tag="time"     type="double" />
   <variable name="nt_"       tag="nt"       type="integer" />
   <variable name="mode_"     tag="mode"     type="word" length="50" default="'static'" />
-  <variable name="pke_run_"  tag="pke_run"  type="logical" default=".false." />
+  <variable name="pke_run_"  tag="pke_run"  type="word" length="50" default="'classical'" />
   <variable name="pke_shape_for_" tag="pke_shape_for" type="shape_xml" dimension="1" />
   <variable name="pke_shape_adj_" tag="pke_shape_adj" type="shape_xml" dimension="1" />
   <variable name="weight_"        tag="weight" type="word" length="50" default="'unity'" />

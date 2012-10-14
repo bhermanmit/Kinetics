@@ -37,7 +37,8 @@ contains
 
     ! set up initial conditions
     call set_init()
-
+open(unit=774,file='pke_power.out')
+write(774,*) pke%N(1,i+1)
     ! begin loop through time steps
     do i = 1, nt
 
@@ -51,7 +52,7 @@ contains
       pke % N(:,i+1) = matmul(pke % expm, pke % N(:,i))
 write(774,*) pke%N(1,i+1)
     end do
-
+close(unit=774)
   end subroutine run_pkes
 
 !===============================================================================
@@ -91,7 +92,7 @@ write(774,*) pke%N(1,i+1)
       pke % coef(i,1) = beta(i-1) / cmfd % pnl(1)
 
     end do
-write(432,*) cmfd % rho(iter),sum(beta),cmfd % pnl(iter) 
+
   end subroutine setup_coefmat
 
 !===============================================================================

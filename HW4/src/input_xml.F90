@@ -60,7 +60,7 @@ contains
     solver_type = trim(solver_)
 
     ! run point kinetics
-    pke_run = pke_run_
+    pke_run = trim(pke_run_)
 
     ! get starting guess
     guess = trim(guess_)
@@ -258,12 +258,12 @@ contains
 
     end do
 
+    ! weight function
+    weight = weight_ 
+
     ! read in shape function data
     if (trim(mode) == 'point_kinetics' .or. trim(mode) ==                      &
                       'general_point_kinetics') then
-
-      ! weight function
-      weight = weight_ 
 
       ! allocate object
       n_pkes_for = size(pke_shape_for)

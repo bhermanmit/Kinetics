@@ -31,10 +31,9 @@ contains
 
     ! set up initial conditions
     call set_init()
+open(unit=888,file='gpke_power.out')
 write(888,*) sum(gpke%N(1:pke_grp,1))
-write(45,*) cmfd % prompt
-write(46,*) cmfd % delay
-write(47,*) cmfd % vel
+
     ! begin loop through time steps
     do i = 1, nt
 
@@ -50,7 +49,7 @@ write(47,*) cmfd % vel
 write(888,*) sum(gpke%N(1:pke_grp,i+1))
 
     end do
-
+close(unit=888)
   end subroutine run_gpkes
 
 !===============================================================================

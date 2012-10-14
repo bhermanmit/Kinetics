@@ -60,9 +60,11 @@ contains
         call kinetics_execute(csr_gauss_seidel)
 
         ! run point kinetics based on these exact generated values
-        if (pke_run) then 
+        if (trim(pke_run) == 'classical') then 
           call header('Point Kinetics w/ Kinetics Parameters',level=2)
-!         call run_pkes()
+          call run_pkes()
+        else if (trim(pke_run) == 'general') then
+          call header('General Kinetics w/ Kinetics Parameters',level=2)
           call run_gpkes()
         end if
 

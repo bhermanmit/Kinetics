@@ -60,7 +60,7 @@ module global
   character(len=50) :: adjoint = "none"
   character(len=50) :: mode = "static"
   character(len=50) :: weight = "unity"
-  logical           :: pke_run = .false. 
+  character(len=50) :: pke_run = "classical" 
   integer           :: pke_grp
 
 !-solver tolerances
