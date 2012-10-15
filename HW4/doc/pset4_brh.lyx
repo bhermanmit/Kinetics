@@ -328,7 +328,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 
 \begin_inset Formula 
 \[
-\frac{d}{dt}C_{i}\left(t\right)=-\lambda_{i}C_{i}\left(t\right)+\frac{1}{k_{crit}}\nu_{d}\Sigma_{f,i}\left(t\right)S\mathcal{T}\left(t\right)
+\frac{d}{dt}C_{i}\left(t\right)=-\lambda_{i}C_{i}\left(t\right)+\frac{1}{k_{crit}}\nu_{d}\Sigma_{f,i}\left(t\right)\mathcal{T}\left(t\right)
 \]
 
 \end_inset
@@ -350,13 +350,13 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 
  Now, we can divide the kinetics equation and the precursor equation by
  
-\begin_inset Formula $\nu\Sigma_{f}\left(t\right)$
+\begin_inset Formula $1/k_{crit}\cdot\nu\Sigma_{f}\left(t\right)$
 \end_inset
 
 , 
 \begin_inset Formula 
 \[
-\overline{\left(\frac{1}{v}\right)}\frac{1}{\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)-L\left(t\right)}{\nu\Sigma_{f}\left(t\right)}-\frac{1}{k_{crit}}\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)+\frac{1}{\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right)
+\overline{\left(\frac{1}{v}\right)}\frac{1}{\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)+\frac{1}{\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right)
 \]
 
 \end_inset
@@ -364,7 +364,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\frac{d}{dt}\frac{C_{i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}=-\lambda_{i}\frac{C_{i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}+\frac{1}{k_{crit}}\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\mathcal{T}\left(t\right)
+\frac{d}{dt}\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=-\lambda_{i}\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}+\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\mathcal{T}\left(t\right)
 \]
 
 \end_inset
@@ -377,7 +377,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\zeta_{i}\left(t\right)\equiv\frac{C_{i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\zeta_{i}\left(t\right)\equiv\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}
 \]
 
 \end_inset
@@ -396,7 +396,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\rho\left(t\right)\equiv\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)-L\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\rho\left(t\right)\equiv\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}
 \]
 
 \end_inset
@@ -404,7 +404,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\beta_{i}\left(t\right)\equiv\frac{1}{k_{crit}}\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\beta_{i}\left(t\right)\equiv\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
 \]
 
 \end_inset
@@ -412,7 +412,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 
 \begin_inset Formula 
 \[
-\beta\left(t\right)=\frac{1}{k_{crit}}\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\beta\left(t\right)=\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
 \]
 
 \end_inset
@@ -638,17 +638,18 @@ C_{i,g}\left(t\right)\equiv\int_{V}dVw_{g}\left(\vec{r}\right)\chi_{ig}^{d}\left
 
  Substituting in all of these parameters 
 \begin_inset Formula 
-\[
-\overline{\left(\frac{1}{v_{g}}\right)}\frac{d}{dt}\mathcal{T}_{g}\left(t\right)=L_{g}\left(t\right)\mathcal{T}_{g}\left(t\right)-\Sigma_{tg}\left(t\right)\mathcal{T}_{g}\left(t\right)+\sum_{h}\Sigma_{s,h\rightarrow g}\left(t\right)\mathcal{T}_{h}\left(t\right)+\sum_{h}\nu_{p}\Sigma_{f,h\rightarrow g}\mathcal{T}_{h}\left(t\right)+\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}C_{i,g}\left(t\right)
-\]
+\begin{multline}
+\overline{\left(\frac{1}{v_{g}}\right)}\frac{d}{dt}\mathcal{T}_{g}\left(t\right)=L_{g}\left(t\right)\mathcal{T}_{g}\left(t\right)-\Sigma_{tg}\left(t\right)\mathcal{T}_{g}\left(t\right)+\sum_{h}\Sigma_{s,h\rightarrow g}\left(t\right)\mathcal{T}_{h}\left(t\right)\\
++\sum_{h}\nu_{p}\Sigma_{f,h\rightarrow g}\mathcal{T}_{h}\left(t\right)+\sum_{i}\chi_{ig}^{d}\left(\vec{r}\right)\lambda_{i}C_{i,g}\left(t\right)\label{eq:GPKEK}
+\end{multline}
 
 \end_inset
 
  
 \begin_inset Formula 
-\[
-\frac{d}{dt}C_{i,g}\left(\vec{r}\right)=-\lambda_{i}C_{i,g}\left(\vec{r}\right)+\frac{\chi_{ig}^{d}}{k_{crit}}\sum_{h}\nu_{d}\Sigma_{fh}\left(\vec{r}\right)\mathcal{S}_{h}\left(\vec{r}\right)\mathcal{T}_{h}\left(t\right)
-\]
+\begin{equation}
+\frac{d}{dt}C_{i,g}\left(\vec{r}\right)=-\lambda_{i}C_{i,g}\left(\vec{r}\right)+\frac{\chi_{ig}^{d}}{k_{crit}}\sum_{h}\nu_{d}\Sigma_{fh}\left(\vec{r}\right)\mathcal{S}_{h}\left(\vec{r}\right)\mathcal{T}_{h}\left(t\right)\label{eq:GPKEC}
+\end{equation}
 
 \end_inset
 
@@ -704,6 +705,30 @@ C_{i,g}\left(t\right)\equiv\int_{V}dVw_{g}\left(\vec{r}\right)\chi_{ig}^{d}\left
 \[
 \mathbf{v}=\mathrm{diag}\left\{ \overline{\left(\frac{1}{v_{g}}\right)}\right\} \qquad g=1...G
 \]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section*
+Shape Functions
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../../HW2/partF/adjoint_unrod.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename ../../HW2/partF/adjoint_rod.pdf
 
 \end_inset
 
@@ -815,7 +840,7 @@ reference "eq:newC"
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../exact_unity_new/power_exact_unity.pdf
+	filename ../exact_pnl/power_exact_unity.pdf
 
 \end_inset
 
@@ -825,7 +850,7 @@ reference "eq:newC"
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../exact_unity_new/error_exact_unity.pdf
+	filename ../exact_pnl/error_exact_unity.pdf
 
 \end_inset
 
@@ -846,6 +871,42 @@ Comparison of Rod In Shape Function with Unity Weighting
 
 \end_layout
 
+\begin_layout Standard
+\noindent
+We can write down the reactivity for this situations in operator notation:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{1}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodin}}{\mathbf{1}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodin}}
+\]
+
+\end_inset
+
+ Since the shape function is consistent with the operators and the eigenvalue,
+ the numerator will be zero and steady state will be held.
+ A similar explanation can be given for the two group PKEs.
+ If the same shape function is consistent with the shape of the steady state
+ flux and eigenvalue, the equations will have to balance.
+ See Eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:GPKEK"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:GPKEC"
+
+\end_inset
+
+.
+\end_layout
+
 \begin_layout Subsection*
 Comparison of Rod In Shape Function with Rod in Adjoint Weighting
 \end_layout
@@ -858,6 +919,27 @@ Comparison of Rod In Shape Function with Rod in Adjoint Weighting
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\noindent
+A similar explanation can be given here as in unity weighting.
+ Here the reactivity is 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{\Phi}_{rodin}^{\dagger}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodin}}{\mathbf{\Phi}_{rodin}^{\dagger}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodin}}
+\]
+
+\end_inset
+
+ The numerator in this formula will still be zero before we perform the
+ dot product.
+ The same goes for the two-group PKEs.
+ Balance already exists before we apply the adjoint weighting.
+ 
 \end_layout
 
 \begin_layout Subsection*
@@ -874,6 +956,44 @@ Comparison of Rod Out Shape Function with Unity Weighting
 
 \end_layout
 
+\begin_layout Standard
+\noindent
+The reactivity in this situation is given as 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{1}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodout}}{\mathbf{1}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodout}}
+\]
+
+\end_inset
+
+ Since the rod out shape function critical eigenvalue is larger than the
+ rod in, there will be more fissions than leakage and absorptions.
+ This will result in a net positive numerator and leads to a positive reactivity.
+ Thus, we see an initial increase in the Classic PKE solution.
+ It may look like the 2-group solution is also at steady state, however
+ we can zoom in and see that it is not.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename /home/bherman/Dropbox/Kinetics/HW4/rodout_unity/power_rodout_unity_zoom.pdf
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We see that using a shape funciton that is not consistent with the balance
+ of neutrons with the steady state solution results in a noticeable change
+ in core power.
+ It is worth noting that it is much less than the Classic PKEs.
+\end_layout
+
 \begin_layout Subsection*
 Comparison of Rod Out Shape Function with Rod Out Adjoint Weighting
 \end_layout
@@ -886,6 +1006,26 @@ Comparison of Rod Out Shape Function with Rod Out Adjoint Weighting
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\noindent
+The reactivity here is 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{\Phi}_{rodout}^{\dagger}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodout}}{\mathbf{\Phi}_{rodout}^{\dagger}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodout}}
+\]
+
+\end_inset
+
+ Mathematically, the adjoint weight function makes the loss term greater
+ in this equation than the production term.
+ This gives us a net negative numerator and reactivity.
+ Thus, we see the core power drop.
+ This same behavior will be present in the two group formulation of PKEs.
 \end_layout
 
 \begin_layout Subsection*
@@ -902,6 +1042,23 @@ Comparison of Rod In Shape Function with Rod Out Adjoint Weighting
 
 \end_layout
 
+\begin_layout Standard
+\noindent
+The reactivity for this situation is
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{\Phi}_{rodout}^{\dagger}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodin}}{\mathbf{\Phi}_{rodout}^{\dagger}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodin}}
+\]
+
+\end_inset
+
+ Similar to the explanation before, multiplying the exact shape function
+ that is consistent with the steady state solution will balance the numerator.
+ The same goes for the 2-group PKEs.
+ Thus, no matter what the weight function is we will get zero and constant
+ power.
+\end_layout
+
 \begin_layout Subsection*
 Comparison of Rod Out Shape Function with Rod In Adjoint Weighting
 \end_layout
@@ -914,6 +1071,44 @@ Comparison of Rod Out Shape Function with Rod In Adjoint Weighting
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\noindent
+The reactivity for this situation is
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{\Phi}_{rodin}^{\dagger}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}-\mathbb{M}_{rodin}\right)\mathbf{\Phi}_{rodout}}{\mathbf{\Phi}_{rodin}^{\dagger}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}\mathbf{\Phi}_{rodout}}
+\]
+
+\end_inset
+
+ From this equation it may seem like the reactivity will not be zero because
+ we are multiplying by a shape function that is inconsistent with the steady
+ state rod in solution.
+ However, we can use adjoint theory to form an equivalent operator,
+\end_layout
+
+\begin_layout Standard
+\noindent
+\begin_inset Formula 
+\[
+\rho=\frac{\mathbf{\Phi}_{rodout}\cdot\left(\frac{1}{k_{rodin}}\mathbb{F}_{rodin}^{\dagger}-\mathbb{M}_{rodin}^{\dagger}\right)\mathbf{\Phi}_{rodin}^{\dagger}}{\mathbf{\Phi}_{rodout}\cdot\frac{1}{k_{rodin}}\mathbb{F}_{rodin}^{\dagger}\mathbf{\Phi}_{rodin}^{\dagger}}
+\]
+
+\end_inset
+
+ Since we are using the mathematical adjoint, we are guaranteed to get the
+ same eigenvalue from that steady state solution.
+ Thus, 
+\begin_inset Formula $k_{rodin}$
+\end_inset
+
+ will balance the adjoint fission matrix.
+ So here, we are actually using a shape function that is consistent with
+ the balance of the adjoint equations.
+ Thus, the numerator balances to zero and we get a zero reactivity.
+ This same explanation can be used for 2-group PKEs.
 \end_layout
 
 \end_body
