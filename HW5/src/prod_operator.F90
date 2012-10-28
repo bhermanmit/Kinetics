@@ -8,7 +8,7 @@ module prod_operator
 
   implicit none
   private
-  public :: init_F_operator,build_prod_matrix,destroy_F_operator
+  public :: init_F_operator,build_prod_matrix,destroy_F_operator, print_F_operator
 
 !-module external refernces
 
@@ -228,13 +228,12 @@ contains
     end do ROWS 
 
     ! put in last row index
-    this % row_csr(row_finish - row_start) = kount
+    this % row_csr(row_finish - row_start + 1) = kount
 
     ! assemble matrix 
     call csr_sort_vectors(this)
-
-    ! print out operator to file
-    call print_F_operator(this)
+    this % row_csr = this % row_csr - 1
+    this % col = this % col - 1
 
   end subroutine build_prod_matrix
 
@@ -322,15 +321,17 @@ contains
 
   subroutine print_F_operator(this)
 
+    use global,  only: mpi_err
+
     PetscViewer :: viewer
 
     type(operator_type) :: this
 
     ! write out matrix in binary file (debugging)
-!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'prodmat.bin'&
-!  &     ,FILE_MODE_WRITE,viewer,ierr)
-!   call MatView(this%F,viewer,ierr)
-!   call PetscViewerDestroy(viewer,ierr)
+    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'prodmat.out' &
+   & ,viewer,mpi_err)
+    call MatView(this%oper,viewer,mpi_err)
+    call PetscViewerDestroy(viewer,mpi_err)
 
   end subroutine print_F_operator
 

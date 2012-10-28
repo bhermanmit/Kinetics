@@ -29,17 +29,7 @@ contains
     call header('MULTIGROUP DIFFUSION', level=1)
 
     ! execute solver
-    select case (trim(solver_type))
-
-      case('jacobi')
-        call power_execute(csr_jacobi) 
-      case('gauss')
-        call power_execute(csr_gauss_seidel)
-      case DEFAULT      
-        message = "Solver type does not exist!"
-        call fatal_error()
-
-    end select
+    call power_execute() 
 
     ! call kinetics
     if (run_kinetics) call kinetics_execute(csr_gauss_seidel)

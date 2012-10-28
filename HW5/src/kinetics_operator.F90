@@ -387,11 +387,6 @@ contains
     call csr_sort_vectors(this)
     this % row_csr = this % row_csr - 1
     this % col = this % col - 1
-!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
-!                                  this%col,this%val,this%oper,mpi_err)
-
-    ! print out operator to file
-!   call print_K_operator(this)
 
   end subroutine build_kinetics_matrix
 

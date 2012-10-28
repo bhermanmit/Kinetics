@@ -253,7 +253,7 @@ contains
 ! CSR_GAUSS_SEIDEL
 !===============================================================================
 
-  subroutine csr_gauss_seidel(row,col,val,diag,x,b,n,nz,tol,iter)
+  subroutine csr_gauss_seidel(row,col,val,diag,x,b,true,n,nz,tol,iter)
 
 !---external arguments
 
@@ -271,6 +271,7 @@ contains
     real(8), intent(in)     :: val(nz)
     real(8), intent(inout)  :: x(n)
     real(8), intent(in)     :: b(n)
+    real(8), intent(in)     :: true(n)
     real(8), intent(in)     :: tol
 
 !---local variables

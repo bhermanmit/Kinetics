@@ -8,7 +8,7 @@ module loss_operator
 
   implicit none
   private
-  public :: init_M_operator,build_loss_matrix,destroy_M_operator
+  public :: init_M_operator,build_loss_matrix,destroy_M_operator, print_M_operator
 
 !-module external references
 
@@ -391,9 +391,8 @@ contains
 
     ! assemble matrix
     call csr_sort_vectors(this)
-
-    ! print out operator to file
-    call print_M_operator(this)
+    this % row_csr = this % row_csr - 1
+    this % col = this % col - 1
 
   end subroutine build_loss_matrix
 
@@ -486,15 +485,17 @@ contains
 
   subroutine print_M_operator(this)
 
+    use global,  only: mpi_err
+
     type(operator_type) :: this
 
     PetscViewer :: viewer
 
     ! write out matrix in binary file (debugging)
-!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD,'lossmat.bin' &
-!  &     ,FILE_MODE_WRITE,viewer,ierr)
-!   call MatView(this%M,viewer,ierr)
-!   call PetscViewerDestroy(viewer,ierr)
+    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'lossmat.out' &
+   & ,viewer,mpi_err)
+    call MatView(this%oper,viewer,mpi_err)
+    call PetscViewerDestroy(viewer,mpi_err)
 
   end subroutine print_M_operator
 

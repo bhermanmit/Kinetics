@@ -438,14 +438,27 @@ contains
 
   subroutine calc_poi(n,nz,rhs,phi_true)
 
+!---references
+
+    use global,  only: kine, cmfd, poi_tol
+    use math,    only: csr_gauss_seidel
+
 !---arguments
 
     integer :: n,nz
     real(8) :: rhs(n)
     real(8) :: phi_true(n)
 
-!   call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
-!                     cmfd % phi, rhs, n, nz, itol,iters)
+!---local variables
+
+    integer :: iters
+
+!---begin execution
+
+!   call csr_gauss_seidel(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
+!                         cmfd % phi, rhs, phi_true, n, nz, poi_tol, iters)
+
+!   write(45,*) cmfd % phi - phi_true
 
   print *,'At poi'
   stop
