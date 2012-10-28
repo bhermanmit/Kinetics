@@ -432,9 +432,10 @@ contains
 
 !---references
 
-    use global,  only: kine, cmfd, poi_tol
+    use global,  only: kine, cmfd, poi_tol, time_poi
     use math,    only: csr_gauss_seidel, csr_point_jacobi, csr_sor
     use output,  only: header
+    use timing,  only: timer_start, timer_stop, timer_reset
 
 !---arguments
 
@@ -459,22 +460,34 @@ contains
     phi_tmp = cmfd % phi
 
     ! run gauss seidel routine
+    call timer_reset(time_poi)
+    call timer_start(time_poi)
     call csr_gauss_seidel(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
                           phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+    call timer_stop(time_poi)
+    write(*,*) 'POI Gauss Seidel time=',time_poi%elapsed,' iterations=',iters
 
     ! reset tmp
     phi_tmp = cmfd % phi
 
     ! run point jacobi routine
+    call timer_reset(time_poi)
+    call timer_start(time_poi)
     call csr_point_jacobi(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
                           phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+    call timer_stop(time_poi)
+    write(*,*) 'POI Point Jacobi time=',time_poi%elapsed,' iterations=',iters
 
     ! reset tmp
     phi_tmp = cmfd % phi
 
     ! run sor
+    call timer_reset(time_poi)
+    call timer_start(time_poi)
     call csr_sor(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
                           phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+    call timer_stop(time_poi)
+    write(*,*) 'POI SOR time=',time_poi%elapsed,' iterations=',iters
 
     ! set new flux
     cmfd % phi = phi_tmp

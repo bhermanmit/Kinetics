@@ -38,6 +38,7 @@ module global
   type(Timer) :: time_power  ! timer for power iteration
   type(Timer) :: time_inner  ! timer for inner iterations
   type(Timer) :: time_kine   ! timer for kinetics
+  type(Timer) :: time_poi    ! timer for poi
 
 !-petsc error code
 
