@@ -353,10 +353,10 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 \begin_inset Formula $1/k_{crit}\cdot\nu\Sigma_{f}\left(t\right)$
 \end_inset
 
-, 
+ (in precursor we just multiply the delayed fission term by this), 
 \begin_inset Formula 
 \[
-\overline{\left(\frac{1}{v}\right)}\frac{1}{\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)+\frac{1}{\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right)
+\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)+\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right)
 \]
 
 \end_inset
@@ -364,12 +364,33 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\frac{d}{dt}\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=-\lambda_{i}\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}+\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\mathcal{T}\left(t\right)
+\frac{d}{dt}C_{i}\left(t\right)=-\lambda_{i}C_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\nu_{d}\Sigma_{f,i}\left(t\right)\mathcal{T}\left(t\right)
 \]
 
 \end_inset
 
- As you can see, the precursor concentration is now divided by a normalized
+ We know do a little trick to be able to define a new unknown.
+ This involves multiplying the initial fission rate.
+ We re-write the equations as 
+\begin_inset Formula 
+\begin{multline*}
+\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)\\
++\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)
+\end{multline*}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\frac{d}{dt}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)=-\lambda_{i}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)\mathcal{T}\left(t\right)
+\]
+
+\end_inset
+
+ This this factor that we added is time-indepent and can be brought inside
+ the time-derivative.
+ As you can see, the precursor concentration is now divided by the initialize
  fission rate.
  We can make a different definition of precursor concentration as
 \end_layout
@@ -377,18 +398,19 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\zeta_{i}\left(t\right)\equiv\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}
+\zeta_{i}\left(t\right)\equiv\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}
 \]
 
 \end_inset
 
- We can also make further definitions of parameters:
+ We can also make further definitions of parameters and also show in operator
+ form with a weight function:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \[
-\Lambda\left(t\right)\equiv\overline{\left(\frac{1}{v}\right)}\frac{1}{\nu\Sigma_{f}\left(t\right)}
+\Lambda\left(t\right)\equiv\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\frac{1}{\mathbf{v}}\cdot\mathbf{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\frac{1}{k_{crit}}\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }
 \]
 
 \end_inset
@@ -396,7 +418,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\rho\left(t\right)\equiv\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}
+\rho\left(t\right)\equiv\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\left(\frac{1}{k_{crit}}\mathbb{F}\left(t\right)-\mathbb{M}\left(t\right)\right)\mathbf{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\frac{1}{k_{crit}}\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }
 \]
 
 \end_inset
@@ -404,7 +426,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  
 \begin_inset Formula 
 \[
-\beta_{i}\left(t\right)\equiv\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\beta_{i}\left(t\right)\equiv\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\beta_{i}\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }
 \]
 
 \end_inset
@@ -412,7 +434,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 
 \begin_inset Formula 
 \[
-\beta\left(t\right)=\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}
+\beta\left(t\right)=\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\beta\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\mathbb{F}\left(t\right)\mathbf{\Phi}\left(t\right)\right\rangle }
 \]
 
 \end_inset
@@ -420,7 +442,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
  Both equations can now be re-written as
 \begin_inset Formula 
 \begin{equation}
-\Lambda\left(t\right)\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\rho\left(t\right)-\beta\left(t\right)\right]\mathcal{T}\left(t\right)+\sum_{i}\lambda_{i}\zeta_{i}\left(t\right)\label{eq:newK}
+\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\left[\rho\left(t\right)-\beta\left(t\right)\right]}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)+\frac{1}{\Lambda\left(0\right)}\sum_{i}\lambda_{i}\zeta_{i}\left(t\right)\label{eq:newK}
 \end{equation}
 
 \end_inset
@@ -428,7 +450,7 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 
 \begin_inset Formula 
 \begin{equation}
-\frac{d}{dt}\zeta_{i}\left(t\right)=-\lambda_{i}\zeta_{i}\left(t\right)+\beta_{i}\left(t\right)\mathcal{T}\left(t\right)\label{eq:newC}
+\frac{d}{dt}\zeta_{i}\left(t\right)=-\lambda_{i}\zeta_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(0\right)}\beta_{i}\left(t\right)\mathcal{T}\left(t\right)\label{eq:newC}
 \end{equation}
 
 \end_inset
@@ -441,12 +463,43 @@ C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right)
 \begin_layout Standard
 \begin_inset Formula 
 \[
-c_{i}\left(t\right)=\frac{1}{\Lambda\left(t\right)}\zeta_{i}\left(t\right)
+c_{i}\left(t\right)=\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right)}\zeta_{i}\left(t\right)
 \]
 
 \end_inset
 
- We can substitute this into both equations,
+ Note that the new normalization factor is actually time independent.
+ Recall:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\overline{\left(\frac{1}{v}\right)}=\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right)
+\]
+
+\end_inset
+
+We can substitute this into both equations,
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\rho\left(t\right)-\beta\left(t\right)}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)+\frac{1}{\Lambda\left(0\right)}\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\sum_{i}\lambda_{i}c_{i}\left(t\right)
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\frac{d}{dt}c_{i}\left(t\right)=-\lambda_{i}\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}c_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(0\right)}\beta_{i}\left(t\right)\mathcal{T}\left(t\right)
+\]
+
+\end_inset
+
+ These equations can be reduced to
 \end_layout
 
 \begin_layout Standard
@@ -460,38 +513,19 @@ c_{i}\left(t\right)=\frac{1}{\Lambda\left(t\right)}\zeta_{i}\left(t\right)
  
 \begin_inset Formula 
 \[
-\frac{d}{dt}\Lambda\left(t\right)c_{i}\left(t\right)=-\lambda_{i}\Lambda\left(t\right)c_{i}\left(t\right)+\beta_{i}\left(t\right)\mathcal{T}\left(t\right)
+\frac{d}{dt}c_{i}\left(t\right)=-\lambda_{i}c_{i}\left(t\right)+\frac{\beta_{i}\left(t\right)}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)
 \]
 
 \end_inset
 
- In the precursor balance equation, we can not arrive at the form in most
- textbooks unless we assume that the prompt neutron lifetime is not changing
- with time.
- We already implicitly assumed that the velocity does not depend on time
- when we removed from the time derivative in the kinetics equation.
- So inorder to make 
-\begin_inset Formula $\Lambda$
-\end_inset
-
- time independent we have to assume that the fission cross sections are
- not changing with time as well.
- Now we can arrive at the classical form:
+ After the derivation, it can be seen that 
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
-\begin{equation}
-\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\rho\left(t\right)-\beta}{\Lambda}\mathcal{T}\left(t\right)+\sum_{i}\lambda_{i}c_{i}\left(t\right)\label{eq:oldK}
-\end{equation}
-
-\end_inset
-
- 
-\begin_inset Formula 
-\begin{equation}
-\frac{d}{dt}c_{i}\left(t\right)=-\lambda_{i}c_{i}\left(t\right)+\frac{\beta_{i}}{\Lambda}\mathcal{T}\left(t\right)\label{eq:oldC}
-\end{equation}
+\[
+c_{i}\left(t\right)=\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right)}C_{i}\left(t\right)
+\]
 
 \end_inset
 
@@ -769,92 +803,6 @@ It is very important that we can generate the exact solution from classical
 \end_inset
 
  
-\end_layout
-
-\begin_layout Subsection*
-Comparison of Time-Dependent Prompt Neutron Lifetimes
-\end_layout
-
-\begin_layout Standard
-When I first did a comparison of time dependent PNLs using Eqs.
- 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:oldK"
-
-\end_inset
-
- and 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:oldC"
-
-\end_inset
-
-, I noticed that I got a worse answer.
- These are the equations that are presented in the notes.
- Upon derivation of the PKEs, I noticed an inconsistency on where the PNL
- terms were located.
- These are shown in Eqs.
- 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:newK"
-
-\end_inset
-
- and 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:newC"
-
-\end_inset
-
-.
- In order to derive the form that is in the notes, I had to assume that
- PNL could be taken out of the time-derivative in the precursor balance
- equation.
- If PNL is time-dependent, this cannot be done and thus the equation in
- the notes is mis-leading.
- I therefore implemented Eqs.
- 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:newK"
-
-\end_inset
-
- and 
-\begin_inset CommandInset ref
-LatexCommand eqref
-reference "eq:newC"
-
-\end_inset
-
- in my PKE solver and obtained the plots below.
- As you can see, with my definition of PKEs, I get the same error when use
- time-dependent PNL as compared with static PNL.
- With the definition in the notes I get a worser result.
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Graphics
-	filename ../exact_pnl/power_exact_unity.pdf
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\align center
-\begin_inset Graphics
-	filename ../exact_pnl/error_exact_unity.pdf
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection*
