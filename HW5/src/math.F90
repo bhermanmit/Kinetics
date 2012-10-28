@@ -282,10 +282,18 @@ contains
     real(8) :: sum2 
     real(8) :: norm
     real(8) :: vol=ONE
+    real(8) :: frac_sum2
+    real(8) :: frac_norm
+    real(8) :: true_sum2
+    real(8) :: true_norm
+    real(8) :: res_norm
     real(8), allocatable :: tmp(:)
     real(8), allocatable :: tmp1(:)
 
 !---begin execution
+
+    ! open
+    open(file='converge.out',unit=100)
 
     ! allocate temp
     allocate(tmp(n))
@@ -300,6 +308,8 @@ contains
 
       ! set norm sum to zero
       sum2 = ZERO
+      true_sum2 = ZERO
+      frac_sum2 = ZERO
 
       ! begin loop over rows
       do irow = 1, n
@@ -325,12 +335,12 @@ contains
         ! divide by diagonal
         tmp(irow) = tmp(irow)/val(diag(irow))
 
-        ! get region number
-!       idx = ceiling(real(irow)/real(geometry%nfg))
-!       vol = geometry % fvol_map(idx)
-
         ! sum for norm
-        sum2 = sum2 + vol*(tmp(irow) - x(irow))**2
+        sum2 = sum2 + vol*(tmp(irow) - true(irow))**2
+
+        ! other norms
+        true_sum2 = true_sum2 + vol*((tmp(irow) - true(irow))/tmp(irow))**2
+        frac_sum2 = frac_sum2 + vol*((tmp(irow) - x(irow))/tmp(irow))**2
 
         ! set this value in x
         x(irow) = tmp(irow)
@@ -339,6 +349,18 @@ contains
 
       ! compute point-wise L2 norm 
       norm = sqrt(sum2)
+
+      ! compute residual
+      tmp = csr_matvec_mult(row,col,val,x,n)
+      tmp = b - tmp
+
+      ! compute other norms
+      true_norm = sqrt(true_sum2)
+      frac_norm = sqrt(frac_sum2)
+      res_norm = sqrt(sum(tmp**2))/sqrt(sum(b**2))
+
+      ! write out data
+      write(100,*) iter,true_norm,res_norm,frac_norm
 
       ! check convergence
       if (norm < tol) exit
@@ -349,6 +371,8 @@ contains
     end do
 
     deallocate(tmp)
+
+    close(100)
 
   end subroutine csr_gauss_seidel
 

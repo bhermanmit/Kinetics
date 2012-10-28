@@ -442,6 +442,7 @@ contains
 
     use global,  only: kine, cmfd, poi_tol
     use math,    only: csr_gauss_seidel
+    use output,  only: header
 
 !---arguments
 
@@ -455,13 +456,15 @@ contains
 
 !---begin execution
 
-!   call csr_gauss_seidel(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
-!                         cmfd % phi, rhs, phi_true, n, nz, poi_tol, iters)
+    ! write out point of interest
+    call header("POINT OF INTEREST",level=2)
 
-!   write(45,*) cmfd % phi - phi_true
+    ! call gauss seidel routine
+    call csr_gauss_seidel(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
+                          cmfd % phi, rhs, phi_true, n, nz, poi_tol, iters)
 
-  print *,'At poi'
-  stop
+    ! stop code
+    stop
 
   end subroutine calc_poi
 
