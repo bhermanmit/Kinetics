@@ -27,15 +27,11 @@ contains
 ! KINETICS_EXECUTE
 !===============================================================================
 
-  subroutine kinetics_execute(inner_solver)
+  subroutine kinetics_execute()
 
 !---external references
 
     use global,  only: kine
-
-!---arguments
-
-    external :: inner_solver
 
 !---begin execution
 
@@ -46,7 +42,7 @@ contains
     call init_solver()
 
     ! run through the kinetics iterations
-    call execute_kinetics_iter(inner_solver)
+    call execute_kinetics_iter()
  
   end subroutine kinetics_execute
 
@@ -165,7 +161,7 @@ contains
 !                         for the cmfd calculation
 !===============================================================================
 
-  subroutine execute_kinetics_iter(inner_solver)
+  subroutine execute_kinetics_iter()
 
 !---external references
 
@@ -177,10 +173,6 @@ contains
     use kinetics_operator,  only: build_kinetics_matrix
     use math,               only: csr_matvec_mult
     use timing,             only: timer_start, timer_stop, timer_reset
-
-!---arguments
-
-    external :: inner_solver
 
 !---local variables
 
@@ -441,7 +433,7 @@ contains
 !---references
 
     use global,  only: kine, cmfd, poi_tol
-    use math,    only: csr_gauss_seidel
+    use math,    only: csr_gauss_seidel, csr_point_jacobi, csr_sor
     use output,  only: header
 
 !---arguments
@@ -453,17 +445,42 @@ contains
 !---local variables
 
     integer :: iters
+    real(8), allocatable :: phi_tmp(:)
 
 !---begin execution
 
     ! write out point of interest
     call header("POINT OF INTEREST",level=2)
 
-    ! call gauss seidel routine
+    ! allocate
+    allocate(phi_tmp(size(cmfd%phi)))
+
+    ! set tmp
+    phi_tmp = cmfd % phi
+
+    ! run gauss seidel routine
     call csr_gauss_seidel(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
-                          cmfd % phi, rhs, phi_true, n, nz, poi_tol, iters)
+                          phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+
+    ! reset tmp
+    phi_tmp = cmfd % phi
+
+    ! run point jacobi routine
+    call csr_point_jacobi(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
+                          phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+
+    ! reset tmp
+    phi_tmp = cmfd % phi
+
+    ! run sor
+    call csr_sor(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
+                          phi_tmp, rhs, phi_true, n, nz, poi_tol, iters)
+
+    ! set new flux
+    cmfd % phi = phi_tmp
 
     ! stop code
+    deallocate(phi_tmp)
     stop
 
   end subroutine calc_poi

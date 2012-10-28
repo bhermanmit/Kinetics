@@ -175,7 +175,7 @@ contains
     use cmfd_header,  only: calc_power
     use error,        only: fatal_error
     use global,       only: cmfd, geometry, time_inner, message, mpi_err
-    use math,         only: csr_matvec_mult, csr_jacobi
+    use math,         only: csr_matvec_mult
     use timing,       only: timer_start, timer_stop
 
 

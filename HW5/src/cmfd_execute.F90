@@ -19,7 +19,6 @@ contains
     use error,       only: fatal_error
     use global,      only: solver_type, message, run_kinetics
     use kinetics_solver,  only: kinetics_execute
-    use math,        only: csr_jacobi, csr_gauss_seidel
     use output,      only: header
     use power_iter,  only: power_execute
 
@@ -32,7 +31,7 @@ contains
     call power_execute() 
 
     ! call kinetics
-    if (run_kinetics) call kinetics_execute(csr_gauss_seidel)
+    if (run_kinetics) call kinetics_execute()
 
   end subroutine execute_cmfd
 
