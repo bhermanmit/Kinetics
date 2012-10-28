@@ -93,4 +93,9 @@ module global
   real(8) :: time
   real(8) :: dt
 
+!-point of interest for iterative solver
+
+  real(8) :: poi = -99.0_8
+  real(8) :: poi_tol = 1.e-10_8
+
 end module global

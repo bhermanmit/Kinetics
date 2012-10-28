@@ -21,7 +21,8 @@ contains
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
-                                run_kinetics, nt, time, dt, kinetics, n_kins
+                                run_kinetics, nt, time, dt, kinetics, n_kins,  &
+                                poi, poi_tol
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -251,6 +252,10 @@ contains
       kinetics(i) % val     = kinetics_(i) % value
 
     end do
+
+    ! read in point of interest
+    poi = poi_
+    poi_tol = poi_tol_
 
   end subroutine read_input_xml
 

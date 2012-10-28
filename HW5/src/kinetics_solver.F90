@@ -172,7 +172,8 @@ contains
     use constants,          only: ZERO, ONE
     use error,              only: fatal_error
     use global,             only: nt, dt, kine, cmfd, geometry, material,      &
-                                  itol, prod, message, time_kine, time_inner
+                                  itol, prod, message, time_kine, time_inner,  &
+                                  poi
     use kinetics_operator,  only: build_kinetics_matrix
     use math,               only: csr_matvec_mult
     use timing,             only: timer_start, timer_stop, timer_reset
@@ -190,6 +191,7 @@ contains
     real(8) :: curr_time
     real(8) :: pow
     real(8), allocatable :: rhs(:)
+    real(8), allocatable :: phi_temp(:)
 
 !---begin execution
 
@@ -198,12 +200,15 @@ contains
     nz = size(kine % col)
     allocate(rhs(n))
 
+    ! allocate temp vector
+    allocate(phi_temp(n))
+
     ! set initial output
     cmfd % time(1) = ZERO
     cmfd % core_power(1) = ONE
 
     ! associate petsc vectors
-    call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,cmfd%phi,phi,mpi_err)
+    call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,phi_temp,phi,mpi_err)
     call VecCreateSeqWithArray(PETSC_COMM_WORLD,1,kine%n,rhs,b,mpi_err)
 
     ! set up krylov info
@@ -212,6 +217,9 @@ contains
 
     ! begin loop around time
     do i = 1, nt
+
+      ! set current value of cmfd % phi to temp
+      phi_temp = cmfd % phi
 
       ! compute current time
       curr_time = dble(i)*dt
@@ -231,26 +239,27 @@ contains
       ! solve matrices
       call KSPSolve(ksp,b,phi,mpi_err)
 
-!     call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,    &
-!                       cmfd % phi, rhs, n, nz, itol,iters)
-!     if (iters >= 10000000) then 
-!       message = "Inner Iteration limit exceed during transient!"
-!       call fatal_error()
-!     end if
- 
-     ! compute end of time step precursor concentration
-     call compute_final_precursors()
+      ! check for point of interest
+      if (abs(poi - curr_time) < 1.e-10_8) call calc_poi(n,nz,rhs,phi_temp)
 
-     ! compute power
-     pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
-              cmfd%phi,prod%n))
-     write(*,*) 'Step:', i,' /',nt,' POWER:',pow
-     cmfd % time(i+1) = curr_time
-     cmfd % core_power(i+1) = pow
-   end do
+      ! set flux vector back
+      cmfd % phi = phi_temp
 
-   ! deallocate RHS
-   deallocate(rhs)
+      ! compute end of time step precursor concentration
+      call compute_final_precursors()
+
+      ! compute power
+      pow = sum(csr_matvec_mult(prod%row_csr,prod%col,prod%val/cmfd%keff,       &
+               cmfd%phi,prod%n))
+      write(*,*) 'Step:', i,' /',nt,' POWER:',pow
+      cmfd % time(i+1) = curr_time
+      cmfd % core_power(i+1) = pow
+
+    end do
+
+    ! deallocate RHS
+    deallocate(rhs)
+    deallocate(phi_temp)
 
   end subroutine execute_kinetics_iter 
 
@@ -422,6 +431,26 @@ contains
     end do
 
   end subroutine build_rhs
+
+!==============================================================================
+! CALC_POI
+!==============================================================================
+
+  subroutine calc_poi(n,nz,rhs,phi_true)
+
+!---arguments
+
+    integer :: n,nz
+    real(8) :: rhs(n)
+    real(8) :: phi_true(n)
+
+!   call inner_solver(kine % row_csr+1, kine % col+1, kine % val, kine % diag,&
+!                     cmfd % phi, rhs, n, nz, itol,iters)
+
+  print *,'At poi'
+  stop
+
+  end subroutine calc_poi
 
 !==============================================================================
 ! FINALIZE

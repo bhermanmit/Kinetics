@@ -56,5 +56,7 @@
   <variable name="kinetics_" tag="kinetics" type="kinetics_xml" dimension="1" />
   <variable name="time_"     tag="time"     type="double" />
   <variable name="nt_"       tag="nt"       type="integer" />
+  <variable name="poi_"      tag="poi"      type="double" default="-99.0"/>
+  <variable name="poi_tol_"  tag="poi_tol"  type="double" default="1.e-10"/>
 
 </template>
