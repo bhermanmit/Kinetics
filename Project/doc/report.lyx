@@ -1,0 +1,1479 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+\usepackage{algorithmic}
+\usepackage{flafter}
+\usepackage{graphicx}
+\usepackage{pgfpages}
+\usepackage{color}
+\usepackage{tikz}
+\usetikzlibrary{plotmarks,shapes,arrows,positioning,snakes}
+\DefineNamedColor{named}{mitred}    {rgb}{0.6,0.2,0.2}
+\DefineNamedColor{named}{mitgray}   {rgb}{0.4,0.4,0.4}
+\DefineNamedColor{named}{darkgray}   {cmyk}{0,0,0,0.90}
+\usepackage[font=normalsize, labelsep=period,justification=centering]{caption}
+\usepackage{sectsty}
+\sectionfont{\centering}
+\end_preamble
+\use_default_options true
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\pdf_bookmarks true
+\pdf_bookmarksnumbered false
+\pdf_bookmarksopen false
+\pdf_bookmarksopenlevel 1
+\pdf_breaklinks false
+\pdf_pdfborder true
+\pdf_colorlinks false
+\pdf_backref false
+\pdf_pdfusetitle true
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 1in
+\topmargin 1in
+\rightmargin 1in
+\bottommargin 1in
+\secnumdepth 3
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\bullet 0 0 0 -1
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\shape smallcaps
+\size huge
+Generalized Runge-Kutta Methods
+\begin_inset Newline newline
+\end_inset
+
+ for Solving Stiff 
+\begin_inset Newline newline
+\end_inset
+
+Ordinary Differential Equations
+\size default
+
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+
+\shape default
+22.S904 Nuclear Reactor Kinetics Project
+\end_layout
+
+\begin_layout Author
+Bryan Herman
+\end_layout
+
+\begin_layout Date
+14 December 2012
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset line
+LatexCommand rule
+offset "0.5ex"
+width "100col%"
+height "1pt"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+thispagestyle{empty}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Newpage newpage
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+When dealing with multiple coupled ordinary first order differential equations,
+ the question of stiffness of the system arises.
+ The can occur when independent variables of the system are represented
+ on different scales and their magnitudes may span many orders of magnitude.
+ An example that we encounter in nuclear reactor analysis is the neutron
+ kinetics equations where fluxes and precursor concentrations are calculated.
+ Furthermore when coupling to thermal-hydraulics, a different set of physics
+ is introduced that is represented on a different scale.
+ Therefore, it is import to understand how to solve stiff sets of ordinary
+ differential equations.
+\end_layout
+
+\begin_layout Standard
+There are many methods that we can try and use to solve stiff sets of equations.
+ First, we can try and use a simple explicit method.
+ However, in this method, we must follow the equation with the shortest
+ length scale to maintain stability of the system.
+ If an simple implicit scheme is used, stability can be guaranteed, but
+ we give up accuracy if we use a large time step.
+ In this study, we wish to investigate methods that will allow us to take
+ a larger time step, but are also relatively stable.
+ 
+\end_layout
+
+\begin_layout Standard
+In order to use large time steps, we must use a higher order time integration
+ scheme.
+ Here, we chose higher order generalized Runge-Kutta methods called Rosenbrock
+ methods.
+ These methods were first practically applied in the work of Kaps and Rentrop
+ and thus are also referred to as Kaps-Rentrop methods.
+ These methods are relatively simple to implement and have shown to remain
+ reliable.
+ Also with these methods, an automatic stepsize adjustment can be embedded
+ in the algorithm.
+ Kaps and Rentrop showed that the smallest order for which embedding a an
+ error estimator for automatic time step size is four.
+ This report focuses on the derivation and implementation of a fourth-order
+ Kaps-Rentrop method with embedded third-order truncation error estimation
+ for automatic time step size adjustment for neutron kinetics applications.
+\end_layout
+
+\begin_layout Section
+Rosenbrock Methods
+\end_layout
+
+\begin_layout Standard
+This section presents the fundamental equations that are used in Rosenbrock
+ methods.
+ Unfortunately, these equations are presented in three different forms depending
+ on which paper is reviewed.
+ It is the goal of this section to present all forms of the equations, show
+ how coefficients relate to each other, and to derive these coefficients.
+ In Rosenbrock methods we seek a solution to the non-autonomous differential
+ system of equations
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}^{\prime}\left(x\right)=\mathbf{f}\left(x,\mathbf{y}\left(\mathbf{x}\right)\right),\qquad y\left(x_{0}\right)=\mathbf{y}_{0}.\label{eq:system}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Forms of Rosenbrock Equations
+\end_layout
+
+\begin_layout Standard
+The first form of the equations presented is form Kaps and Wanner [REF].
+ This form is referred to FORM 1.
+ Most papers will just show the autonomous form, however applications presented
+ in this paper will have the non-autonomous form.
+ FORM 1 of the solution to Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:system"
+
+\end_inset
+
+ is given as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{1}=\mathbf{y}_{0}+h\sum_{i=1}^{s}m_{i}\mathbf{k}_{i}\label{eq:form1y}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\left(\mathbb{I}-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\right)\mathbf{k}_{i}=\mathbf{f}\left(x_{0}+A_{i}h,\mathbf{y}_{0}+h\sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right)+B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)+\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j},\quad\left(i=1\ldots s\right)\label{eq:form1k}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+B_{1}=\gamma,\qquad B_{i}=\gamma+\sum_{j=1}^{i-1}c_{ij}B_{j}\,\left(i=2\ldots s\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+A_{i}=\sum_{j=1}^{i-1}a_{ij}B_{j}/\gamma\left(i=1\ldots s\right)
+\end{equation}
+
+\end_inset
+
+ In this formulation the parameters are as follows:
+\end_layout
+
+\begin_layout Itemize
+initial condition, 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\left(x_{0},\mathbf{y}_{0}\right)$
+\end_inset
+
+; final condition, 
+\begin_inset Formula $\left(x_{1}=x_{0}+h,\mathbf{y}_{0}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+FORM independent coefficients: 
+\begin_inset Formula $\gamma$
+\end_inset
+
+, 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $A_{i}$
+\end_inset
+
+, 
+\begin_inset Formula $B_{i}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+FORM dependent coefficients: 
+\begin_inset Formula $m_{i}$
+\end_inset
+
+, 
+\begin_inset Formula $a_{ij}$
+\end_inset
+
+, 
+\begin_inset Formula $c_{ij}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+Unknown vector: 
+\begin_inset Formula $\mathbf{k}_{i}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Jacobian matrix: 
+\begin_inset Formula $\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Derivative of equation with respect to independent variable: 
+\begin_inset Formula $\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+The order of the method: 
+\begin_inset Formula $s$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+This form is important because it relates 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+ to the coefficients.
+ To get the coefficients, this form must be converted to FORM 2 given by
+ Kaps and Rentrop [REF].
+ This form is given as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{1}=\mathbf{y}_{0}+\sum_{i=1}^{s}\widetilde{m}_{i}\widetilde{\mathbf{k}}_{i},\label{eq:form2y}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\left(\mathbb{I}-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\right)\widetilde{\mathbf{k}}_{i}=h\mathbf{f}\left(x_{0}+A_{i}h,\mathbf{y}_{0}+\sum_{j=1}^{i-1}\widetilde{a}_{ij}\widetilde{\mathbf{k}}_{j}\right)+B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)+h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}\widetilde{c}_{ij}\widetilde{\mathbf{k}}_{j}.\quad\left(i=1\ldots s\right)\label{eq:form2k}
+\end{equation}
+
+\end_inset
+
+This form is important because these are the coefficients that will be calculate
+d.
+ They can then be transformed to FORM 1 to compute 
+\begin_inset Formula $A$
+\end_inset
+
+ and 
+\begin_inset Formula $B$
+\end_inset
+
+.
+ Finally, the form present in Numerical Recipes, referred to as FORM 3 is
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{1}=\mathbf{y}_{0}+\sum_{i=1}^{s}\hat{m}_{i}\hat{\mathbf{k}}_{i},\label{eq:form3y}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\left(\mathbb{I}/\left(\gamma h\right)-\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\right)\mathbf{\hat{k}}_{i}=\mathbf{f}\left(x_{0}+A_{i}h,\mathbf{y}_{0}+\sum_{j=1}^{i-1}\widehat{a}_{ij}\mathbf{\hat{k}}_{j}\right)+B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)+\frac{1}{h}\sum_{j=1}^{i-1}\hat{c}_{ij}\mathbf{\hat{k}}_{j}.\quad\left(i=1\ldots s\right)\label{eq:form3k}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Convert from FORM 2 to FORM 1
+\end_layout
+
+\begin_layout Standard
+To convert from FORM 2 to FORM 1 the following relationship is used:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{k}_{i}=\frac{\mathbf{\widetilde{k}}_{i}}{h}+\sum_{j}^{i-1}c_{ij}\mathbf{k}_{i}.
+\end{equation}
+
+\end_inset
+
+ This equation can be substituted into Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form1k"
+
+\end_inset
+
+ such that
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline}
+\left(\mathbb{I}-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\right)\left(\frac{\mathbf{\widetilde{k}}_{i}}{h}+\sum_{j}^{i-1}c_{ij}\mathbf{k}_{i}\right)=\mathbf{f}\left(x_{0}+A_{i}h,\mathbf{y}_{0}+h\sum_{j=1}^{i-1}a_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k}^{j-1}c_{jk}\mathbf{k}_{j}\right)\right)\\
++B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)+\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k}^{j-1}c_{jk}\mathbf{k}_{k}\right),\quad\left(i=1\ldots s\right)
+\end{multline}
+
+\end_inset
+
+ Rearranging this equation 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline}
+\mathbf{\widetilde{k}}_{i}=h\mathbf{f}\left(x_{0}+A_{i}h,\mathbf{y}_{0}+h\sum_{j=1}^{i-1}a_{ij}\left(\frac{\mathbf{\widetilde{k}}_{i}}{h}+\sum_{k}^{j-1}c_{jk}\mathbf{k}_{k}\right)\right)+\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\mathbf{\widetilde{k}}_{i}-h\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}+B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)\\
+-\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}+h\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k=1}^{j-1}c_{jk}\mathbf{k}_{k}\right).\label{eq:2to1}
+\end{multline}
+
+\end_inset
+
+ Notice that in this equation 
+\begin_inset Formula $\mathbf{k}$
+\end_inset
+
+ still shows up.
+ This will be eliminated recursively as the equations are written.
+ First, we concentrate on the 
+\begin_inset Formula $a_{ij}$
+\end_inset
+
+ terms and relate them between FORM 1 and FORM 2.
+ We now write the equations for each 
+\begin_inset Formula $i$
+\end_inset
+
+ comparing FORM 1 and 2:
+\end_layout
+
+\begin_layout Paragraph
+Equation 1
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}=\mathbf{y}_{0}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Equation 2
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}+ha_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}=\mathbf{y}_{0}+\widetilde{a}_{21}\mathbf{\widetilde{k}}_{1}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{21}=a_{21}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 3
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}+ha_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+ha_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)=\mathbf{y}_{0}+\widetilde{a}_{31}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{32}\mathbf{\widetilde{k}}_{2}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}+ha_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+ha_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)=\mathbf{y}_{0}+\widetilde{a}_{31}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{32}\mathbf{\widetilde{k}}_{2}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}+\left(a_{31}+a_{32}c_{21}\right)\mathbf{\widetilde{k}}_{1}+a_{32}\mathbf{\widetilde{k}}_{2}=\mathbf{y}_{0}+\widetilde{a}_{31}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{32}\mathbf{\widetilde{k}}_{2}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{31}=a_{31}+a_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{32}=a_{32}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Equation 4
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline}
+\mathbf{y}_{0}+ha_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+ha_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)+ha_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\mathbf{k}_{1}+c_{32}\mathbf{k}_{2}\right)\\
+=\mathbf{y}_{0}+\widetilde{a}_{41}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{42}\mathbf{\widetilde{k}}_{2}+\widetilde{a}_{43}\mathbf{\widetilde{k}}_{3}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+\mathbf{y}_{0}+ha_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+ha_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+ha_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)\right)\\
+=\mathbf{y}_{0}+\widetilde{a}_{41}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{42}\mathbf{\widetilde{k}}_{2}+\widetilde{a}_{43}\mathbf{\widetilde{k}}_{3}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+\mathbf{y}_{0}+ha_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+ha_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+ha_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\\
+=\mathbf{y}_{0}+\widetilde{a}_{41}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{42}\mathbf{\widetilde{k}}_{2}+\widetilde{a}_{43}\mathbf{\widetilde{k}}_{3}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+\mathbf{y}_{0}+\left(a_{41}+a_{42}c_{21}+a_{43}c_{32}c_{21}\right)\mathbf{\widetilde{k}}_{1}+\left(a_{42}+a_{43}c_{32}\right)\mathbf{\widetilde{k}}_{2}+a_{43}\mathbf{\widetilde{k}}_{3}\\
+=\mathbf{y}_{0}+\widetilde{a}_{41}\mathbf{\widetilde{k}}_{1}+\widetilde{a}_{42}\mathbf{\widetilde{k}}_{2}+\widetilde{a}_{43}\mathbf{\widetilde{k}}_{3}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{41}=a_{41}+a_{42}c_{21}+a_{43}c_{32}c_{21}+a_{43}c_{31}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{42}=a_{42}+a_{43}c_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{a}_{43}=a_{43}
+\end{equation}
+
+\end_inset
+
+Next, we relate the 
+\begin_inset Formula $c_{ij}$
+\end_inset
+
+ terms and relate them between FORM 1 and FORM 2.
+ Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:2to1"
+
+\end_inset
+
+ is rewritten as 
+\begin_inset Formula 
+\begin{multline}
+\mathbf{\widetilde{k}}_{i}-h\mathbf{f}\left(\mathbf{u}_{i}\right)-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\mathbf{\widetilde{k}}_{i}+h\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}+\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}\\
+-h\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k=1}^{j-1}c_{jk}\mathbf{k}_{k}\right)-B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)=0
+\end{multline}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{multline}
+\mathbf{\widetilde{k}}_{i}-h\mathbf{f}\left(\mathbf{u}_{i}\right)-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\mathbf{\widetilde{k}}_{i}+h\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k=1}^{j-1}c_{jk}\mathbf{k}_{k}\right)+\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}\\
+-h\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k=1}^{j-1}c_{jk}\mathbf{k}_{k}\right)-B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)=0
+\end{multline}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\mathbf{\widetilde{k}}_{i}-h\mathbf{f}\left(\mathbf{u}_{i}\right)-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\mathbf{\widetilde{k}}_{i}+\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}-B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)=0
+\end{equation}
+
+\end_inset
+
+ and Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form2k"
+
+\end_inset
+
+ as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\widetilde{\mathbf{k}}_{i}-\gamma h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\widetilde{\mathbf{k}}_{i}-h\mathbf{f}\left(\mathbf{u}_{i}\right)-B_{i}h\mathbf{f}_{x}\left(x_{0},\mathbf{y}_{0}\right)-h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}\widetilde{c}_{ij}\widetilde{\mathbf{k}}_{j}=0
+\end{equation}
+
+\end_inset
+
+ where 
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}_{i}=\left(x_{0}+A_{i}h,\mathbf{y}_{0}+h\sum_{j=1}^{i-1}a_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k}^{j-1}c_{jk}\mathbf{k}_{k}\right)\right)=\left(x_{0}+A_{i}h,\mathbf{y}_{0}+\sum_{j=1}^{i-1}\widetilde{a}_{ij}\widetilde{\mathbf{k}}_{j}\right).
+\end{equation}
+
+\end_inset
+
+ We can compare them as by setting FORM 1 equal to FORM 2 and canceling
+ like terms
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}=h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}\widetilde{c}_{ij}\widetilde{\mathbf{k}}_{j}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\gamma h^{2}\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_{j}=h\mathbb{F}_{y}\left(x_{0},\mathbf{y}_{0}\right)\sum_{j=1}^{i-1}\widetilde{c}_{ij}\widetilde{\mathbf{k}}_{j}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\gamma h\sum_{j=1}^{i-1}c_{ij}\left(\frac{\mathbf{\widetilde{k}}_{j}}{h}+\sum_{k}^{j-1}c_{jk}\mathbf{k}_{k}\right)=\sum_{j=1}^{i-1}\widetilde{c}_{ij}\widetilde{\mathbf{k}}_{j}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Equation 1
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+0=0
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 2
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\gamma hc_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}=-h\widetilde{c}_{21}\widetilde{\mathbf{k}}_{1}
+\end{equation}
+
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{21}=-\gamma c_{21}.
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 3
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\mathbf{k}_{2}\right)=-h\left(\widetilde{c}_{31}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{32}\widetilde{\mathbf{k}}_{2}\right)
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)\right)=-h\left(\widetilde{c}_{31}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{32}\widetilde{\mathbf{k}}_{2}\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\left(\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\right)=-h\left(\widetilde{c}_{31}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{32}\widetilde{\mathbf{k}}_{2}\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{31}+c_{32}c_{21}\right)\mathbf{\widetilde{k}}_{1}+\gamma hc_{32}\mathbf{\widetilde{k}}_{2}=-h\widetilde{c}_{31}\widetilde{\mathbf{k}}_{1}-h\widetilde{c}_{32}\widetilde{\mathbf{k}}_{2}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{31}=-\gamma\left(c_{31}+c_{32}c_{21}\right)
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{32}=-\gamma c_{32}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 4
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\mathbf{k}_{2}+c_{43}\mathbf{k}_{3}\right)=-h\left(\widetilde{c}_{41}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{42}\widetilde{\mathbf{k}}_{2}+\widetilde{c}_{43}\widetilde{\mathbf{k}}_{3}\right)
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)+c_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{32}\mathbf{k}_{2}+c_{31}\mathbf{k}_{1}\right)\right)=-h\left(\widetilde{c}_{41}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{42}\widetilde{\mathbf{k}}_{2}+\widetilde{c}_{43}\widetilde{\mathbf{k}}_{3}\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{multline}
+\gamma h\left(c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+c_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\\
+=-h\left(\widetilde{c}_{41}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{42}\widetilde{\mathbf{k}}_{2}+\widetilde{c}_{43}\widetilde{\mathbf{k}}_{3}\right)
+\end{multline}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{multline}
+\gamma h\left(c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+c_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\\
+=-h\left(\widetilde{c}_{41}\widetilde{\mathbf{k}}_{1}+\widetilde{c}_{42}\widetilde{\mathbf{k}}_{2}+\widetilde{c}_{43}\widetilde{\mathbf{k}}_{3}\right)
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+\gamma h\left(c_{41}+c_{42}c_{21}+c_{43}c_{31}+c_{43}c_{32}c_{21}\right)\mathbf{\widetilde{k}}_{1}+\gamma h\left(c_{42}+c_{43}c_{32}\right)\mathbf{\widetilde{k}}_{2}+c_{43}\mathbf{\widetilde{k}}_{3}=-h\widetilde{c}_{41}\widetilde{\mathbf{k}}_{1}-h\widetilde{c}_{42}\widetilde{\mathbf{k}}_{2}-h\widetilde{c}_{43}\widetilde{\mathbf{k}}_{3}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{41}=-\gamma\left(c_{41}+c_{42}c_{21}+c_{43}c_{31}+c_{43}c_{32}c_{21}\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{42}=-\gamma\left(c_{42}+c_{43}c_{32}\right)
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{c}_{43}=c_{43}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+Now, we equate Eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form1y"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form2k"
+
+\end_inset
+
+ to determine the relationship of 
+\begin_inset Formula $m$
+\end_inset
+
+ coefficients:
+\begin_inset Formula 
+\begin{equation}
+\mathbf{y}_{0}+h\sum_{i=1}^{s}m_{i}\mathbf{k}_{i}=\mathbf{y}_{0}+\sum_{i=1}^{s}\widetilde{m}_{i}\widetilde{\mathbf{k}}_{i}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+h\sum_{i=1}^{s}m_{i}\mathbf{k}_{i}=\sum_{i=1}^{s}\widetilde{m}_{i}\widetilde{\mathbf{k}}_{i}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+h\left(m_{1}\mathbf{k}_{1}+m_{2}\mathbf{k}_{2}+m_{3}\mathbf{k}_{3}+m_{4}\mathbf{k}_{4}\right)=\widetilde{m}_{1}\widetilde{\mathbf{k}}_{1}+\widetilde{m}_{2}\widetilde{\mathbf{k}}_{2}+\widetilde{m}_{3}\widetilde{\mathbf{k}}_{3}+\widetilde{m}_{4}\widetilde{\mathbf{k}}_{4}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+h\left(m_{1}\frac{\mathbf{\widetilde{k}}_{1}}{h}+m_{2}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)+m_{3}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\mathbf{k}_{1}+c_{32}\mathbf{k}_{2}\right)+m_{4}\left(\frac{\mathbf{\widetilde{k}}_{4}}{h}+c_{41}\mathbf{k}_{1}+c_{42}\mathbf{k}_{2}+c_{43}\mathbf{k}_{3}\right)\right)\\
+=\widetilde{m}_{1}\widetilde{\mathbf{k}}_{1}+\widetilde{m}_{2}\widetilde{\mathbf{k}}_{2}+\widetilde{m}_{3}\widetilde{\mathbf{k}}_{3}+\widetilde{m}_{4}\widetilde{\mathbf{k}}_{4}
+\end{multline}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{multline}
+h\left(m_{1}\frac{\mathbf{\widetilde{k}}_{1}}{h}+m_{2}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+m_{3}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)\right)\right.\\
+\left.+m_{4}\left(\frac{\mathbf{\widetilde{k}}_{4}}{h}+c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\mathbf{k}_{1}\right)+c_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\mathbf{k}_{1}+c_{32}\mathbf{k}_{2}\right)\right)\right)\\
+=\widetilde{m}_{1}\widetilde{\mathbf{k}}_{1}+\widetilde{m}_{2}\widetilde{\mathbf{k}}_{2}+\widetilde{m}_{3}\widetilde{\mathbf{k}}_{3}+\widetilde{m}_{4}\widetilde{\mathbf{k}}_{4}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+h\left(m_{1}\frac{\mathbf{\widetilde{k}}_{1}}{h}+m_{2}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+m_{3}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\right.\\
+\left.+m_{4}\left(\frac{\mathbf{\widetilde{k}}_{4}}{h}+c_{41}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{42}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)+c_{43}\left(\frac{\mathbf{\widetilde{k}}_{3}}{h}+c_{31}\frac{\mathbf{\widetilde{k}}_{1}}{h}+c_{32}\left(\frac{\mathbf{\widetilde{k}}_{2}}{h}+c_{21}\frac{\mathbf{\widetilde{k}}_{1}}{h}\right)\right)\right)\right)\\
+=\widetilde{m}_{1}\widetilde{\mathbf{k}}_{1}+\widetilde{m}_{2}\widetilde{\mathbf{k}}_{2}+\widetilde{m}_{3}\widetilde{\mathbf{k}}_{3}+\widetilde{m}_{4}\widetilde{\mathbf{k}}_{4}
+\end{multline}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{multline}
+\left(m_{1}+m_{2}c_{21}+m_{3}c_{31}+m_{3}c_{32}c_{21}+m_{4}c_{41}+m_{4}c_{42}c_{21}+m_{4}c_{43}c_{31}+m_{4}c_{43}c_{32}c_{21}\right)\mathbf{\widetilde{k}}_{1}\\
++\left(m_{2}+m_{3}c_{32}+m_{4}c_{42}+m_{4}c_{43}c_{32}\right)\mathbf{\widetilde{k}}_{2}+\left(m_{3}+m_{4}c_{43}\right)\mathbf{\widetilde{k}}_{3}+m_{4}\mathbf{\widetilde{k}}_{4}\\
+=\widetilde{m}_{1}\widetilde{\mathbf{k}}_{1}+\widetilde{m}_{2}\widetilde{\mathbf{k}}_{2}+\widetilde{m}_{3}\widetilde{\mathbf{k}}_{3}+\widetilde{m}_{4}\widetilde{\mathbf{k}}_{4}
+\end{multline}
+
+\end_inset
+
+ The coefficients are then related as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\widetilde{m}_{1}=m_{1}+m_{2}c_{21}+m_{3}c_{31}+m_{3}c_{32}c_{21}+m_{4}c_{41}+m_{4}c_{42}c_{21}+m_{4}c_{43}c_{31}+m_{4}c_{43}c_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{m}_{2}=m_{2}+m_{3}c_{32}+m_{4}c_{42}+m_{4}c_{43}c_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{m}_{3}=m_{3}+m_{4}c_{43}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\widetilde{m}_{4}=m_{4}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Summary
+\end_layout
+
+\begin_layout Standard
+A list will be made in an order that can be used to go from FORM 2 to FORM
+ 1:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+c_{21}=-\frac{\widetilde{c}_{21}}{\gamma}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+c_{32}=-\frac{\widetilde{c}_{32}}{\gamma}
+\end{equation}
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+c_{31}=-\frac{\widetilde{c}_{31}}{\gamma}-c_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+c_{43}=-\frac{\widetilde{c}_{43}}{\gamma}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+c_{42}=-\frac{\widetilde{c}_{42}}{\gamma}-c_{43}c_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+c_{41}=-\frac{\widetilde{c}_{41}}{\gamma}-c_{42}c_{31}-c_{43}c_{31}-c_{43}c_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{21}=\widetilde{a}_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{32}=\widetilde{a}_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{31}=\widetilde{a}_{31}-a_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{43}=\widetilde{a}_{43}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{42}=\widetilde{a}_{42}-a_{43}c_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+a_{41}=\widetilde{a}_{41}-a_{43}c_{32}-a_{43}c_{31}-a_{43}c_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+m_{4}=\widetilde{m}_{4}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+m_{3}=\widetilde{m}_{3}-m_{4}c_{43}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+m_{2}=\widetilde{m}_{2}-m_{3}c_{32}-m_{4}c_{42}-m_{4}c_{43}c_{32}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+m_{1}=\widetilde{m}_{1}-m_{2}c_{21}-m_{3}c_{31}-m_{3}c_{32}c_{21}-m_{4}c_{41}-m_{4}c_{42}c_{21}-m_{4}c_{43}c_{31}-m_{4}c_{43}c_{32}c_{21}
+\end{equation}
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Subsection
+Convert from FORM 2 to FORM 3
+\end_layout
+
+\begin_layout Standard
+FORM 3 of the equations are the set that will be implemented.
+ To convert from FORM 2 where the coefficients are generated to FORM 3 we
+ equate the equations and match parameters.
+ The relation of the unknown vectors are 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\widetilde{\mathbf{k}}_{i}=\frac{\mathbf{\hat{k}}_{i}}{\gamma}+\sum_{j}^{i-1}\frac{\widetilde{c}_{ij}}{\gamma}\mathbf{\widetilde{k}}_{i}.
+\end{equation}
+
+\end_inset
+
+ First, the 
+\begin_inset Formula $a$
+\end_inset
+
+ coefficients are determined by equating the following from Eqs.
+ 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form2k"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset ref
+LatexCommand eqref
+reference "eq:form3k"
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\sum_{j=1}^{i-1}\widetilde{a}_{ij}\widetilde{\mathbf{k}}_{j}=\sum_{j=1}^{i-1}\widehat{a}_{ij}\mathbf{\hat{k}}_{j}.
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 1
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+0=0
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 2
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\widetilde{a}_{21}\widetilde{\mathbf{k}}_{1}=\widehat{a}_{21}\mathbf{\hat{k}}_{1}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widetilde{a}_{21}\frac{\hat{\mathbf{k}}_{1}}{\gamma}=\widehat{a}_{21}\gamma\hat{\mathbf{k}}_{1}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widehat{a}_{21}=\frac{\widetilde{a}_{21}}{\gamma}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Equation 3
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\widetilde{a}_{31}\widetilde{\mathbf{k}}_{1}+\widetilde{a}_{32}\widetilde{\mathbf{k}}_{2}=\widehat{a}_{31}\mathbf{\hat{k}}_{1}+\widehat{a}_{32}\mathbf{\hat{k}}_{2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widetilde{a}_{31}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\widetilde{a}_{32}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\widetilde{\mathbf{k}}_{1}\right)=\widehat{a}_{31}\mathbf{\hat{k}}_{1}+\widehat{a}_{32}\mathbf{\hat{k}}_{2}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\widetilde{a}_{31}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\widetilde{a}_{32}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}\right)=\widehat{a}_{31}\mathbf{\hat{k}}_{1}+\widehat{a}_{32}\mathbf{\hat{k}}_{2}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\left(\frac{\widetilde{a}_{31}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma^{2}}\right)\hat{\mathbf{k}}_{1}+\left(\frac{\widetilde{a}_{32}}{\gamma}\right)\hat{\mathbf{k}}_{2}=\widehat{a}_{31}\mathbf{\hat{k}}_{1}+\widehat{a}_{32}\mathbf{\hat{k}}_{2}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\widehat{a}_{31}=\frac{\widetilde{a}_{31}}{\gamma}+\frac{\widetilde{a}_{32}\widetilde{c}_{21}}{\gamma^{2}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widehat{a}_{32}=\frac{\widetilde{a}_{32}}{\gamma}
+\]
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Paragraph
+Equation 4
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\widetilde{a}_{41}\widetilde{\mathbf{k}}_{1}+\widetilde{a}_{42}\widetilde{\mathbf{k}}_{2}+\widetilde{a}_{43}\widetilde{\mathbf{k}}_{3}=\widehat{a}_{41}\mathbf{\hat{k}}_{1}+\widehat{a}_{42}\mathbf{\hat{k}}_{2}+\widehat{a}_{43}\mathbf{\hat{k}}_{3}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widetilde{a}_{41}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\widetilde{a}_{42}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\widetilde{\mathbf{k}}_{1}\right)+\widetilde{a}_{43}\left(\frac{\hat{\mathbf{k}}_{3}}{\gamma}+\frac{\widetilde{c}_{31}}{\gamma}\widetilde{\mathbf{k}}_{1}+\frac{\widetilde{c}_{32}}{\gamma}\widetilde{\mathbf{k}}_{2}\right)=\widehat{a}_{41}\mathbf{\hat{k}}_{1}+\widehat{a}_{42}\mathbf{\hat{k}}_{2}+\widehat{a}_{43}\mathbf{\hat{k}}_{3}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\widetilde{a}_{41}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\widetilde{a}_{42}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}\right)+\widetilde{a}_{43}\left(\frac{\hat{\mathbf{k}}_{3}}{\gamma}+\frac{\widetilde{c}_{31}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\frac{\widetilde{c}_{32}}{\gamma}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\widetilde{\mathbf{k}}_{1}\right)\right)=\widehat{a}_{41}\mathbf{\hat{k}}_{1}+\widehat{a}_{42}\mathbf{\hat{k}}_{2}+\widehat{a}_{43}\mathbf{\hat{k}}_{3}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widetilde{a}_{41}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\widetilde{a}_{42}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}\right)+\widetilde{a}_{43}\left(\frac{\hat{\mathbf{k}}_{3}}{\gamma}+\frac{\widetilde{c}_{31}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}+\frac{\widetilde{c}_{32}}{\gamma}\left(\frac{\hat{\mathbf{k}}_{2}}{\gamma}+\frac{\widetilde{c}_{21}}{\gamma}\frac{\hat{\mathbf{k}}_{1}}{\gamma}\right)\right)=\widehat{a}_{41}\mathbf{\hat{k}}_{1}+\widehat{a}_{42}\mathbf{\hat{k}}_{2}+\widehat{a}_{43}\mathbf{\hat{k}}_{3}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\left(\frac{\widetilde{a}_{41}}{\gamma}+\frac{\widetilde{a}_{42}\widetilde{c}_{21}}{\gamma^{2}}+\frac{\widetilde{a}_{43}\widetilde{c}_{31}}{\gamma^{2}}+\frac{\widetilde{a}_{43}\widetilde{c}_{32}\widetilde{c}_{21}}{\gamma^{3}}\right)\mathbf{\hat{k}}_{1}+\left(\frac{\widetilde{a}_{42}}{\gamma}+\frac{\widetilde{a}_{43}\widetilde{c}_{32}}{\gamma^{2}}\right)\mathbf{\hat{k}}_{2}+\left(\frac{\widetilde{a}_{43}}{\gamma}\right)\mathbf{\hat{k}}_{3}=\widehat{a}_{41}\mathbf{\hat{k}}_{1}+\widehat{a}_{42}\mathbf{\hat{k}}_{2}+\widehat{a}_{43}\mathbf{\hat{k}}_{3}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widehat{a}_{41}=\frac{\widetilde{a}_{41}}{\gamma}+\frac{\widetilde{a}_{42}\widetilde{c}_{21}}{\gamma^{2}}+\frac{\widetilde{a}_{43}\widetilde{c}_{31}}{\gamma^{2}}+\frac{\widetilde{a}_{43}\widetilde{c}_{32}\widetilde{c}_{21}}{\gamma^{3}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\widehat{a}_{42}=\frac{\widetilde{a}_{42}}{\gamma}+\frac{\widetilde{a}_{43}\widetilde{c}_{32}}{\gamma^{2}}
+\]
+
+\end_inset
+
+ 
+\begin_inset Formula 
+\[
+\widehat{a}_{43}=\frac{\widetilde{a}_{43}}{\gamma}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
