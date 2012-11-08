@@ -15,12 +15,19 @@ include OBJECTS
 # User Options
 #===============================================================================
 
-COMPILER = petsc
+COMPILER = gnu
 DEBUG    = no
 PROFILE  = no
-OPTIMIZE = yes
-USE_MPI  = no
-USE_HDF5 = yes
+OPTIMIZE = yes 
+HDF5     = yes
+PETSC    = yes
+
+#===============================================================================
+# External Library Paths
+#===============================================================================
+
+HDF5_DIR  = /opt/hdf5/hdf5-1.8.9/hdf5
+PETSC_DIR = /opt/petsc/3.3-$(COMPILER)
 
 #===============================================================================
 # Add git SHA-1 hash
@@ -34,13 +41,13 @@ GIT_SHA1 = $(shell git log -1 | head -n 1 | awk '{print $$2}')
 
 ifeq ($(COMPILER),gnu)
   F90 = gfortran
-  F90FLAGS := -cpp -fbacktrace -DNO_F2008
+  F90FLAGS := -cpp -fbacktrace
   LDFLAGS =
 
   # Debugging
   ifeq ($(DEBUG),yes)
-    F90FLAGS += -g -Wall -pedantic -std=f2008 -fbounds-check \
-                -ffpe-trap=invalid,zero,overflow,underflow
+    F90FLAGS += -g -Wall -pedantic -fbounds-check \
+                -ffpe-trap=invalid,overflow,underflow
     LDFLAGS  += -g
   endif
 
@@ -79,7 +86,7 @@ ifeq ($(COMPILER),intel)
 
   # Optimization
   ifeq ($(OPTIMIZE),yes)
-    F90FLAGS += -O3 -ipo
+    F90FLAGS += -O3
   endif
 endif
 
@@ -152,80 +159,44 @@ ifeq ($(COMPILER),cray)
 endif
 
 #===============================================================================
-# PETSc compiler options
+# Setup External Libraries
 #===============================================================================
 
-ifeq ($(COMPILER),petsc)
+# HDF5 for I/O
 
-  # variables
-  PETSC_DIR=/opt/petsc/3.3-gnu
-# PETSC_ARCH=arch-linux2-c-debug
+ifeq ($(HDF5),yes)
+  F90FLAGS += -DHDF5 -I$(HDF5_DIR)/include
+  LDFLAGS += -L$(HDF5_DIR)/lib $(HDF5_DIR)/lib/libhdf5hl_fortran.a \
+             $(HDF5_DIR)/lib/libhdf5_hl.a $(HDF5_DIR)/lib/libhdf5_fortran.a \
+             $(HDF5_DIR)/lib/libhdf5.a -lz -lrt -lm -Wl,-rpath -Wl,$(HDF5_DIR)/lib
+endif
 
-  # include petsc variables
-  include ${PETSC_DIR}/conf/petscvariables
+# PETSC for CMFD functionality
 
-  # standard options
-  F90 = ${FC_LINKER} 
-  F90FLAGS := -cpp -fbacktrace -DNO_F2008  \
-              -I${PETSC_DIR}/include \
-              -DMPI -DPETSC
-  LDFLAGS = ${PETSC_LIB}
+ifeq ($(PETSC),yes)
 
-  # Debugging
   ifeq ($(DEBUG),yes)
-    F90FLAGS += -g -Wall -pedantic -fbounds-check \
-                -ffpe-trap=invalid,zero,overflow,underflow
-    LDFLAGS += -g
+    X=-debug
   endif
-
-  # Profiling
-  ifeq ($(PROFILE),yes)
-    F90FLAGS += -pg
-    LDFLAGS += -pg
-  endif
-
-  # Optimization
-  ifeq ($(OPTIMIZE),yes)
-    F90FLAGS += -O3
-  endif
+  include $(PETSC_DIR)$(X)/conf/petscvariables
+  F90 = $(FC_LINKER)
+  F90FLAGS += -I$(PETSC_DIR)$(X)/include -DPETSC
+  LDFLAGS += $(PETSC_LIB)
 
 endif
 
 #===============================================================================
-# Miscellaneous compiler options
+# Machine-specific setup
 #===============================================================================
 
-# Use MPI for parallelism
-
-ifeq ($(USE_MPI),yes)
-  MPI_ROOT = /opt/mpich2/1.5b2-$(COMPILER)
-  F90 = $(MPI_ROOT)/bin/mpif90
-  F90FLAGS += -DMPI
-endif
-
-# Use HDF5 for output
-
-ifeq ($(USE_HDF5),yes)
-  HDF5_ROOT = /opt/hdf5/hdf5-1.8.9/hdf5
-  F90FLAGS += -DHDF5 -I${HDF5_ROOT}/include
-  LDFLAGS += -L${HDF5_ROOT}/lib ${HDF5_ROOT}/lib/libhdf5hl_fortran.a \
-             ${HDF5_ROOT}/lib/libhdf5_hl.a ${HDF5_ROOT}/lib/libhdf5_fortran.a \
-             ${HDF5_ROOT}/lib/libhdf5.a -lz -lrt -lm -Wl,-rpath -Wl,${HDF5_ROOT}/lib
-endif
-
-
-#===============================================================================
-# Options for IBM Blue Gene/P ANL supercomputer
-#===============================================================================
+# IBM Blue Gene/P ANL supercomputer
 
 ifeq ($(MACHINE),bluegene)
   F90 = /bgsys/drivers/ppcfloor/comm/xl/bin/mpixlf2003
   F90FLAGS = -WF,-DNO_F2008,-DMPI -O3
 endif
 
-#===============================================================================
-# Options for Cray XK6 ORNL Titan supercomputer
-#===============================================================================
+# Cray XK6 ORNL Titan supercomputer
 
 ifeq ($(MACHINE),crayxk6)
   F90 = ftn
@@ -255,7 +226,7 @@ neat:
 #===============================================================================
 
 .SUFFIXES: .F90 .o
-.PHONY: all xml-fortran clean neat distclean 
+.PHONY: all xml-fortran clean neat distclean
 
 %.o: %.F90
 	$(F90) $(F90FLAGS) -DGIT_SHA1="\"$(GIT_SHA1)\"" -Ixml-fortran -Itemplates -c $<
