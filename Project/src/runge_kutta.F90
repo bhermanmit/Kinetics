@@ -20,8 +20,8 @@ module runge_kutta
   real(8), parameter :: SAFETY  = 0.9_8
   real(8), parameter :: GROW    = 1.5_8
   real(8), parameter :: PGROW   = -0.25_8
-  real(8), parameter :: SHRINK  = 0.5_8
-  real(8), parameter :: PSHRINK = -1.0_8/3.0_8
+  real(8), parameter :: SHRNK   = 0.5_8
+  real(8), parameter :: PSHRNK  = -1.0_8/3.0_8
   real(8), parameter :: ERRCON  = 0.1296_8
 
 !-runge-kutta constants
@@ -100,6 +100,7 @@ contains
     real(8) :: htry
     real(8) :: eps
     real(8) :: t
+    real(8), pointer :: yptr(:)
 
 !---begin execution
 
@@ -118,12 +119,16 @@ contains
     ! begin loop
     do while (t <= time)
 
-      ! compute the time at the beginning of the step
-      t = t + hdid
-
       ! solve for next time step values
       call solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn)
 
+      ! set next time step
+      htry = hnext
+
+      call VecGetArrayF90(y, yptr, mpi_err)
+      print *, 'POWER:', yptr(1), 'TIME:', t, 'NEXT TIMESTEP:', htry
+      call VecRestoreArrayF90(y, yptr, mpi_err)
+      CHKERRQ(mpi_err)
     end do
 
   end subroutine execute_rk4
@@ -136,7 +141,8 @@ contains
 
 !---references
 
-    use global,  only: itol
+    use constants,  only: ZERO
+    use global,     only: itol
 
 !---arguments
 
@@ -147,10 +153,12 @@ contains
 
     ! create y initial vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, yinit, mpi_err)
+    call VecSet(yinit, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create dydt initial vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, dydtinit, mpi_err)
+    call VecSet(dydtinit, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create k vectors
@@ -158,14 +166,20 @@ contains
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, k2, mpi_err)
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, k3, mpi_err)
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, k4, mpi_err)
+    call VecSet(k1, ZERO, mpi_err)
+    call VecSet(k2, ZERO, mpi_err)
+    call VecSet(k3, ZERO, mpi_err)
+    call VecSet(k4, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create rhs vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, rhs, mpi_err)
+    call VecSet(rhs, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
-    ! create coefficient matrix
-    call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
+    ! create error vector
+    call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, err, mpi_err)
+    call VecSet(err, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create ksp object
@@ -173,18 +187,12 @@ contains
     call KSPSetTolerances(ksp, itol, itol, PETSC_DEFAULT_DOUBLE_PRECISION,&
                           PETSC_DEFAULT_INTEGER, mpi_err)
     call KSPSetType(ksp, KSPGMRES, mpi_err)
-    call KSPSetInitialGuessNonzero(ksp, PETSC_TRUE, mpi_err)
+!   call KSPSetInitialGuessNonzero(ksp, PETSC_TRUE, mpi_err)
     CHKERRQ(mpi_err)
 
     ! set up preconditioner
     call KSPGetPC(ksp, pc, mpi_err)
     call PCSetType(pc, PCILU, mpi_err)
-    CHKERRQ(mpi_err)
-
-    ! set the operator and finish setting up
-    call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
-    call KSPSetFromOptions(ksp, mpi_err)
-    call KSPSetUp(ksp, mpi_err)
     CHKERRQ(mpi_err)
 
   end subroutine
@@ -197,7 +205,7 @@ contains
 
 !---references
 
-    use constants,  only: ONE
+    use constants,  only: ZERO, ONE
     use error,      only: fatal_error
     use global,     only: message
 
@@ -237,7 +245,12 @@ contains
     real(8), pointer :: dydtptr(:)
     real(8), pointer :: dfdtptr(:)
 
+    PetscViewer :: viewer
+
 !---begin execution
+
+    ! evaluate jacobian at beginning of time step
+    call jacobn(t,y,dfdy,dfdt,n)
 
     ! call derivs to get dydt vector
     call derivs(t, y, dydt, n)
@@ -249,8 +262,9 @@ contains
     CHKERRQ(mpi_err)
     tinit = t
 
-    ! evaluate jacobian at beginning of time step
-    call jacobn(t,y,dfdy,dfdt,n)
+    ! create coefficient matrix
+    call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
+    CHKERRQ(mpi_err)
 
     ! set up initial trial time step
     h = htry
@@ -260,6 +274,10 @@ contains
 
       ! copy jacobian over
       call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
+      CHKERRQ(mpi_err)
+
+      ! multiply values by -1
+      call MatScale(A, -1.0_8, mpi_err)
       CHKERRQ(mpi_err)
 
       ! create left hand side matrix
@@ -274,6 +292,14 @@ contains
       call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
       CHKERRQ(mpi_err)
 
+      ! set the operator and finish setting up
+      call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
+      CHKERRQ(mpi_err)
+      call KSPSetFromOptions(ksp, mpi_err)
+      CHKERRQ(mpi_err)
+      call KSPSetUp(ksp, mpi_err)
+      CHKERRQ(mpi_err)
+
       ! set up right hand side for k1
       call VecGetArrayF90(rhs, rhsptr, mpi_err)
       call VecGetArrayF90(dydtinit, dydtptr, mpi_err)
@@ -283,12 +309,12 @@ contains
       call VecRestoreArrayF90(dydtinit, dydtptr, mpi_err)
       call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
       CHKERRQ(mpi_err)
-      
+
       ! solve for k1
       call KSPSolve(ksp, rhs, k1, mpi_err)
       CHKERRQ(mpi_err)
 
-      ! update y solution vector and change x location
+      ! update y solution vector and change t location
       call VecGetArrayF90(y, yptr, mpi_err)
       call VecGetArrayF90(yinit, yinitptr, mpi_err)
       call VecGetArrayF90(k1, k1ptr, mpi_err)
@@ -317,7 +343,7 @@ contains
       call KSPSolve(ksp, rhs, k2, mpi_err)
       CHKERRQ(mpi_err)
 
-      ! update y solution vector and change x location
+      ! update y solution vector and change t location
       call VecGetArrayF90(y, yptr, mpi_err)
       call VecGetArrayF90(yinit, yinitptr, mpi_err)
       call VecGetArrayF90(k1, k1ptr, mpi_err)
@@ -388,11 +414,15 @@ contains
       call VecRestoreArrayF90(k3, k3ptr, mpi_err)
       call VecRestoreArrayF90(k4, k4ptr, mpi_err)
       CHKERRQ(mpi_err)
+      ! set final time
+      t = tinit + h
 
       ! compute maximum error ratio
       call VecGetArrayF90(err, errptr, mpi_err)
       call VecGetArrayF90(yinit, yinitptr, mpi_err)
       errmax = maxval(abs(errptr/yinitptr))/eps
+      call VecRestoreArrayF90(err, errptr, mpi_err)
+      call VecRestoreArrayF90(yinit, yinitptr, mpi_err)
 
       ! check for successful time step and let it grow
       if (errmax < ONE) then
@@ -404,9 +434,9 @@ contains
         end if
         return
      else
-        hnext = SAFETY*h*errmax**PSHRINK
+        hnext = SAFETY*h*errmax**PSHRNK
+        h = sign(max(abs(hnext), SHRNK*abs(h)),h)
      end if
-
    end do
 
    ! exceed number of tries

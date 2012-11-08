@@ -43,10 +43,7 @@ contains
 
     ! print header for run
     call header("POINT KINETICS SIMULATION", level=1)
-print *, pke % rho
-print *, pke % time
-print *, time
-stop
+
     ! initialize data objects
     call init_data(dfdy, dfdt, dydt, y)
 
@@ -66,7 +63,7 @@ stop
 
 !---references
 
-    use constants,  only: NUM_PRECS
+    use constants,  only: NUM_PRECS, ZERO
 
 !---arguments
 
@@ -94,16 +91,19 @@ stop
     ! create dfdt vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, dfdt,&
                       mpi_err)
+    call VecSet(dfdt, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create dydt vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, dydt,&
                       mpi_err)
+    call VecSet(dydt, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
     ! create y solution vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, y,&
                       mpi_err)
+    call VecSet(y, ZERO, mpi_err)
     CHKERRQ(mpi_err)
 
   end subroutine init_data
@@ -140,11 +140,13 @@ stop
 
     ! get reactivity
     rho = get_reactivity(t,dfdt) 
+    pke % rhot = rho
 
     ! finish setting dfdt
     call VecGetArrayF90(y, yptr, mpi_err)
     call VecGetArrayF90(dfdt, dfdtptr, mpi_err)
     dfdtptr(1) = dfdtptr(1)*sum(beta)/pnl*yptr(1)
+
     call VecRestoreArrayF90(y, yptr, mpi_err)
     call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
     CHKERRQ(mpi_err)
@@ -206,32 +208,34 @@ stop
     real(8) :: rho ! interpolated reactivity
     real(8) :: val ! temp value for matrix setting
     real(8), pointer :: yptr(:)
+    real(8), pointer :: dydtptr(:)
 
 !---begin execution
 
     ! get reactivity
     rho = get_reactivity(t)
+!   rho = pke % rhot
 
     ! get pointer to solution
     call VecGetArrayF90(y, yptr, mpi_err)
+    call VecGetArrayF90(dydt, dydtptr, mpi_err)
     CHKERRQ(mpi_err)
 
     ! set first row
     val = (rho*sum(beta) - sum(beta))/pnl*yptr(1) + sum(lambda*yptr(2:NUM_PRECS+1))
-    call VecSetValue(dydt, 0, val, mpi_err)
-    CHKERRQ(mpi_err)
+    dydtptr(1) = val    
 
     ! loop around other common rows
     do i = 2, NUM_PRECS+1
 
       val = beta(i-1)/pnl*yptr(1) - lambda(i-1)*yptr(i)
-      call VecSetValue(dydt, i-1, val, mpi_err)
-      CHKERRQ(mpi_err)
+      dydtptr(i) = val
 
     end do
 
     ! put the pointer back
     call VecRestoreArrayF90(y, yptr, mpi_err)
+    call VecRestoreArrayF90(dydt, dydtptr, mpi_err)
     CHKERRQ(mpi_err)
 
   end subroutine pk_derivs
@@ -298,14 +302,20 @@ stop
 
 !---local variables
 
+    integer :: i   ! iteration counter
     integer :: idx ! interpolation index
     real(8) :: m   ! slope
 
 !---begin execution
 
-    ! check if index should be moved in input vectors
-    if (t < pke % time(idx+1)) pke % idx = pke % idx + 1
-    idx = pke % idx
+    ! search for index
+    idx = 1
+    do i = 1, size(pke % time)
+      if (t < pke % time(i)) then
+        idx = i - 1
+        exit
+      end if
+    end do
 
     ! interpolate on reactivity
     m = ((pke % rho(idx+1) - pke % rho(idx))/(pke % time(idx + 1) - pke % time(idx)))
@@ -313,7 +323,6 @@ stop
 
     ! set dfdt
     if (present(dfdt)) then
-      call VecSet(dfdt, ZERO, mpi_err)
       call VecSetValue(dfdt, 0, m, INSERT_VALUES, mpi_err)
       CHKERRQ(mpi_err)
     end if

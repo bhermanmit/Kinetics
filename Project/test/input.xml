@@ -5,7 +5,7 @@
   <solver> gauss </solver>
   <ktol> 1e-8 </ktol>
   <stol> 1e-7 </stol>
-  <itol> 1e-10 </itol>
+  <itol> 1e-16 </itol>
   <mode> point_kinetics </mode>
 
 <!-- Definition of Geometry -->
@@ -72,7 +72,7 @@
 
 <!-- Kinetics -->
   <time> 100.0 </time>
-  <nt> 100 </nt>
+  <nt> 1000000 </nt>
 
   <!-- Reactivity Shape -->
   <pke>

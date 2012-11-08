@@ -25,6 +25,7 @@ module constants
 
   ! Number of precursor groups
   integer, parameter :: NUM_PRECS = 8
+! integer, parameter :: NUM_PRECS = 6
 
   ! Decay constant
   real(8), parameter :: lambda(8) = (/0.012467_8, &
@@ -46,6 +47,21 @@ module constants
                                       0.000540_8, &
                                       0.000152_8/)
 
+! real(8), parameter :: beta(6)   = (/2.1450E-4_8, &
+!                                     1.4235E-3_8, &
+!                                     1.2740E-3_8, &
+!                                     2.5675E-3_8, &
+!                                     7.4750E-4_8, &
+!                                     2.7300E-4_8/)
+
+! real(8), parameter :: lambda(6) = (/0.012400_8, &
+!                                     0.030500_8, &
+!                                     0.111000_8, &
+!                                     0.301000_8, &
+!                                     1.140000_8, &
+!                                     3.010000_8/)
+
+
   ! Prompt Neutron Lifetime
   real(8), parameter :: vel(2) = (/2200._8*100._8*(0.100e4_8/0.0253_8)**0.5_8, & 
                                   2200._8*100._8*(0.100_8/0.0253_8)**0.5_8/)
@@ -55,5 +71,6 @@ module constants
   real(8), parameter :: nu   = 2.45_8
   real(8), parameter :: vel1 = 2200._8*100._8*(0.100_8/0.0253_8)**0.5_8
   real(8)            :: pnl  = ONE/(sigf*nu*vel1)
+! real(8) :: pnl = 1.0E-3_8
 
 end module constants

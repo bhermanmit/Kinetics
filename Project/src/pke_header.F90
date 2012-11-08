@@ -11,7 +11,8 @@ module pke_header
   type, public :: pke_type
 
     integer :: n
-    integer :: idx
+    integer :: idx = 1
+    real(8) :: rhot
     real(8), allocatable :: rho(:)
     real(8), allocatable :: time(:)
 
