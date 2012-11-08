@@ -22,10 +22,7 @@ output.o \
 pke_header.o \
 point_kinetics.o \
 power_iter.o \
-power_solver.o \
 prod_operator.o \
 runge_kutta.o \
-slepc_solver.o \
-snes_solver.o \
 string.o \
 timing.o

@@ -158,19 +158,18 @@ endif
 ifeq ($(COMPILER),petsc)
 
   # variables
-  PETSC_DIR=/opt/petsc/petsc_gfortran
-  PETSC_ARCH=arch-linux2-c-debug
-  SLEPC_DIR=/opt/petsc/slepc-3.3-p2
+  PETSC_DIR=/opt/petsc/3.3-gnu
+# PETSC_ARCH=arch-linux2-c-debug
 
   # include petsc variables
-  include ${SLEPC_DIR}/conf/slepc_common
+  include ${PETSC_DIR}/conf/petscvariables
 
   # standard options
   F90 = ${FC_LINKER} 
   F90FLAGS := -cpp -fbacktrace -DNO_F2008  \
-              -I${PETSC_DIR}/include -I${SLEPC_DIR}/include \
+              -I${PETSC_DIR}/include \
               -DMPI -DPETSC
-  LDFLAGS = ${SLEPC_LIB}
+  LDFLAGS = ${PETSC_LIB}
 
   # Debugging
   ifeq ($(DEBUG),yes)

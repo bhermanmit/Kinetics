@@ -9,8 +9,6 @@ module initialize
 !-external packages
 
 # include <finclude/petsc.h90>
-# include <finclude/slepcsys.h>
-# include <finclude/slepceps.h>
 
 contains
 
@@ -74,7 +72,7 @@ contains
 !---begin execution
 
     ! initialize it
-    call SlepcInitialize(PETSC_NULL_CHARACTER,mpi_err)
+    call PetscInitialize(PETSC_NULL_CHARACTER,mpi_err)
 
     ! get the mpi info
     call MPI_COMM_RANK(PETSC_COMM_WORLD,rank,mpi_err)

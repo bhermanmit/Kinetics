@@ -9,9 +9,6 @@ module finalize
 !-external packages
 
 # include <finclude/petsc.h90>
-# include <finclude/slepcsys.h>
-# include <finclude/slepceps.h>
-
 
 contains
 
@@ -49,7 +46,7 @@ contains
     call write_hdf5()
 
     ! call finalization routines
-    call SlepcFinalize(PETSC_COMM_WORLD,mpi_err) 
+    call PetscFinalize(PETSC_COMM_WORLD,mpi_err) 
     call hdf5_finalize()
     call deallocate_cmfd_type(cmfd)
     call deallocate_geometry_type(geometry)
