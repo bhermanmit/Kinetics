@@ -86,25 +86,33 @@ contains
     call MatCreateAIJ(PETSC_COMM_WORLD, NUM_PRECS+1, NUM_PRECS+1,&
                       PETSC_DETERMINE, PETSC_DETERMINE, PETSC_NULL, d_nnz,&
                       PETSC_NULL, o_nnz, dfdy, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create dfdt vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, dfdt,&
                       mpi_err)
     call VecSet(dfdt, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create dydt vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, dydt,&
                       mpi_err)
     call VecSet(dydt, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create y solution vector
     call VecCreateMPI(PETSC_COMM_WORLD, NUM_PRECS+1, PETSC_DETERMINE, y,&
                       mpi_err)
     call VecSet(y, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
   end subroutine init_data
 
@@ -149,12 +157,16 @@ contains
 
     call VecRestoreArrayF90(y, yptr, mpi_err)
     call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! set up jacobian 
     val = (rho*sum(beta) - sum(beta))/pnl
     call MatSetValue(dfdy, 0, 0, val, INSERT_VALUES, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! begin loop around rest of matrix
     do i = 2, NUM_PRECS + 1
@@ -162,24 +174,32 @@ contains
       ! set row 1
       val = lambda(i - 1)
       call MatSetValue(dfdy, 0, i-1, val, INSERT_VALUES, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! set diagonal
       val = -lambda(i - 1)
       call MatSetValue(dfdy, i-1, i-1, val, INSERT_VALUES, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! set column 1
       val = beta(i-1) / pnl
       call MatSetValue(dfdy, i-1, 0, val, INSERT_VALUES, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
     end do 
 
     ! finalize assembly
     call MatAssemblyBegin(dfdy, MAT_FINAL_ASSEMBLY, mpi_err)
     call MatAssemblyEnd(dfdy, MAT_FINAL_ASSEMBLY, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
   end subroutine pk_jacobn 
 
@@ -219,7 +239,9 @@ contains
     ! get pointer to solution
     call VecGetArrayF90(y, yptr, mpi_err)
     call VecGetArrayF90(dydt, dydtptr, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! set first row
     val = (rho*sum(beta) - sum(beta))/pnl*yptr(1) + sum(lambda*yptr(2:NUM_PRECS+1))
@@ -236,7 +258,9 @@ contains
     ! put the pointer back
     call VecRestoreArrayF90(y, yptr, mpi_err)
     call VecRestoreArrayF90(dydt, dydtptr, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
   end subroutine pk_derivs
 
@@ -264,7 +288,9 @@ contains
 
     ! get pointer
     call VecGetArrayF90(y, yptr, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! set power at 1.0
     yptr(1) = ONE
@@ -279,7 +305,9 @@ contains
 
     ! put pointer back
     call VecRestoreArrayF90(y, yptr, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
   end subroutine set_init
 
@@ -324,7 +352,9 @@ contains
     ! set dfdt
     if (present(dfdt)) then
       call VecSetValue(dfdt, 0, m, INSERT_VALUES, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
     end if
 
   end function get_reactivity

@@ -128,7 +128,9 @@ contains
       call VecGetArrayF90(y, yptr, mpi_err)
       print *, 'POWER:', yptr(1), 'TIME:', t, 'NEXT TIMESTEP:', htry
       call VecRestoreArrayF90(y, yptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
     end do
 
   end subroutine execute_rk4
@@ -154,12 +156,16 @@ contains
     ! create y initial vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, yinit, mpi_err)
     call VecSet(yinit, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create dydt initial vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, dydtinit, mpi_err)
     call VecSet(dydtinit, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create k vectors
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, k1, mpi_err)
@@ -170,30 +176,39 @@ contains
     call VecSet(k2, ZERO, mpi_err)
     call VecSet(k3, ZERO, mpi_err)
     call VecSet(k4, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create rhs vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, rhs, mpi_err)
     call VecSet(rhs, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create error vector
     call VecCreateMPI(PETSC_COMM_WORLD, n, PETSC_DETERMINE, err, mpi_err)
     call VecSet(err, ZERO, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! create ksp object
     call KSPCreate(PETSC_COMM_WORLD, ksp, mpi_err)
     call KSPSetTolerances(ksp, itol, itol, PETSC_DEFAULT_DOUBLE_PRECISION,&
                           PETSC_DEFAULT_INTEGER, mpi_err)
     call KSPSetType(ksp, KSPGMRES, mpi_err)
-!   call KSPSetInitialGuessNonzero(ksp, PETSC_TRUE, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! set up preconditioner
     call KSPGetPC(ksp, pc, mpi_err)
     call PCSetType(pc, PCILU, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
   end subroutine
 
@@ -257,14 +272,20 @@ contains
 
     ! save all important vectors
     call VecCopy(y, yinit, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
     call VecCopy(dydt, dydtinit, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
     tinit = t
 
     ! create coefficient matrix
     call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
-    CHKERRQ(mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
 
     ! set up initial trial time step
     h = htry
@@ -274,31 +295,47 @@ contains
 
       ! copy jacobian over
       call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG 
+        CHKERRQ(mpi_err)
+#     endif
 
       ! multiply values by -1
       call MatScale(A, -1.0_8, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! create left hand side matrix
       call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
       call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif DEBUG
       do irow = 1, n
         call MatSetValue(A, irow-1, irow-1, ONE/(GAM*h), ADD_VALUES, mpi_err)
-        CHKERRQ(mpi_err)
+#       ifdef DEBUG
+          CHKERRQ(mpi_err)
+#       endif
       end do
       call MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY, mpi_err)
       call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! set the operator and finish setting up
       call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif DEBUG
       call KSPSetFromOptions(ksp, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
       call KSPSetUp(ksp, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+       CHKERRQ(mpi_err)
+#     endif
 
       ! set up right hand side for k1
       call VecGetArrayF90(rhs, rhsptr, mpi_err)
@@ -308,11 +345,15 @@ contains
       call VecRestoreArrayF90(rhs, rhsptr, mpi_err)
       call VecRestoreArrayF90(dydtinit, dydtptr, mpi_err)
       call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! solve for k1
       call KSPSolve(ksp, rhs, k1, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! update y solution vector and change t location
       call VecGetArrayF90(y, yptr, mpi_err)
@@ -323,6 +364,9 @@ contains
       call VecRestoreArrayF90(y, yptr, mpi_err)
       call VecRestoreArrayF90(yinit, yinitptr, mpi_err)
       call VecRestoreArrayF90(k1, k1ptr, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! recompute derivative vector with new (t,y)
       call derivs(t, y, dydt, n) 
@@ -337,11 +381,15 @@ contains
       call VecRestoreArrayF90(dydt, dydtptr, mpi_err)
       call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
       call VecRestoreArrayF90(k1, k1ptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! solve for k2
       call KSPSolve(ksp, rhs, k2, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! update y solution vector and change t location
       call VecGetArrayF90(y, yptr, mpi_err)
@@ -370,11 +418,15 @@ contains
       call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
       call VecRestoreArrayF90(k1, k1ptr, mpi_err)
       call VecRestoreArrayF90(k2, k2ptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! solve for k3
       call KSPSolve(ksp, rhs, k3, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! compute right hand side for k4
       call VecGetArrayF90(rhs, rhsptr, mpi_err)
@@ -390,11 +442,15 @@ contains
       call VecRestoreArrayF90(k1, k1ptr, mpi_err)
       call VecRestoreArrayF90(k2, k2ptr, mpi_err)
       call VecRestoreArrayF90(k3, k3ptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! solve for k4
       call KSPSolve(ksp, rhs, k4, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! calculate 4th order estimate of solution vector and truncation error
       call VecGetArrayF90(y, yptr, mpi_err)
@@ -413,7 +469,10 @@ contains
       call VecRestoreArrayF90(k2, k2ptr, mpi_err)
       call VecRestoreArrayF90(k3, k3ptr, mpi_err)
       call VecRestoreArrayF90(k4, k4ptr, mpi_err)
-      CHKERRQ(mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
       ! set final time
       t = tinit + h
 
@@ -423,6 +482,9 @@ contains
       errmax = maxval(abs(errptr/yinitptr))/eps
       call VecRestoreArrayF90(err, errptr, mpi_err)
       call VecRestoreArrayF90(yinit, yinitptr, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! check for successful time step and let it grow
       if (errmax < ONE) then
