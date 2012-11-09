@@ -374,6 +374,39 @@ contains
       ! recompute derivative vector with new (t,y)
       call derivs(t, y, dydt, n) 
 
+      ! recompute Jacobian
+      call jacobn(t,y,dfdy,dfdt,n)
+
+      ! reset A matrix 
+      call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
+#     ifdef DEBUG 
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! multiply values by -1
+      call MatScale(A, -1.0_8, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! create left hand side matrix
+      call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+      call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+      do irow = 1, n
+        call MatSetValue(A, irow-1, irow-1, ONE/(GAM*h), ADD_VALUES, mpi_err)
+#       ifdef DEBUG
+          CHKERRQ(mpi_err)
+#       endif
+      end do
+      call MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY, mpi_err)
+      call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
       ! set up right hand side for k2
       call VecGetArrayF90(rhs, rhsptr, mpi_err)
       call VecGetArrayF90(dydt, dydtptr, mpi_err)
@@ -408,6 +441,39 @@ contains
 
       ! recompute derivative vector with new (x,y)
       call derivs(t, y, dydt, n)
+
+      ! recompute Jacobian
+      call jacobn(t,y,dfdy,dfdt,n)
+
+      ! reset A matrix 
+      call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
+#     ifdef DEBUG 
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! multiply values by -1
+      call MatScale(A, -1.0_8, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! create left hand side matrix
+      call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+      call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+      do irow = 1, n
+        call MatSetValue(A, irow-1, irow-1, ONE/(GAM*h), ADD_VALUES, mpi_err)
+#       ifdef DEBUG
+          CHKERRQ(mpi_err)
+#       endif
+      end do
+      call MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY, mpi_err)
+      call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
 
       ! compute right hand side for k3
       call VecGetArrayF90(rhs, rhsptr, mpi_err)
