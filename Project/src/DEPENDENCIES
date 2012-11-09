@@ -25,6 +25,10 @@ global.o: operator_header.o
 global.o: pke_header.o
 global.o: timing.o
 
+implicit_euler.o: constants.o
+implicit_euler.o: error.o
+implicit_euler.o: global.o
+
 initialize.o: cmfd_header.o
 initialize.o: geometry_header.o
 initialize.o: global.o
@@ -42,9 +46,6 @@ input_xml.o: material_header.o
 input_xml.o: output.o
 input_xml.o: pke_header.o
 input_xml.o: templates/input_t.o 
-
-jacobian_operator.o: loss_operator.o
-jacobian_operator.o: prod_operator.o
 
 kinetics_operator.o: global.o
 kinetics_operator.o: material_header.o
@@ -76,6 +77,7 @@ output.o: string.o
 
 point_kinetics.o: constants.o
 point_kinetics.o: global.o
+point_kinetics.o: implicit_euler.o
 point_kinetics.o: output.o
 point_kinetics.o: runge_kutta.o
 

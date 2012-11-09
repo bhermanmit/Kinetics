@@ -7,9 +7,9 @@ finalize.o \
 geometry_header.o \
 global.o \
 hdf5_interface.o \
+implicit_euler.o \
 initialize.o \
 input_xml.o \
-jacobian_operator.o \
 kinetics_header.o \
 kinetics_operator.o \
 kinetics_solver.o \

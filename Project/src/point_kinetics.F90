@@ -24,10 +24,11 @@ contains
 
 !---external references
 
-    use constants,   only: NUM_PRECS
-    use global,      only: pke, time
-    use output,      only: header
-    use runge_kutta, only: execute_rk4
+    use constants,       only: NUM_PRECS
+    use global,          only: pke, time
+    use implicit_euler,  only: execute_ie1
+    use output,          only: header
+    use runge_kutta,     only: execute_rk4
 
 !---local variables
 
@@ -35,6 +36,7 @@ contains
     real(8) :: dt ! local time step
 
     Mat :: dfdy
+    Mat :: A
     Vec :: dfdt
     Vec :: dydt
     Vec :: y
@@ -45,13 +47,14 @@ contains
     call header("POINT KINETICS SIMULATION", level=1)
 
     ! initialize data objects
-    call init_data(dfdy, dfdt, dydt, y)
+    call init_data(dfdy, dfdt, dydt, y, A)
 
     ! set initial values in y
     call set_init(y)
 
     ! perform 4th order kaps rentrop
-    call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1)
+!   call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1)
+    call execute_ie1(y, A, pk_coefmat, NUM_PRECS+1)
 
   end subroutine run_pkinetics
 
@@ -59,7 +62,7 @@ contains
 ! INIT_DATA
 !===============================================================================
 
-  subroutine init_data(dfdy,dfdt,dydt,y)
+  subroutine init_data(dfdy,dfdt,dydt,y,A)
 
 !---references
 
@@ -68,6 +71,7 @@ contains
 !---arguments
 
     Mat :: dfdy
+    Mat :: A
     Vec :: dfdt
     Vec :: dydt
     Vec :: y
@@ -86,6 +90,17 @@ contains
     call MatCreateAIJ(PETSC_COMM_WORLD, NUM_PRECS+1, NUM_PRECS+1,&
                       PETSC_DETERMINE, PETSC_DETERMINE, PETSC_NULL, d_nnz,&
                       PETSC_NULL, o_nnz, dfdy, mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
+
+    ! create A matrix
+    d_nnz = 2
+    d_nnz(1) = NUM_PRECS + 1
+    o_nnz = 0
+    call MatCreateAIJ(PETSC_COMM_WORLD, NUM_PRECS+1, NUM_PRECS+1,&
+                      PETSC_DETERMINE, PETSC_DETERMINE, PETSC_NULL, d_nnz,&
+                      PETSC_NULL, o_nnz, A, mpi_err)
 #   ifdef DEBUG
       CHKERRQ(mpi_err)
 #   endif
@@ -263,6 +278,85 @@ contains
 #   endif
 
   end subroutine pk_derivs
+
+!===============================================================================
+! COEFMAT
+!===============================================================================
+
+  subroutine pk_coefmat(t,h,y,A,n)
+
+!---external references
+
+    use constants,  only: beta, NUM_PRECS, lambda, pnl, ONE
+    use global,     only: pke
+
+!---arguments
+
+    integer :: n
+    real(8) :: t
+    real(8) :: h
+    Mat     :: A 
+    Vec     :: y
+
+!---local variables
+
+    integer :: i   ! loop counter
+    real(8) :: rho ! interpolated reactivity
+    real(8) :: val ! temp value for matrix setting
+
+    real(8), pointer :: yptr(:)
+    real(8), pointer :: dfdtptr(:)
+
+!---begin execution
+
+    ! get reactivity
+    rho = get_reactivity(t) 
+
+    ! set up jacobian 
+    val = (rho*sum(beta) - sum(beta))/pnl
+    val = ONE - h*val
+    call MatSetValue(A, 0, 0, val, INSERT_VALUES, mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
+
+    ! begin loop around rest of matrix
+    do i = 2, NUM_PRECS + 1
+
+      ! set row 1
+      val = lambda(i - 1)
+      val = -h*val
+      call MatSetValue(A, 0, i-1, val, INSERT_VALUES, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! set diagonal
+      val = -lambda(i - 1)
+      val = ONE - h*val
+      call MatSetValue(A, i-1, i-1, val, INSERT_VALUES, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
+      ! set column 1
+      val = beta(i-1) / pnl
+      val = -h*val
+      call MatSetValue(A, i-1, 0, val, INSERT_VALUES, mpi_err)
+#     ifdef DEBUG
+        CHKERRQ(mpi_err)
+#     endif
+
+    end do 
+
+    ! finalize assembly
+    call MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY, mpi_err)
+    call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
+
+  end subroutine pk_coefmat 
 
 !===============================================================================
 ! SET_INIT
