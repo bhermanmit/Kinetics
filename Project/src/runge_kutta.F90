@@ -310,7 +310,7 @@ contains
       call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
-#     endif DEBUG
+#     endif
       do irow = 1, n
         call MatSetValue(A, irow-1, irow-1, ONE/(GAM*h), ADD_VALUES, mpi_err)
 #       ifdef DEBUG
@@ -327,7 +327,7 @@ contains
       call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
-#     endif DEBUG
+#     endif
       call KSPSetFromOptions(ksp, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
