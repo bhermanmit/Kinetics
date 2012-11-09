@@ -62,5 +62,6 @@
   <variable name="nt_"       tag="nt"       type="integer" />
   <variable name="mode_"     tag="mode"     type="word" length="50" default="'static'" />
   <variable name="pke_"      tag="pke"      type="pke_xml" />
+  <variable name="var_ts_"   tag="var_ts"   type="logical" default=".true." />
 
 </template>

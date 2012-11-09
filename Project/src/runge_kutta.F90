@@ -133,6 +133,9 @@ contains
 #     endif
     end do
 
+    ! clean up objects
+    call destroy_objects()
+
   end subroutine execute_rk4
 
 !===============================================================================
@@ -222,7 +225,7 @@ contains
 
     use constants,  only: ZERO, ONE
     use error,      only: fatal_error
-    use global,     only: message
+    use global,     only: message, var_ts
 
 !---arguments
 
@@ -486,6 +489,14 @@ contains
         CHKERRQ(mpi_err)
 #     endif
 
+      ! check for variable time stepping off
+      if (.not. var_ts) then
+        hnext = h
+        hdid = h
+        call MatDestroy(A, mpi_err)
+        return
+      end if
+
       ! check for successful time step and let it grow
       if (errmax < ONE) then
         hdid = h
@@ -494,6 +505,7 @@ contains
         else
           hnext = GROW*h
         end if
+        call MatDestroy(A, mpi_err)
         return
      else
         hnext = SAFETY*h*errmax**PSHRNK
@@ -506,5 +518,24 @@ contains
    call fatal_error()
 
   end subroutine solve_ts
+
+!===============================================================================
+! DESTROY_OBJECTS
+!===============================================================================
+
+  subroutine destroy_objects()
+
+    ! destroy all
+    call VecDestroy(yinit, mpi_err)
+    call VecDestroy(dydtinit, mpi_err)
+    call VecDestroy(k1, mpi_err)
+    call VecDestroy(k2, mpi_err)
+    call VecDestroy(k3, mpi_err)
+    call VecDestroy(k4, mpi_err)
+    call VecDestroy(rhs, mpi_err)
+    call VecDestroy(err, mpi_err)
+    call KSPDestroy(ksp, mpi_err) 
+
+  end subroutine destroy_objects
 
 end module runge_kutta

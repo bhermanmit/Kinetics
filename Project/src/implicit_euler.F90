@@ -170,7 +170,7 @@ contains
     call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
 #   ifdef DEBUG
       CHKERRQ(mpi_err)
-#   endif DEBUG
+#   endif
     call KSPSetFromOptions(ksp, mpi_err)
 #   ifdef DEBUG
       CHKERRQ(mpi_err)

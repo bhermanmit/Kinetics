@@ -21,7 +21,8 @@ contains
     use geometry_header,  only: allocate_geometry_type 
     use global,           only: material, geometry, message, n_materials,      &
                                 solver_type, ktol, stol, itol, guess, adjoint, &
-                                nt, time, dt, kinetics, n_kins, mode, pke
+                                nt, time, dt, kinetics, n_kins, mode, pke,     &
+                                var_ts
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -265,6 +266,9 @@ contains
       ! save data
       pke % rho = pke_ % rho
       pke % time = pke_ % time
+
+      ! variable time step for rk4
+      var_ts = var_ts_
 
     end if      
 

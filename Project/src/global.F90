@@ -102,4 +102,8 @@ module global
 
   type(pke_type) :: pke
 
+!-variable time_step for rk
+
+  logical :: var_ts = .true.
+
 end module global

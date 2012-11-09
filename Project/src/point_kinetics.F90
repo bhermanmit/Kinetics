@@ -65,6 +65,8 @@ contains
 
     end select
 
+    call destroy_objects(dfdy, A, dfdt, dydt, y)
+
   end subroutine run_pkinetics
 
 !===============================================================================
@@ -461,5 +463,30 @@ contains
     end if
 
   end function get_reactivity
+
+!===============================================================================
+! DESTROY_OBJECTS
+!===============================================================================
+
+  subroutine destroy_objects(dfdy, A, dfdt, dydt, y)
+
+!---arguments
+
+    Mat :: dfdy
+    Mat :: A
+    Vec :: dfdt
+    Vec :: dydt
+    Vec :: y
+
+!---begin execution
+
+    ! destroy all
+    call MatDestroy(A, mpi_err)
+    call MatDestroy(dfdy, mpi_err)
+    call VecDestroy(dfdt, mpi_err)
+    call VecDestroy(dydt, mpi_err)
+    call VecDestroy(y, mpi_err)
+
+  end subroutine destroy_objects
 
 end module point_kinetics 

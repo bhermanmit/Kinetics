@@ -43,7 +43,7 @@ contains
 
     ! write out results to user
     call write_results()
-    call write_hdf5()
+!   call write_hdf5()
 
     ! call finalization routines
     call PetscFinalize(PETSC_COMM_WORLD,mpi_err) 
