@@ -25,7 +25,7 @@ contains
 !---external references
 
     use constants,       only: NUM_PRECS
-    use global,          only: pke, time
+    use global,          only: pke, time, solver_type
     use implicit_euler,  only: execute_ie1
     use output,          only: header
     use runge_kutta,     only: execute_rk4
@@ -53,8 +53,17 @@ contains
     call set_init(y)
 
     ! perform 4th order kaps rentrop
-!   call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1)
-    call execute_ie1(y, A, pk_coefmat, NUM_PRECS+1)
+    select case(trim(solver_type))
+
+      case('rk4')
+        call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1)
+
+      case('ie1')
+        call execute_ie1(y, A, pk_coefmat, NUM_PRECS+1)
+
+      case DEFAULT
+
+    end select
 
   end subroutine run_pkinetics
 
