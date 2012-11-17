@@ -19,10 +19,7 @@ contains
     use constants,        only: MAX_FILE_LEN
     use error,            only: fatal_error
     use geometry_header,  only: allocate_geometry_type 
-    use global,           only: material, geometry, message, n_materials,      &
-                                solver_type, ktol, stol, itol, guess, adjoint, &
-                                nt, time, dt, kinetics, n_kins, mode, pke,     &
-                                var_ts
+    use global
     use kinetics_header,  only: allocate_kinetics_type
     use material_header,  only: material_type, allocate_material_type
     use output,           only: write_message
@@ -71,7 +68,8 @@ contains
     itol = itol_
 
     ! get time info if running kinetics
-    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics') then
+    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics' &
+                                 .or. trim(mode) == 'nordfuchs') then
       nt = nt_
       time = time_
       dt = time / dble(nt)
@@ -255,7 +253,7 @@ contains
     end do
 
     ! read in point kinetics data
-    if (trim(mode) == 'point_kinetics') then
+    if (trim(mode) == 'point_kinetics' .or. trim(mode) == 'nordfuchs') then
 
       ! read in size
       pke % n = size(pke_ % rho)
@@ -272,6 +270,10 @@ contains
 
     end if      
 
+    ! read in initial power and temp
+    power = power_
+    fuel_T = fuel_T_
+    
   end subroutine read_input_xml
 
 end module input_xml 

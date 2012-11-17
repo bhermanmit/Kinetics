@@ -63,5 +63,7 @@
   <variable name="mode_"     tag="mode"     type="word" length="50" default="'static'" />
   <variable name="pke_"      tag="pke"      type="pke_xml" />
   <variable name="var_ts_"   tag="var_ts"   type="logical" default=".true." />
+  <variable name="power_"    tag="power"    type="double" default="1.0" />
+  <variable name="fuel_T_"   tag="fuel_T"   type="double" default="300" />
 
 </template>

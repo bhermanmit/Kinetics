@@ -106,4 +106,9 @@ module global
 
   logical :: var_ts = .true.
 
+!-initial power and temperatures
+
+  real(8) :: power
+  real(8) :: fuel_T
+
 end module global
