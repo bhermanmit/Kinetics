@@ -74,7 +74,7 @@ contains
 ! EXECUTE_RK4
 !===============================================================================
 
-  subroutine execute_rk4(y, dfdy, dfdt, dydt, derivs, jacobn, n)
+  subroutine execute_rk4(y, dfdy, dfdt, dydt, derivs, jacobn, n, post_timestep)
 
 !---references
 
@@ -92,6 +92,7 @@ contains
 
     external derivs
     external jacobn 
+    external post_timestep
 
 !---local variables
 
@@ -125,12 +126,9 @@ contains
       ! set next time step
       htry = hnext
 
-      call VecGetArrayF90(y, yptr, mpi_err)
-      print *, 'POWER:', yptr(1), 'TIME:', t, 'NEXT TIMESTEP:', htry
-      call VecRestoreArrayF90(y, yptr, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
+      ! post timestep routine
+      call post_timestep(t, y, hdid)
+
     end do
 
     ! clean up objects

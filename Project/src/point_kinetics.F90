@@ -56,7 +56,7 @@ contains
     select case(trim(solver_type))
 
       case('rk4')
-        call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1)
+        call execute_rk4(y, dfdy, dfdt, dydt, pk_derivs, pk_jacobn, NUM_PRECS+1, pk_post_timestep)
 
       case('ie1')
         call execute_ie1(y, A, pk_coefmat, NUM_PRECS+1)
@@ -463,6 +463,33 @@ contains
     end if
 
   end function get_reactivity
+
+!===============================================================================
+! PK_POST_TIMESTEP
+!===============================================================================
+
+  subroutine pk_post_timestep(t, y, h)
+
+!---arguments
+
+    real(8) :: t
+    real(8) :: h
+    Vec :: y
+
+!---local variables
+
+    real(8), pointer :: yptr(:)
+
+!---begin execution
+
+    call VecGetArrayF90(y, yptr, mpi_err)
+    print *, 'POWER:', yptr(1), 'TIME:', t, 'TIMESTEP:', h
+    call VecRestoreArrayF90(y, yptr, mpi_err)
+#   ifdef DEBUG
+      CHKERRQ(mpi_err)
+#   endif
+
+  end subroutine pk_post_timestep
 
 !===============================================================================
 ! DESTROY_OBJECTS
