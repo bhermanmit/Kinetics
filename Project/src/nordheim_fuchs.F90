@@ -385,8 +385,8 @@ contains
 
     ! compute reactivity
     react = get_reactivity(t)
-    react = react - fuel_a*(yptr(2) - fuel_T) 
-    react = sum(beta)*react
+    react = react*sum(beta) - fuel_a*(yptr(2) - fuel_T) 
+    react = react/sum(beta)
 
     ! write output
     print *, 'TIME:', t, 'REACT:', react, 'POWER:', yptr(1), 'FUEL:', yptr(2), 'STEP:', h
