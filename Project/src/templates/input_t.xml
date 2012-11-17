@@ -65,5 +65,8 @@
   <variable name="var_ts_"   tag="var_ts"   type="logical" default=".true." />
   <variable name="power_"    tag="power"    type="double" default="1.0" />
   <variable name="fuel_T_"   tag="fuel_T"   type="double" default="300" />
+  <variable name="fuel_a_"   tag="fuel_a"   type="double" default="-2.5e-5" />
+  <variable name="fuel_c_"   tag="fuel_c"   type="double" default="312" />
+  <variable name="fuel_m_"   tag="fuel_m"   type="double" default="148.3" />
 
 </template>

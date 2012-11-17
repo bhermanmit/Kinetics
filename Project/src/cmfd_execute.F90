@@ -21,6 +21,7 @@ contains
     use global,           only: solver_type, message, mode,                    &
                                 adjoint
     use kinetics_solver,  only: kinetics_execute
+    use nordheim_fuchs,   only: run_nordheimfuchs
     use output,           only: header
     use point_kinetics,   only: run_pkinetics 
     use power_iter,       only: power_execute
@@ -48,6 +49,10 @@ contains
       case('point_kinetics')
 
         call run_pkinetics()
+
+      case('nordfuchs')
+
+        call run_nordheimfuchs()
 
       case DEFAULT
         message = 'Calculation Mode not Supported!'

@@ -273,6 +273,13 @@ contains
     ! read in initial power and temp
     power = power_
     fuel_T = fuel_T_
+
+    ! read in reactivity coeffs
+    fuel_a = fuel_a_
+
+    ! fuel properties
+    fuel_m = fuel_m_
+    fuel_c = fuel_c_
     
   end subroutine read_input_xml
 

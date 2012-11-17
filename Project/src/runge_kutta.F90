@@ -128,7 +128,7 @@ contains
 
       ! post timestep routine
       call post_timestep(t, y, hdid)
-
+read*
     end do
 
     ! clean up objects

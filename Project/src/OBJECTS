@@ -17,6 +17,7 @@ loss_operator.o \
 main.o \
 material_header.o \
 math.o \
+nordheim_fuchs.o \
 operator_header.o \
 output.o \
 pke_header.o \

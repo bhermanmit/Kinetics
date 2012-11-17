@@ -106,9 +106,15 @@ module global
 
   logical :: var_ts = .true.
 
-!-initial power and temperatures
+!-initial power, temperatures
 
   real(8) :: power
   real(8) :: fuel_T
+
+!-fuel properties
+
+  real(8) :: fuel_a ! temperature reactivity coefficient
+  real(8) :: fuel_c ! specific heat capacity
+  real(8) :: fuel_m ! mass of fuel
 
 end module global

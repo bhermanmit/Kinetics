@@ -1,6 +1,6 @@
 cmfd_execute.o: power_iter.o
 cmfd_execute.o: kinetics_solver.o
-cmfd_execute.o: math.o
+cmfd_execute.o: nordheim_fuchs.o
 cmfd_execute.o: output.o
 cmfd_execute.o: point_kinetics.o
 
@@ -69,6 +69,12 @@ main.o: finalize.o
 main.o: timing.o
 
 material_header.o: constants.o
+
+nordheim_fuchs.o: constants.o
+nordheim_fuchs.o: global.o
+nordheim_fuchs.o: implicit_euler.o
+nordheim_fuchs.o: output.o
+nordheim_fuchs.o: runge_kutta.o
 
 output.o: constants.o
 output.o: global.o
