@@ -44,3 +44,6 @@ HW4/src/xml-fortran/xmlreader
 *.bin
 *.info
 fort*
+power*
+time*
+output*
