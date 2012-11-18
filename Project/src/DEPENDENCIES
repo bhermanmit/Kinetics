@@ -1,8 +1,9 @@
-cmfd_execute.o: power_iter.o
 cmfd_execute.o: kinetics_solver.o
 cmfd_execute.o: nordheim_fuchs.o
 cmfd_execute.o: output.o
+cmfd_execute.o: pk_feedback.o
 cmfd_execute.o: point_kinetics.o
+cmfd_execute.o: power_iter.o
 
 cmfd_header.o: geometry_header.o
 cmfd_header.o: material_header.o
@@ -80,6 +81,12 @@ output.o: constants.o
 output.o: global.o
 output.o: hdf5_interface.o
 output.o: string.o
+
+pk_feedback.o: constants.o
+pk_feedback.o: global.o
+pk_feedback.o: implicit_euler.o
+pk_feedback.o: output.o
+pk_feedback.o: runge_kutta.o
 
 point_kinetics.o: constants.o
 point_kinetics.o: global.o

@@ -68,5 +68,13 @@
   <variable name="fuel_a_"   tag="fuel_a"   type="double" default="-2.5e-5" />
   <variable name="fuel_c_"   tag="fuel_c"   type="double" default="312" />
   <variable name="fuel_m_"   tag="fuel_m"   type="double" default="148.3" />
+  <variable name="cool_T_"   tag="cool_T"   type="double" default="559" />
+  <variable name="cool_a_"   tag="cool_a"   type="double" default="-25e-5" />
+  <variable name="cool_c_"   tag="cool_c"   type="double" default="5827" />
+  <variable name="cool_m_"   tag="cool_m"   type="double" default="20.4" />
+  <variable name="hA_"       tag="hA"       type="double" default="14663" />
+  <variable name="m_dot_"    tag="m_dot"    type="double" default="24.1" />
+  <variable name="Tin_"      tag="Tin"      type="double" default="559" />
+  <variable name="P_frac_"    tag="P_frac"   type="double" default="0.05" />
 
 </template>

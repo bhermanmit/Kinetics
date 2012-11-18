@@ -8,6 +8,7 @@ module constants
 
   real(8), parameter :: ZERO = 0.0_8
   real(8), parameter :: ONE  = 1.0_8
+  real(8), parameter :: TWO  = 2.0_8
 
 !-Files
 

@@ -110,11 +110,25 @@ module global
 
   real(8) :: power
   real(8) :: fuel_T
+  real(8) :: cool_T
 
 !-fuel properties
 
   real(8) :: fuel_a ! temperature reactivity coefficient
   real(8) :: fuel_c ! specific heat capacity
   real(8) :: fuel_m ! mass of fuel
+
+!-coolant properties
+
+  real(8) :: cool_a ! temperature reactivity coefficient
+  real(8) :: cool_c ! specific heat capacity
+  real(8) :: cool_m ! mass of coolant
+
+!-other properaties of fuel-coolant system
+
+  real(8) :: hA     ! effective heat transfer from fuel to coolant
+  real(8) :: m_dot  ! mass flow rate of coolant
+  real(8) :: Tin    ! inlet temperature of coolant
+  real(8) :: P_frac ! fraction of power deposited directly to COOLANT
 
 end module global

@@ -21,6 +21,7 @@ nordheim_fuchs.o \
 operator_header.o \
 output.o \
 pke_header.o \
+pk_feedback.o \
 point_kinetics.o \
 power_iter.o \
 prod_operator.o \

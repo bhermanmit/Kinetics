@@ -23,6 +23,7 @@ contains
     use kinetics_solver,  only: kinetics_execute
     use nordheim_fuchs,   only: run_nordheimfuchs
     use output,           only: header
+    use pk_feedback,      only: run_pkfeedback
     use point_kinetics,   only: run_pkinetics 
     use power_iter,       only: power_execute
 
@@ -53,6 +54,10 @@ contains
       case('nordfuchs')
 
         call run_nordheimfuchs()
+
+      case('pk_feedback')
+
+        call run_pkfeedback()
 
       case DEFAULT
         message = 'Calculation Mode not Supported!'

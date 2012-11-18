@@ -68,12 +68,9 @@ contains
     itol = itol_
 
     ! get time info if running kinetics
-    if (trim(mode) == 'kinetics' .or. trim(mode) == 'point_kinetics' &
-                                 .or. trim(mode) == 'nordfuchs') then
-      nt = nt_
-      time = time_
-      dt = time / dble(nt)
-    end if
+    nt = nt_
+    time = time_
+    dt = time / dble(nt)
 
     ! read in geometry indices
     geometry % ncx = geometry_ % nx
@@ -253,34 +250,39 @@ contains
     end do
 
     ! read in point kinetics data
-    if (trim(mode) == 'point_kinetics' .or. trim(mode) == 'nordfuchs') then
+    pke % n = size(pke_ % rho)
 
-      ! read in size
-      pke % n = size(pke_ % rho)
+    ! allocate object
+    call allocate_pke_type(pke)
 
-      ! allocate object
-      call allocate_pke_type(pke)
+    ! save data
+    pke % rho = pke_ % rho
+    pke % time = pke_ % time
 
-      ! save data
-      pke % rho = pke_ % rho
-      pke % time = pke_ % time
-
-      ! variable time step for rk4
-      var_ts = var_ts_
-
-    end if      
+    ! variable time step for rk4
+    var_ts = var_ts_
 
     ! read in initial power and temp
     power = power_
     fuel_T = fuel_T_
-
-    ! read in reactivity coeffs
-    fuel_a = fuel_a_
+    cool_T = cool_T_
 
     ! fuel properties
+    fuel_a = fuel_a_
     fuel_m = fuel_m_
     fuel_c = fuel_c_
-    
+
+    ! coolant properites
+    cool_a = cool_a_
+    cool_m = cool_m_
+    cool_c = cool_c_
+
+    ! other properties
+    m_dot  = m_dot_
+    Tin    = Tin_
+    hA     = hA_
+    P_frac = P_frac_
+
   end subroutine read_input_xml
 
 end module input_xml 
