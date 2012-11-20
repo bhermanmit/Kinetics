@@ -16,6 +16,7 @@
 \usepackage{xcolor}
 \usepackage{tikz}
 \usepackage{tikz-qtree}
+\usepackage{multicol}
 
 \usetheme{Berlin}
 \usecolortheme{beaver}
@@ -34,6 +35,7 @@
 % \beamerdefaultoverlayspecification{<+->}
 
 \renewcommand{\algorithmicforall}{\textbf{for each}}
+\renewcommand{\algorithmicindent}{0.2cm}
 
 \usenavigationsymbolstemplate{}
 
@@ -221,12 +223,13 @@
 \end{frame}
 
 \begin{frame}{Rosenbrock equations --- nonautonomous form (III)}
+  \label{slide:nonautonomous}
   \begin{itemize}
   \item<1-> Substituting $k_{i,t}$ into the first equations:
   \end{itemize}
   \begin{align*}
     \mathbf{k}_{i,y} = &  h\mathbf{f}_y \left(t_n + h\sum_{j=1}^{i-1}a_{ij},\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j,y}\right) \\
-                                + & h\mathbb{J}_{yy}\sum_{j=1}^i c_{ij}\mathbf{k}_{j,y}  + \mathbf{J}_{yt}h\sum_{j=1}^i c_{ij}
+                                + & h\mathbb{J}_{yy}\sum_{j=1}^i c_{ij}\mathbf{k}_{j,y}  + h^2\mathbf{J}_{yt}\sum_{j=1}^i c_{ij}
   \end{align*}
   \begin{itemize}
   \item We drop the $y$ subscripts and can make the following definitions: 
@@ -239,7 +242,7 @@
 \begin{frame}{Rosenbrock equations --- nonautonomous form (IV)}
   \begin{equation}
     \nonumber \mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
-                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + b_ih\frac{d\mathbf{f}}{dt}
+                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt}
   \end{equation}
   \begin{equation}
     \nonumber \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i
@@ -501,7 +504,7 @@
   \end{itemize}
   \begin{equation}
     \nonumber \mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
-                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + b_ih\frac{d\mathbf{f}}{dt}
+                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt}
   \end{equation}
   \begin{equation}
     \nonumber \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i
@@ -531,7 +534,7 @@
   \item<1-> For $\Phi_i\left(t\right)$, we construct recursive formulas using the following notation for the types of roots in trees
       \begin{itemize}
       \item<1-> Type A: $a_{jk}$ whenver a multiple-branched node $j$ is directly connected with an upper node $k$
-      \item<1-> Type B: $c_{jk}$ whenever a single-branched node $j$ is directly connected with an upper node $k$
+      \item<1-> Type B: $\beta_{jk}$ whenever a single-branched node $j$ is directly connected with an upper node $k$
       \end{itemize}
   \end{itemize}
   \begin{center}
@@ -553,31 +556,37 @@
 \end{frame}
 
 \begin{frame}{Example 1 --- Setting up order equation of a tree}
+  \label{slide:tree}
   \begin{columns}[T]
   \column{0.75\linewidth}
   \begin{itemize}
   \item<1-> Consider the tree to the right
-  \item<1-> Each node is labeled with a letter
+ % \item<1-> Each node is labeled with a letter
   \item<1-> Node $k$ is Type A while $i$, $j$ and $m$ are Type B
   \item<1-> The order condition is:
   \end{itemize}
   \begin{equation}
     \nonumber
-    \Phi_i\left(t\right) = c_{ij}c_{jk}a_{kl}a_{km}c_{mn}
+    \Phi_i\left(t\right) = \beta_{ij}\beta_{jk}a_{kl}a_{km}\beta_{mn}
   \end{equation}\vspace{-0.5cm}
   \begin{itemize}
-  \item<1-> To simplify expressions can define:
+  \item<1-> Coefficients are related to one another with:
   \end{itemize}
   \begin{equation}
     \nonumber
-    a_i = \sum_j a_{ij} \qquad c_i = \sum_j c_{ij}
-  \end{equation}\vspace{-0.5cm}
+    a_i = \sum_j a_{ij} \qquad \beta_i = \sum_j \beta_{ij} \qquad \beta_{ij} = a_{ij} + c_{ij}
+  \end{equation} \vspace{-0.4cm}
+  \begin{equation}
+    \nonumber
+    \gamma \equiv c_{ii} \qquad a_{ij} = c_{ij}=0 \quad i \le j
+  \end{equation}
+  \vspace{-0.5cm}
   \begin{itemize}
   \item<1-> Summation can be performed over maximal nodes $l$ and $n$:
   \end{itemize}
   \begin{equation}
     \nonumber
-    \Phi_i\left(t\right) = c_{ij}c_{jk}a_{k}a_{km}c_{m}
+    \Phi_i\left(t\right) = \beta_{ij}\beta_{jk}a_{k}a_{km}\beta_{m}
   \end{equation}
   \column{0.25\linewidth}
   \vspace{0.8cm}
@@ -689,7 +698,7 @@
   \item<1->  The order condition for this tree is:
   \end{itemize}
   \begin{align*}
-    \sum_{i,j,k,m} m_{i}c_{ij}c_{jk}a_{k}a_{km}c_{m} = &  \frac{1}{240} - \frac{2\gamma}{40} - \frac{\gamma}{60} + \frac{2\gamma^2}{12} + \frac{1\gamma^2}{8} - \frac{\gamma^3}{3} \\ 
+    \sum_{i,j,k,m} m_{i}\beta_{ij}\beta_{jk}a_{k}a_{km}\beta_{m} = &  \frac{1}{240} - \frac{2\gamma}{40} - \frac{\gamma}{60} + \frac{2\gamma^2}{12} + \frac{1\gamma^2}{8} - \frac{\gamma^3}{3} \\ 
       = & \frac{1}{240} - \frac{\gamma}{15} + \frac{7\gamma^2}{24} - \frac{\gamma^3}{3}
   \end{align*}
 \end{frame}
@@ -753,35 +762,458 @@
   \begin{enumerate}
   \item<1-> $\sum m_i = 1 = p_1\left(\gamma\right)$
   \vfill
-  \item<1-> $\sum m_ic_i = 1/2 - \gamma = p_2\left(\gamma\right)$
+  \item<1-> $\sum m_i\beta_i = 1/2 - \gamma = p_2\left(\gamma\right)$
   \vfill
   \item<1-> $\sum m_ia_i^2 = 1/3 = p_3\left(\gamma\right)$
   \vfill
-  \item<1-> $\sum m_ic_{ij}c_j = 1/6 - \gamma + \gamma^2 = p_4\left(\gamma\right)$
+  \item<1-> $\sum m_i\beta_{ij}\beta_j = 1/6 - \gamma + \gamma^2 = p_4\left(\gamma\right)$
   \vfill
   \item<1-> $\sum m_ia_i^3 = 1/4 = p_5\left(\gamma\right)$
   \vfill
-  \item<1-> $\sum m_ia_ia_{ij}c_j = 1/8 - \gamma/3 = p_6\left(\gamma\right)$
+  \item<1-> $\sum m_ia_ia_{ij}\beta_j = 1/8 - \gamma/3 = p_6\left(\gamma\right)$
   \vfill
-  \item<1-> $\sum m_ic_{ij}a_j^2 = 1/12 - \gamma/3 = p_7\left(\gamma\right)$
+  \item<1-> $\sum m_i\beta_{ij}a_j^2 = 1/12 - \gamma/3 = p_7\left(\gamma\right)$
   \vfill
-  \item<1-> $\sum m_ic_{ij}c_{jk}c_{k} = 1/24 - \gamma/2 + 3\gamma^2/2 - \gamma^3 = p_8\left(\gamma\right)$
+  \item<1-> $\sum m_i\beta_{ij}\beta_{jk}\beta_{k} = 1/24 - \gamma/2 + 3\gamma^2/2 - \gamma^3 = p_8\left(\gamma\right)$
   \end{enumerate}
+\end{frame}
+
+\begin{frame}{System of Equations}
+  \begin{footnotesize}
+  \begin{enumerate}
+   \item<1-> $m_1 + m_2 + m_3 + m_4 = p_1\left(\gamma\right)$
+   \item<1-> $m_1\beta_1 + m_2\beta_2 + m_3\beta_3 + m_4\beta_4 = p_2\left(\gamma\right)$
+   \item<1-> $m_1a^2_1 + m_2a^2_2 + m_3a^2_3 + m_4a^2_4 = p_3\left(\gamma\right)$
+   \item<1-> $m_2\beta_{21}\beta_1 + m_3\beta_{31}\beta_1 + m_3\beta_{32}\beta_2 + m_4\beta_{41}\beta_1 + m_4\beta_{42}\beta_2 + m_4\beta_{43}\beta_3 = p_4\left(\gamma\right)$
+   \item<1-> $m_1a^3_1 + m_2a^3_2 + m_3a^3_3 + m_4a^3_4 = p_5\left(\gamma\right)$
+   \item<1-> $m_2a_2a_{21}\beta_1 + m_3a_3a_{31}\beta_1 + m_3a_3a_{32}\beta_2 + m_4a_4a_{41}\beta_1 + m_4a_4a_{42}\beta_2 + m_4a_4a_{43}\beta_3 = p_6\left(\gamma\right)$
+   \item<1-> $m_2\beta_{21}a_1^2 + m_3\beta_{31}a_1^2 + m_3\beta_{32}a_2^2 + m_4\beta_{41}a_1^2 + m_4\beta_{42}a_2^2 + m_4\beta_{43}a_3^2 = p_7\left(\gamma\right)$
+   \item<1-> $m_3\beta_{32}\beta_{21}\beta_1 + m_4\beta_{42}\beta_{21}\beta_1 + m_4\beta_{43}\beta_{31}\beta_1 + m_4\beta_{43}\beta_{32}\beta_2 = p_8\left(\gamma\right)$
+  \end{enumerate}
+  \end{footnotesize}
+  \hrule \onslide<2>{
+  \vspace{0.06cm}
+  \begin{minipage}[T]{0.3\linewidth}
+    \vspace{-0.5cm}
+    \begin{itemize}
+      \item \small{By definition:}
+    \end{itemize}
+    \begin{equation}
+      \nonumber
+       a_1 = \beta_1 = 0
+    \end{equation}
+  \end{minipage}\hfill
+  \begin{minipage}[T]{0.7\linewidth}
+    \vspace{0.14cm}
+    \begin{itemize}
+      \item \small{We choose the following:}
+    \end{itemize}
+    \begin{equation}
+      \nonumber
+       a_3 = a_4 \quad a_{41} = a_{31} \quad a_{42} = a_{32} \quad a_{43} = 0
+    \end{equation}
+    \alert{\small{We get a 4 stage method with 3 function evals.}}
+  \end{minipage}}
+\end{frame}
+
+\begin{frame}{Simplified System of Equations}
+  \begin{enumerate}
+   \item<1-> $m_1 + m_2 + m_3 + m_4 = p_1\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_2\beta_2 + m_3\beta_3 + m_4\beta_4 = p_2\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_2a^2_2 + m_3a^2_3 + m_4a^2_3 = p_3\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_3\beta_{32}\beta_2 + m_4\beta_{42}\beta_2 + m_4\beta_{43}\beta_3 = p_4\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_2a^3_2 + m_3a^3_3 + m_4a^3_3 = p_5\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_3a_3a_{32}\beta_2 + m_4a_3a_{32}\beta_2 = p_6\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_3\beta_{32}a_2^2 + m_4\beta_{42}a_2^2 + m_4\beta_{43}a_3^2 = p_7\left(\gamma\right)$
+   \vfill
+   \item<1-> $m_4\beta_{43}\beta_{32}\beta_2 = p_8\left(\gamma\right)$
+  \end{enumerate}
+  \vfill
+  \begin{center}
+    \alert{We have 8 equations and 14 unknowns!}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Embedded third order solution}
+  \begin{itemize}
+    \item We can constrain the system further by creating equations that represent third order solution
+    \begin{itemize}
+      \item $\hat{\mathbf{y}} = \hat{m_1}\mathbf{k}_1 + \hat{m_2}\mathbf{k}_2 + \hat{m_3}\mathbf{k}_3$
+    \end{itemize}
+    \vfill
+    \item We need the third order solution for truncation error estimation as well
+    \vfill
+    \begin{enumerate}
+     \setcounter{enumi}{8}
+     \item<1-> $\hat{m}_1 + \hat{m}_2 + \hat{m}_3 = p_1\left(\gamma\right)$ \vfill
+     \item<1-> $\hat{m}_2\beta_2 + \hat{m}_3\beta_3 = p_2\left(\gamma\right)$\vfill
+     \item<1-> $\hat{m}_2a^2_2 + \hat{m}_3a^2_3 = p_3\left(\gamma\right)$ \vfill
+     \item<1-> $\hat{m}_3\beta_{32}\beta_2 = p_4\left(\gamma\right)$ \vfill
+    \end{enumerate}
+    \vfill
+    \item<1-> We now have 12 equations, but 17 unknowns
+    \vfill
+    \item<1-> Good news is that we need 5 more equations instead of 6!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Free parameters and higher order equations}
+  \begin{itemize}
+   \item<1-> Parameter $\gamma$ is free to choose and has stability impact
+   \item<1-> Rest of equations are used to satisfy higher order equations:
+  \end{itemize}
+  \begin{enumerate}
+   \setcounter{enumi}{12}
+   \item<1-> $\alpha_2 = 2\gamma$
+   \item<1-> $\alpha_3 = \left(1/5 - 1/4\alpha_2\right)/\left(1/4 - 1/3\alpha_2\right)$
+   \item<1-> $c_3 = 0$
+   \item<1-> $m_4\beta_{42}\alpha_2^3 + m_4\beta_{43}\alpha_3^3 = 1/20 - \gamma/4 = p_{14}\left(\gamma\right)$
+   \item<1-> Choose $\gamma$
+  \end{enumerate}
+  \begin{itemize}
+   \item<1-> We have 4 more equations here
+   \item<1-> By choosing $\gamma$, we get the 5th equation
+  \end{itemize}
+  \begin{center}
+    \alert{We have 17 unknowns and 17 equations!} 
+  \end{center}
+\end{frame}
+\begin{frame}{Choosing $\gamma$}
+  \begin{itemize}
+    \item Kaps and Rentrop were really the first ones to compute coefficients and develop an algorithm \vfill
+    \item There are two main sets of coefficients: \vfill
+    \begin{enumerate}
+      \item First by Kaps and Rentrop --- $\gamma = 0.231$
+      \item Later revised by Shampine --- $\gamma = 0.5$
+    \end{enumerate}
+    \item Shampine notes that Kaps and Rentrop parameters are barely stable and that the 3rd order embedded solution is not stable at infinity\vfill
+    \item Shampine proves that both 4th order and 3rd order solutions are stable at infinity
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{4th order GRK coefficients}
+  \begin{itemize}
+   \item Solving the 17 equations with $\gamma = 0.5$:
+  \end{itemize}
+  \begin{equation}
+    \begin{array}{cccc}
+      \nonumber
+      \color{blue} m_1 = 8/27 & \color{blue} m_ 2 = 1/8 & \color{blue} m_3 = 0 & \color{blue} m_4 = 125/216 \\
+      \color{black}\hat{m}_1 = 16/27 & \hat{m}_ 2 = 7/24 & \hat{m}_3 = 25/216 & a_2 = 1 \\
+      a_3 = 3/5 & \color{blue}{a_{32} = 3/25} & \beta_2 = -1 & \beta_3 = 63/25 \\
+      \beta_4 = 27/125 & \color{blue}\beta_{32} = 18/25 & \color{blue} \beta_{42} = -27/250 & \color{blue}\beta_{43} = -1/10
+    \end{array}
+  \end{equation}
+  \begin{itemize}
+   \item From definitions on slides \ref{slide:nonautonomous} and \ref{slide:tree}:
+  \end{itemize}
+  \color{blue}{
+  \begin{equation}
+    \begin{array}{cccc}
+      \nonumber
+      a_{21} = 1 & a_{31} = 12/25 & c_{21} = -2 & c_{31} = 33/25 \\
+      c_{32} = 3/5 & c_{41} = -7/125 & c_{42} = -57/250 & c_{43} = -1/10 \\
+      d_2 = 1 & d_3 = 3/5 & b_1 = 1/2 & b_2 = -3/2 \\
+      b_3 = 121/50
+    \end{array}
+  \end{equation}}
+  \begin{itemize}
+   \item We define $e_i \equiv m_1 - \hat{m}_i$ such that:
+  \end{itemize}
+  \begin{equation}
+    \begin{array}{cccc}
+      \nonumber
+      e_1 = -8/27 & e_2 = -1/6 & e_3 = -25/216 & e_4 = 125/216
+    \end{array}
+  \end{equation}
 \end{frame}
 
 %-------------------------------------------------------------------------------
 \section{Implementation}
 
 \begin{frame}{Numerically efficient form of Rosenbrock equations}
- 
+  \begin{itemize}
+    \item All the work goes into solving $\mathbf{k}$:
+  \end{itemize}
+  \begin{equation}
+    \nonumber 
+    \mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
+                   + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt}
+  \end{equation}
+  \begin{itemize}
+    \item Recall $\gamma\equiv c_{ii}$ and moving all $\mathbf{k}_i$ to LHS, \alert{Jacobian on both sides}:
+  \end{itemize}
+    \begin{equation}
+    \nonumber 
+    \left(\mathbb{I} - \gamma h \mathbb{J}\right)\mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
+                   + h\mathbb{J}\sum_{j=1}^{i-1} c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt}
+  \end{equation}
+  \begin{itemize}
+    \item This requires too many sparse multiplies, $\mathbf{k}^\prime_i=\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_j + \gamma\mathbf{k}_i$
+  \end{itemize}
+  \begin{equation}
+    \nonumber 
+    \left[\mathbb{I}/\left(\gamma h\right] - \mathbb{J}\right)\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
+                   + \frac{1}{h}\sum_{j=1}^{i-1} c^\prime_{ij}\mathbf{k}^\prime_{j}  + hb_i\frac{d\mathbf{f}}{dt}
+  \end{equation}
 \end{frame}
 
 \begin{frame}{Coefficients are changed to...}
+  \begin{footnotesize}
+  \begin{columns}[T]
+  \column{0.5\linewidth}
+  \begin{itemize}
+    \item $a^\prime_{21} = \frac{a_{21}}{\gamma} = 2$ \vfill
+    \item $a^\prime_{31} = \frac{a_{31}}{\gamma} - \frac{a_{32}c_{21}}{\gamma^2} = \frac{48}{25}$ \vfill
+    \item $a^\prime_{32} = \frac{a_{32}}{\gamma} = \frac{6}{25}$ \vfill
+    \item $c^\prime_{21} = \frac{c_{21}}{\gamma^2} = -8$ \vfill
+    \item $c^\prime_{31} = \frac{c_{31}}{\gamma^2} - \frac{c_{32}c_{21}}{\gamma^3} = \frac{372}{25}$ \vfill
+    \item $c^\prime_{32} = \frac{c_{32}}{\gamma^2} = \frac{12}{5}$ \vfill
+    \item $c^\prime_{41} = \frac{c_{41}}{\gamma^2} - \frac{c_{42}c_{21}}{\gamma^3} - \frac{c_{43}c_{31}}{\gamma^3} + \frac{c_{43}c_{32}c_{21}}{\gamma^4} = \frac{-112}{125}$ \vfill
+    \item $c^\prime_{42} = \frac{c_{42}}{\gamma^2} - \frac{c_{43}c_{32}}{\gamma^3} = \frac{-54}{125}$ \vfill
+    \item $c^\prime_{43} = \frac{c_{43}}{\gamma^2} = \frac{-2}{5}$ \vfill
+  \end{itemize}
+  \alert{Note:} $d$ and $b$ are unchanged.
+  \column{0.5\linewidth}
+  \begin{itemize}
+    \item $m^\prime_1 = \frac{m_1}{\gamma} - \frac{m_2c_{21}}{\gamma^2} - \frac{m_3c_{31}}{\gamma^2} + \frac{m_3c_{32}c_{21}}{\gamma^3} - \frac{m_4c_{41}}{\gamma^2} + \frac{m_4c_{42}c_{21}}{\gamma^3} + \frac{m_4c_{43}c_{31}}{\gamma^3} - \frac{m_4c_{43}c_{32}c_{21}}{\gamma^4} = \frac{19}{9}$
+    \item $m^\prime_2 = \frac{m_2}{\gamma} - \frac{m_3c_{32}}{\gamma^2} - \frac{m_4c_{42}}{\gamma^2} + \frac{m_4c_{43}c_{32}}{\gamma^3} = \frac{1}{2}$
+    \item $m^\prime_3 = \frac{m_3}{\gamma} - \frac{m_4c_{43}}{\gamma^2} = \frac{25}{108}$
+    \item $m^\prime_4 = \frac{m_4}{\gamma} = \frac{125}{108}$
+    \item $e^\prime_1 = \frac{e_1}{\gamma} - \frac{e_2c_{21}}{\gamma^2} - \frac{e_3c_{31}}{\gamma^2} + \frac{e_3c_{32}c_{21}}{\gamma^3} - \frac{e_4c_{41}}{\gamma^2} + \frac{e_4c_{42}c_{21}}{\gamma^3} + \frac{e_4c_{43}c_{31}}{\gamma^3} - \frac{e_4c_{43}c_{32}c_{21}}{\gamma^4} = \frac{17}{54}$
+    \item $e^\prime_2 = \frac{e_2}{\gamma} - \frac{e_3c_{32}}{\gamma^2} - \frac{e_4c_{42}}{\gamma^2} + \frac{e_4c_{43}c_{32}}{\gamma^3} = \frac{7}{36}$
+    \item $e^\prime_3 = \frac{e_3}{\gamma} - \frac{e_4c_{43}}{\gamma^2} = 0$
+    \item $e^\prime_4 = \frac{e_4}{\gamma} = \frac{125}{108}$
+  \end{itemize}
+  \end{columns}
+  \end{footnotesize}
+\end{frame}
 
+\begin{frame}{Equations to solve}
+  \begin{itemize}
+    \item  The general equations to solve are:
+  \end{itemize}
+    \begin{equation}
+    \nonumber 
+    \left[\mathbb{I}/\left(\gamma h\right] - \mathbb{J}\right)\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
+                   + \frac{1}{h}\sum_{j=1}^{i-1} c^\prime_{ij}\mathbf{k}^\prime_{j}  + hb_i\frac{d\mathbf{f}}{dt}
+  \end{equation}
+    \begin{equation}
+    \nonumber 
+    \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m^\prime_i\mathbf{k}^\prime_i
+  \end{equation}
+  \begin{itemize}
+    \item The 4th order Rosenbrock equations are w/ 3 function evals:
+  \end{itemize}
+  \begin{enumerate}
+    \item \scriptsize $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n, \mathbf{y}_n\right)$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_2h, \mathbf{y}_n + a^\prime_{21}\mathbf{k}^\prime_1\right) + c^\prime_{21}\mathbf{k}^\prime_1/h$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{31}\mathbf{k}^\prime_1 + c^\prime_{32}\mathbf{k}^\prime_2\right)/h$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{41}\mathbf{k}^\prime_1 + c^\prime_{42}\mathbf{k}^\prime_2 + c^\prime_{43}\mathbf{k}^\prime_3\right)/h$
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Truncation Error Estimation}
+  \begin{itemize}
+    \item At every time step, we can estimate the truncation error as:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \mathbf{T} = \left| \mathbf{y} - \hat{\mathbf{y}} \right| = \sum_{i=1}^s e_i \mathbf{k}_i
+  \end{equation}
+  \vspace{-0.3cm}
+  \begin{itemize}
+   \item This error must be scaled $\rightarrow$ divide by initial $y$ values.
+   \item We take the maximum relative error as:
+  \end{itemize}
+
+  \begin{equation}
+    \nonumber
+    \epsilon_{\mathrm{max}} = \epsilon_\mathrm{\mathrm{max}}\left(\frac{\mathbf{T}}{\mathbf{y}_n}\right)
+  \end{equation}\vspace{-0.3cm}
+  \begin{itemize}
+    \item The next timestep to take is given as (watch $\epsilon_{\mathrm{max}} \approx 0$):
+  \end{itemize}
+  
+  \begin{columns}[T]
+  \column{0.5\linewidth}
+  \vspace{-0.5cm}
+  \begin{equation}
+    \footnotesize
+    \nonumber
+    h_{next}=\begin{cases}
+    0.9h_{now}\left(\frac{\epsilon_{tol}}{\epsilon_{max}}\right)^{1/4} & \epsilon_{max}<\epsilon_{tol}\\
+    0.9h_{now}\left(\frac{\epsilon_{tol}}{\epsilon_{max}}\right)^{1/3} & \epsilon_{max}\ge\epsilon_{tol}
+    \end{cases}
+  \end{equation}
+  \column{0.5\linewidth}
+  \vspace{0.1cm}
+  \begin{itemize}
+   \footnotesize
+   \item if $h_{\mathrm{next}} > 1.5 h_{\mathrm{now}} \rightarrow h_{\mathrm{next}} = 1.5h_{\mathrm{now}}$
+   \item if $h_{\mathrm{next}} < 0.5 h_{\mathrm{now}} \rightarrow h_{\mathrm{next}} = 0.5h_{\mathrm{now}}$
+  \end{itemize}
+  \end{columns}
+  \vspace{-0.15cm}
+  \begin{center}
+    \alert{Note:} Need to repeat timestep if $\epsilon_{\mathrm{max}} > \epsilon_{\mathrm{tol}}$.
+  \end{center}
+\end{frame}
+
+\begin{frame}{4th order GRK algorithm}
+\small
+\begin{algorithmic}[1]
+  \State Evaluate $\mathbf{f}_1$ and $\mathbb{J}\rightarrow$ \alert{You supply both routines for $\mathbf{f}$ and $\mathbb{J}$}
+  \For{\# of trial timesteps}
+    \State Construct left hand side matrix, $\mathbb{A} = \left[1/\left(h\gamma\right) - \mathbb{J}\right]$
+    \State Construct first right hand side vector, $\mathbf{RHS}_1$
+    \State Solve $\mathbb{A}\mathbf{k}_1=\mathbf{RHS}_1$
+    \State Get intermediate $t$ and $\mathbf{y}$ and evaluate $\mathbf{f}_2$
+    \State Construct first right hand side vector, $\mathbf{RHS}_2$
+    \State Solve $\mathbb{A}\mathbf{k}_2=\mathbf{RHS}_2$
+    \State Get intermediate $t$ and $\mathbf{y}$ and evaluate $\mathbf{f}_3$
+    \State Construct first right hand side vector, $\mathbf{RHS}_3$
+    \State Solve $\mathbb{A}\mathbf{k}_3=\mathbf{RHS}_3$
+    \State Construct first right hand side vector, $\mathbf{RHS}_4$
+    \State Solve $\mathbb{A}\mathbf{k}_4=\mathbf{RHS}_4$
+    \State Get final estimate of $\mathbf{y}$ and truncation error, $\mathbf{T}$
+    \State Accept or reject truncation error and get new timestep
+  \EndFor
+\end{algorithmic}
+\end{frame}
+
+\begin{frame}{Automatic timestep size adjustment algorithm}
+\small
+  \begin{itemize}
+    \item The below algorithm is taken from numerical recipes
+    \item We define a new parameter $\mathrm{ERRCON}$ as the ratio from previous equations:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \mathrm{ERRCON} \equiv \frac{\epsilon_{\mathrm{max}}}{\epsilon_{\mathrm{tol}}} = \left(\frac{1.5}{0.9}\right)^4
+  \end{equation}
+  \begin{itemize}
+   \item In Numerical Recipes they define:
+  \end{itemize}
+  \begin{equation}
+   \nonumber
+   \hspace{-0.5cm} \footnotesize \mathrm{SAFETY} = 0.9 \quad \mathrm{GROW} = 1.5 \quad \mathrm{PGROW} = 1/4 \quad \mathrm{SHRNK} = 0.5 \quad \mathrm{PSHRNK} = 1/3
+  \end{equation} \hrule
+  \vspace{-0.1cm}
+\begin{multicols}{2}
+\footnotesize
+\begin{algorithmic}[1]
+  \If{$\epsilon_{\mathrm{max}} \le 1$}
+    \If{$\epsilon_{\mathrm{max}} > \mathrm{ERRCON}$}
+      \State $h_{\mathrm{next}} = \mathrm{SAFETY}\cdot h \cdot \left(\frac{\epsilon_{\mathrm{max}}}{\epsilon_{\mathrm{tol}}}\right)^\mathrm{PGROW}$
+    \Else
+      \State $h_{\mathrm{next}} = \mathrm{GROW}\cdot h \rightarrow$ \alert{done!}
+    \EndIf
+  \Else
+    \State $h_{\mathrm{next}} = \mathrm{SAFETY}\cdot h \cdot \left(\frac{\epsilon_{\mathrm{max}}}{\epsilon_{\mathrm{tol}}}\right)^\mathrm{PSHRNK}$
+    \State $h = \mathrm{max}\left(h_{\mathrm{next}},SHRNK\cdot h\right)\rightarrow$ \alert{redo...}
+  \EndIf
+\end{algorithmic}
+\end{multicols}
 \end{frame}
 
 %-------------------------------------------------------------------------------
 \section{Examples}
+
+\begin{frame}{Point Kinetics Model (PK)}
+  \begin{itemize}
+   \item Setting up $\mathbf{y}^\prime\left(t\right) = \mathbf{f}\left(t,\mathbf{y}\left(t\right)\right)$:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \frac{d}{dt}\left[\begin{array}{c}
+                        P\left(t\right) \\
+                        C_i\left(t\right) \\
+                        \vdots
+                      \end{array}\right] =
+                \left[\begin{array}{c}
+                        \frac{\rho\left(t\right) - \beta}{\Lambda}P\left(t\right) + \sum_i\lambda_iC_i\left(t\right) \\
+                        \frac{\beta_i}{\Lambda}P\left(t\right) - \lambda_iC_i\left(t\right) \\
+                        \vdots
+                      \end{array}\right]
+  \end{equation}
+  \begin{itemize}
+    \item Setting up the Jacobian terms:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \mathbb{J} = \left[\begin{array}{ccc}
+                         \frac{\rho\left(t\right) - \beta}{\Lambda} & \lambda_i & \hdots \\
+                         \frac{\beta_i}{\Lambda} & -\lambda_i \\
+                         \vdots & & \ddots
+                       \end{array}\right]
+     \qquad
+     \frac{d\mathbf{f}}{dt} = \left[\begin{array}{c}
+                        \frac{d\rho}{dt}\frac{P\left(t\right)}{\Lambda} \\
+                        0 \\
+                        \vdots
+                      \end{array}\right]
+  \end{equation}
+\end{frame}
+
+\begin{frame}{Constant reactivity results with variable time step}
+  \includegraphics[scale=0.45]{./figs/pk_rho_const.pdf}
+  \includegraphics[scale=0.45]{./figs/pkts_rho_const.pdf}
+  \vfill
+  \begin{itemize}
+   \item Simple prompt jump then asymptotic increase
+   \item No large gradients, time step just grows
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Convergence rate with constant time step constant reactivity}
+  \centering\includegraphics[scale=0.7]{./figs/order_rho_const.pdf}
+  \vfill
+  \begin{itemize}
+   \item We see that implicit Euler is first order and GKR is fourth order
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Ramp reactivity results with variable time step}
+  \vfill
+  \includegraphics[scale=0.45]{./figs/pk_rho_ramp.pdf}
+  \includegraphics[scale=0.45]{./figs/pkts_rho_ramp.pdf}
+  \vfill
+\end{frame}
+
+\begin{frame}{Convergence rate with constant time step ramp reactivity}
+  \centering\includegraphics[scale=0.7]{./figs/order_rho_ramp.pdf}
+  \vfill
+  \begin{itemize}
+   \item Approaches 4th order?
+   \item Numerical precision issues?  
+   \end{itemize}
+\end{frame}
+
+\begin{frame}{Varying reactivity results with variable time step}
+  \includegraphics[scale=0.44]{./figs/pk_rho_trap.pdf}
+  \includegraphics[scale=0.44]{./figs/pkts_rho_trap.pdf}
+  \vfill
+  \begin{itemize}
+   \item Time step shrinks where large power gradients occur
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Convergence rate with constant time step ramp reactivity}
+  \begin{center}
+  \includegraphics[scale=0.7]{./figs/order_rho_trap.pdf}
+  \end{center}
+    \begin{itemize}
+   \item At 4s we are better than 4th order
+   \item Drop down to 3rd order at 50s
+   \end{itemize}
+\end{frame}
 
 \begin{frame}{Nordheim-Fuchs Model (NFM)}
   \begin{itemize}
@@ -799,7 +1231,7 @@
                       \end{array}\right]
   \end{equation}
   \begin{itemize}
-   \item The reactivity at any time is;
+   \item The reactivity at any time is:
   \end{itemize}
   \begin{equation}
     \nonumber
@@ -814,11 +1246,16 @@
                          \frac{\rho_0 - \alpha_f\left(T_f\left(t\right) - T_{f,i}\right) - \beta}{\Lambda} & -\frac{\alpha_f}{\Lambda}P\left(t\right) \\
                          \frac{1}{m_fc_f} & 0
                        \end{array}\right]
+     \qquad
+     \frac{d\mathbf{f}}{dt} = \left[\begin{array}{c}
+                        0 \\
+                        0 \\
+                        \vdots
+                      \end{array}\right]
   \end{equation}
 \end{frame}
 
 \begin{frame}{NFM has an analytic solution}
-
   \begin{equation}
     \nonumber
     \omega = \frac{\rho_0 - \beta}{\Lambda}
@@ -842,12 +1279,14 @@
   \begin{center}
     \alert{Note:} In NFM model, peak power is at time 0 seconds.
   \end{center}
-
 \end{frame}
-
 
 \begin{frame}{NFM Results --- numerical results agree well}
   \includegraphics[scale=0.9]{./figs/nordheimfuchs.pdf}
+\end{frame}
+
+\begin{frame}{Point Kinetics w/ Feedback}
+  \includegraphics[scale=0.9]{./figs/pkfeedback.pdf}
 \end{frame}
 
 %--------------------------------------------------------------------------------
