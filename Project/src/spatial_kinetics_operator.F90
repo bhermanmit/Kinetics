@@ -1,14 +1,15 @@
-module loss_operator
+module spatial_kinetics_operator
 
 !-module references
 
+  use global,           only: mpi_err
   use operator_header,  only: operator_type
 
 !-module options
 
   implicit none
   private
-  public :: init_M_operator,build_loss_matrix,destroy_M_operator, print_M_operator
+  public :: init_K_operator,build_kinetics_matrix,destroy_K_operator
 
 !-module external references
 
@@ -20,31 +21,30 @@ module loss_operator
   integer  :: ny   ! maximum number of y cells
   integer  :: nz   ! maximum number of z cells
   integer  :: ng   ! maximum number of groups
-  integer  :: ierr ! petsc error code
 
 contains
 
 !===============================================================================
-! INIT_M_OPERATOR
+! INIT_K_OPERATOR
 !===============================================================================
 
-  subroutine init_M_operator(this)
+  subroutine init_K_operator(this)
 
     type(operator_type) :: this
 
     ! get indices
-    call get_M_indices(this)
+    call get_K_indices(this)
 
     ! get preallocation
-    call preallocate_loss_matrix(this)
+    call preallocate_kinetics_matrix(this)
 
-  end subroutine init_M_operator
+  end subroutine init_K_operator
 
 !===============================================================================
-! GET_M_INDICES
+! GET_K_INDICES
 !===============================================================================
 
-  subroutine get_M_indices(this)
+  subroutine get_K_indices(this)
 
     use global, only: geometry 
 
@@ -62,13 +62,13 @@ contains
     ! calculate dimensions of matrix
     this%n = nx*ny*nz*ng
 
-  end subroutine get_M_indices
+  end subroutine get_K_indices
 
 !===============================================================================
-! PREALLOCATE_LOSS_MATRIX
+! PREALLOCATE_KINETICS_MATRIX
 !===============================================================================
 
-  subroutine preallocate_loss_matrix(this)
+  subroutine preallocate_kinetics_matrix(this)
 
     type(operator_type) :: this
 
@@ -94,8 +94,8 @@ contains
     integer :: scatt_mat_idx ! matrix index for h-->g scattering terms
 
     ! get rank and max rank of procs
-    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,ierr)
-    call MPI_COMM_SIZE(MPI_COMM_WORLD,sizen,ierr)
+    call MPI_COMM_RANK(MPI_COMM_WORLD,rank,mpi_err)
+    call MPI_COMM_SIZE(MPI_COMM_WORLD,sizen,mpi_err)
 
     ! get local problem size
     n = this%n
@@ -201,17 +201,18 @@ contains
     allocate(this % val(sum(this % d_nnz) + sum(this % o_nnz)))
     allocate(this % row_csr(row_end - row_start + 2))
     allocate(this % diag(row_end - row_start + 1))
-
-  end subroutine preallocate_loss_matrix
+!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
+!                                  this%col,this%val,this%oper,mpi_err)
+  end subroutine preallocate_kinetics_matrix
 
 !===============================================================================
-! BUILD_LOSS_MATRIX creates the matrix representing loss of neutrons
+! BUILD_KINETICS_MATRIX creates the matrix representing loss of neutrons
 !===============================================================================
 
-  subroutine build_loss_matrix(this)
+  subroutine build_kinetics_matrix(this)
 
-    use constants,        only: ONE
-    use global,           only: geometry, material, mpi_err, adjoint
+    use constants,        only: ONE, vel, beta
+    use global,           only: geometry, material, mpi_err, cmfd
     use material_header,  only: material_type
 
     type(operator_type) :: this
@@ -288,12 +289,10 @@ contains
         ! define (x,y,z) and (-,+) indices
         xyz_idx = int(ceiling(real(l)/real(2)))  ! x=1, y=2, z=3
         dir_idx = 2 - mod(l,2) ! -=1, +=2
-        if (trim(adjoint) == 'math') dir_idx = mod(dir_idx,2) + 1
 
         ! calculate spatial indices of neighbor
         neig_idx = (/i,j,k/)                ! begin with i,j,k
         shift_idx = -2*mod(l,2) +1          ! shift neig by -1 or +1
-        if (trim(adjoint) == 'math') shift_idx = -1*shift_idx ! change neighbor adjoint in math def
         neig_idx(xyz_idx) = shift_idx + neig_idx(xyz_idx)
 
         ! check for global boundary
@@ -349,10 +348,10 @@ contains
       jnet = (jo(2) - jo(1))/hxyz(1) + (jo(4) - jo(3))/hxyz(2) +               &
      &       (jo(6) - jo(5))/hxyz(3)
 
-      if (trim(adjoint) == 'math') jnet = -ONE*jnet
-
       ! calculate loss of neutrons
-      val = jnet + m % totalxs(g) - m % scattxs(g,g)
+      val = -jnet - m % totalxs(g) + m % scattxs(g,g) + &
+            m % nfissxs(g,g)*(ONE - sum(beta))/cmfd % kcrit
+      val = vel(g) * vel
 
       ! record diagonal term
       this % row(kount) = irow + 1
@@ -372,11 +371,8 @@ contains
         call indices_to_matrix(h,i,j,k,scatt_mat_idx)
 
         ! record value in matrix (negate it)
-        if ((trim(adjoint) == 'math') .or. (trim(adjoint) == 'physical')) then
-          val = -m % scattxs(h,g)
-        else
-          val = -m % scattxs(g,h)
-        end if
+        val = m % scattxs(g,h) + m % fissvec(g,h)
+        val = val * vel
         this % row(kount) = irow + 1
         this % col(kount) = scatt_mat_idx
         this % val(kount) = val
@@ -393,8 +389,13 @@ contains
     call csr_sort_vectors(this)
     this % row_csr = this % row_csr - 1
     this % col = this % col - 1
+!   call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,this%n,this%n,this%row_csr,&
+!                                  this%col,this%val,this%oper,mpi_err)
 
-  end subroutine build_loss_matrix
+    ! print out operator to file
+!   call print_K_operator(this)
+
+  end subroutine build_kinetics_matrix
 
 !===============================================================================
 ! INDICES_TO_MATRIX takes (x,y,z,g) indices and computes location in matrix 
@@ -480,47 +481,44 @@ contains
   end subroutine csr_sort_vectors
 
 !===============================================================================
-! PRINT_M_OPERATOR 
+! PRINT_K_OPERATOR 
 !===============================================================================
 
-  subroutine print_M_operator(this)
-
-    use global,  only: mpi_err
+  subroutine print_K_operator(this)
 
     type(operator_type) :: this
 
     PetscViewer :: viewer
 
     ! write out matrix in binary file (debugging)
-    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'lossmat.out' &
+    call PetscViewerASCIIOpen(PETSC_COMM_WORLD,'kinemat.bin' &
    & ,viewer,mpi_err)
     call MatView(this%oper,viewer,mpi_err)
     call PetscViewerDestroy(viewer,mpi_err)
 
-  end subroutine print_M_operator
+  end subroutine print_K_operator
 
 !==============================================================================
-! DESTROY_M_OPERATOR
+! DESTROY_K_OPERATOR
 !==============================================================================
 
-  subroutine destroy_M_operator(this)
+  subroutine destroy_K_operator(this)
 
     type(operator_type) :: this
 
     ! deallocate matrix
-!   call MatDestroy(this%M,ierr)
+!   call MatDestroy(this%M,mpi_err)
 
     ! deallocate CSR objects
     if (allocated(this % row)) deallocate(this % row)
     if (allocated(this % col)) deallocate(this % col)
     if (allocated(this % val)) deallocate(this % val)
-    if (allocated(this % diag)) deallocate(this % diag)
     if (allocated(this % row_csr)) deallocate(this % row_csr)
 
     ! deallocate other parameters
     if (allocated(this%d_nnz)) deallocate(this%d_nnz)
     if (allocated(this%o_nnz)) deallocate(this%o_nnz)
 
-  end subroutine destroy_M_operator
+  end subroutine destroy_K_operator
 
-end module loss_operator
+end module spatial_kinetics_operator

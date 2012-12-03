@@ -343,8 +343,12 @@ contains
 
     type(operator_type) :: this
 
-    ! deallocate matrix
-!   call MatDestroy(this%F,ierr)
+    ! deallocate CSR objects
+    if (allocated(this % row)) deallocate(this % row)
+    if (allocated(this % col)) deallocate(this % col)
+    if (allocated(this % val)) deallocate(this % val)
+    if (allocated(this % row_csr)) deallocate(this % row_csr)
+
 
     ! deallocate other parameters
     if (allocated(this%d_nnz)) deallocate(this%d_nnz)

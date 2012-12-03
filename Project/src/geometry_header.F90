@@ -23,6 +23,9 @@ module geometry_header
     integer :: nfz
     integer :: nfg
 
+    ! product
+    integer :: nf
+
     ! number of regions
     integer :: n_regs
 

@@ -108,7 +108,7 @@ module global
 
 !-initial power, temperatures
 
-  real(8) :: power
+  real(8) :: power = 1.0_8
   real(8) :: fuel_T
   real(8) :: cool_T
 

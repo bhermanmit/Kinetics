@@ -26,6 +26,7 @@ contains
     use pk_feedback,      only: run_pkfeedback
     use point_kinetics,   only: run_pkinetics 
     use power_iter,       only: power_execute
+    use spatial_kinetics, only: run_spkinetics
 
 !---begin execution
 
@@ -45,7 +46,8 @@ contains
 
         ! now run kinetics
         call header('Kinetics Solution', level=2)
-        call kinetics_execute()
+!       call kinetics_execute()
+        call run_spkinetics()
 
       case('point_kinetics')
 

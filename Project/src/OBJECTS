@@ -26,5 +26,6 @@ point_kinetics.o \
 power_iter.o \
 prod_operator.o \
 runge_kutta.o \
+spatial_kinetics.o \
 string.o \
 timing.o

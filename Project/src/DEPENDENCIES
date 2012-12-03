@@ -4,6 +4,7 @@ cmfd_execute.o: output.o
 cmfd_execute.o: pk_feedback.o
 cmfd_execute.o: point_kinetics.o
 cmfd_execute.o: power_iter.o
+cmfd_execute.o: spatial_kinetics.o
 
 cmfd_header.o: geometry_header.o
 cmfd_header.o: material_header.o
@@ -107,6 +108,15 @@ prod_operator.o: material_header.o
 runge_kutta.o: constants.o
 runge_kutta.o: error.o
 runge_kutta.o: global.o
+
+spatial_kinetics.o: constants.o
+spatial_kinetics.o: global.o
+spatial_kinetics.o: implicit_euler.o
+spatial_kinetics.o: loss_operator.o
+spatial_kinetics.o: math.o
+spatial_kinetics.o: output.o
+spatial_kinetics.o: prod_operator.o
+spatial_kinetics.o: runge_kutta.o
 
 string.o: constants.o
 string.o: error.o

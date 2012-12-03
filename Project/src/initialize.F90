@@ -128,6 +128,9 @@ contains
     ! set up geometry fine map
     call generate_fine_map(geometry)
 
+    ! compute geometry product
+    geometry % nf = geometry % nfx * geometry % nfy * geometry % nfz * geometry % nfg
+
   end subroutine geometry_init
 
 end module initialize
