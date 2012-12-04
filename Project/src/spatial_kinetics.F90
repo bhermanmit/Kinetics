@@ -121,14 +121,15 @@ contains
     
     ! size of data
     n = geometry % nf 
+    ng = geometry % nfg
 
     ! allocate data sizes
     allocate(d_nnz(n + NUM_PRECS*n))
     allocate(o_nnz(n + NUM_PRECS*n))
 
     ! create dfdy matrix
-    d_nnz(1:n) = loss % d_nnz
-    d_nnz(n+1:n+NUM_PRECS*n) = ng
+    d_nnz(1:n) = loss % d_nnz + NUM_PRECS
+    d_nnz(n+1:n+NUM_PRECS*n) = ng + 1
     o_nnz = 0
     call MatCreateAIJ(PETSC_COMM_WORLD,n+NUM_PRECS*n, n+NUM_PRECS*n,&
                       PETSC_DETERMINE, PETSC_DETERMINE, PETSC_NULL, d_nnz,&
@@ -175,8 +176,10 @@ contains
 
 !---external references
 
-    use constants,  only: beta, NUM_PRECS, lambda, pnl
-    use global,     only: pke
+    use constants,      only: beta, NUM_PRECS, lambda, pnl, vel, ONE, ZERO
+    use global,         only: geometry, cmfd, loss, prod
+    use loss_operator,  only: build_loss_matrix
+    use prod_operator,  only: build_prod_matrix
 
 !---arguments
 
@@ -188,70 +191,107 @@ contains
 
 !---local variables
 
-    integer :: i   ! loop counter
-    real(8) :: rho ! interpolated reactivity
-    real(8) :: val ! temp value for matrix setting
+    integer :: nf
+    integer :: ng
+    integer :: ncols
+    integer :: i    ! loop counter
+    integer :: irow ! row counter
+    integer, allocatable :: cols(:)
+    real(8) :: val  ! temp value for matrix setting
+    real(8), allocatable :: vals(:)
 
     real(8), pointer :: yptr(:)
     real(8), pointer :: dfdtptr(:)
 
+    PetscViewer :: viewer
+
 !---begin execution
 
-    ! get reactivity
-!   rho = get_reactivity(t,dfdt) 
-    pke % rhot = rho
-
-    ! finish setting dfdt
+    ! extract objects
     call VecGetArrayF90(y, yptr, mpi_err)
     call VecGetArrayF90(dfdt, dfdtptr, mpi_err)
-    dfdtptr(1) = dfdtptr(1)*sum(beta)/pnl*yptr(1)
+    dfdtptr = ZERO
 
-    call VecRestoreArrayF90(y, yptr, mpi_err)
-    call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
-#   ifdef DEBUG
-      CHKERRQ(mpi_err)
-#   endif
+    ! get sub size
+    nf = geometry % nf
+    ng = geometry % nfg
 
-    ! set up jacobian 
-    val = (rho*sum(beta) - sum(beta))/pnl
-    call MatSetValue(dfdy, 0, 0, val, INSERT_VALUES, mpi_err)
-#   ifdef DEBUG
-      CHKERRQ(mpi_err)
-#   endif
+    ! change the data
+    call change_data(t)
 
-    ! begin loop around rest of matrix
-    do i = 2, NUM_PRECS + 1
+    ! rebuild matrices
+    call build_loss_matrix(loss)
+    call build_prod_matrix(prod)
 
-      ! set row 1
-      val = lambda(i - 1)
-      call MatSetValue(dfdy, 0, i-1, val, INSERT_VALUES, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
+    ! allocate cols and  initialize to zero
+    if (.not. allocated(cols)) allocate(cols(&
+         maxval(loss%d_nnz + loss%o_nnz)))
+    if (.not. allocated(vals)) allocate(vals(&
+         maxval(loss%d_nnz + loss%o_nnz)))
+    cols = 0
+    vals = ZERO
 
-      ! set diagonal
-      val = -lambda(i - 1)
-      call MatSetValue(dfdy, i-1, i-1, val, INSERT_VALUES, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
+    ! in flux equation compute effective production operator
+    call MatAXPY(loss%oper, -(ONE-sum(beta))/cmfd%keff, prod%oper, SUBSET_NONZERO_PATTERN, mpi_err)
+    call MatScale(loss%oper, -ONE, mpi_err)
 
-      ! set column 1
-      val = beta(i-1) / pnl
-      call MatSetValue(dfdy, i-1, 0, val, INSERT_VALUES, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
+    ! begin loop around rows
+    do irow = 1, nf
 
-    end do 
+      ! set dfdt for flux equation since total xs changes
+      dfdtptr(irow) = -yptr(irow)
 
-    ! finalize assembly
+      ! get row of matrix M
+      call MatGetRow(loss%oper, irow-1, ncols, cols, vals, mpi_err)
+
+      ! multiply values by group velocity
+      vals = vel(mod(irow-1,ng)+1)*vals
+
+      ! put values in jacobian
+      call MatSetValues(dfdy, 1, irow-1, ncols, cols(1:ncols), vals, &
+                        INSERT_VALUES, mpi_err)
+
+      ! put the row back
+      call MatRestoreRow(loss%oper, irow-1, ncols, cols, vals, mpi_err)
+
+      ! begin loop around precursors
+      do i = 1, NUM_PRECS
+
+        ! flux by precursors
+        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), lambda(i), INSERT_VALUES, mpi_err)
+
+        ! precursors by flux
+        call MatGetRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
+        vals = vals*beta(i)/cmfd%keff
+        call MatSetValues(dfdy, 1, i*nf + (irow-1), ncols, cols(1:ncols), vals, &
+                          INSERT_VALUES, mpi_err)
+        call MatRestoreRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
+
+        ! precursors by precursors
+        call MatSetValue(dfdy, i*nf + (irow - 1), i*nf + (irow - 1), -lambda(i), INSERT_VALUES, mpi_err)
+
+      end do
+
+    end do
+
+    ! assemble matrix
     call MatAssemblyBegin(dfdy, MAT_FINAL_ASSEMBLY, mpi_err)
     call MatAssemblyEnd(dfdy, MAT_FINAL_ASSEMBLY, mpi_err)
-#   ifdef DEBUG
-      CHKERRQ(mpi_err)
-#   endif
 
+    ! restore vectors
+    call VecRestoreArrayF90(y, yptr, mpi_err)
+    call VecRestoreArrayF90(dfdt, dfdtptr, mpi_err)
+
+    ! free memory
+    deallocate(cols)
+    deallocate(vals)
+
+    ! print out matrix
+!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'jacobian.bin', &
+!          FILE_MODE_WRITE, viewer, mpi_err)
+!   call MatView(dfdy, viewer, mpi_err)
+!   call PetscViewerDestroy(viewer, mpi_err)
+stop
   end subroutine spk_jacobn 
 
 !===============================================================================
