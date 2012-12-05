@@ -111,7 +111,7 @@
     \nonumber \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{s}a_{ij}\mathbf{k}_j\right) 
   \end{equation}}
   \only<2->{\begin{equation}
-    \nonumber \mathbf{k}_i = h\mathbf{f}\left(y_n + \sum_{j=1}^{{\color{green!75!black}s}}a_{ij}\mathbf{k}_j\right) 
+    \nonumber \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{{\color{green!75!black}s}}a_{ij}\mathbf{k}_j\right) 
   \end{equation}}
   \item<1-> {\color<2->{green!75!black}  Diagonally Implicit Form}
   \only<1>{\begin{equation}
@@ -235,7 +235,7 @@
   \item We drop the $y$ subscripts and can make the following definitions: 
   \end{itemize}
   \begin{equation}
-    \nonumber d_i \equiv \sum_{j=1}^{i-1} a_{ij} \qquad  b_i \equiv \sum_{j=1}^i c_{ij} \qquad \frac{d\mathbf{f}}{dt} \equiv \mathbf{J}_{yt}
+    \nonumber d_i \equiv \sum_{j=1}^{i-1} a_{ij} \qquad  b_i \equiv \sum_{j=1}^i c_{ij} \qquad \mathbb{J} \equiv \mathbb{J}_{yy} \qquad \frac{d\mathbf{f}}{dt} \equiv \mathbf{J}_{yt}
   \end{equation}
 \end{frame}
 
@@ -870,10 +870,10 @@
   \end{itemize}
   \begin{enumerate}
    \setcounter{enumi}{12}
-   \item<1-> $\alpha_2 = 2\gamma$
-   \item<1-> $\alpha_3 = \left(1/5 - 1/4\alpha_2\right)/\left(1/4 - 1/3\alpha_2\right)$
-   \item<1-> $c_3 = 0$
-   \item<1-> $m_4\beta_{42}\alpha_2^3 + m_4\beta_{43}\alpha_3^3 = 1/20 - \gamma/4 = p_{14}\left(\gamma\right)$
+   \item<1-> $a_2 = 2\gamma$
+   \item<1-> $a_3 = \left(1/5 - 1/4a_2\right)/\left(1/4 - 1/3a_2\right)$
+   \item<1-> $m_3 = 0$
+   \item<1-> $m_4\beta_{42}a_2^3 + m_4\beta_{43}a_3^3 = 1/20 - \gamma/4 = p_{14}\left(\gamma\right)$
    \item<1-> Choose $\gamma$
   \end{enumerate}
   \begin{itemize}
@@ -907,7 +907,7 @@
       \color{blue} m_1 = 8/27 & \color{blue} m_ 2 = 1/8 & \color{blue} m_3 = 0 & \color{blue} m_4 = 125/216 \\
       \color{black}\hat{m}_1 = 16/27 & \hat{m}_ 2 = 7/24 & \hat{m}_3 = 25/216 & a_2 = 1 \\
       a_3 = 3/5 & \color{blue}{a_{32} = 3/25} & \beta_2 = -1 & \beta_3 = 63/25 \\
-      \beta_4 = 27/125 & \color{blue}\beta_{32} = 18/25 & \color{blue} \beta_{42} = -27/250 & \color{blue}\beta_{43} = -1/10
+      \beta_4 = 27/125 & \beta_{32} = 18/25 & \beta_{42} = -27/250 & \beta_{43} = -1/10
     \end{array}
   \end{equation}
   \begin{itemize}
@@ -959,7 +959,7 @@
   \end{itemize}
   \begin{equation}
     \nonumber 
-    \left[\mathbb{I}/\left(\gamma h\right] - \mathbb{J}\right)\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
+    \left[\mathbb{I}/\left(\gamma h\right) - \mathbb{J}\right]\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
                    + \frac{1}{h}\sum_{j=1}^{i-1} c^\prime_{ij}\mathbf{k}^\prime_{j}  + hb_i\frac{d\mathbf{f}}{dt}
   \end{equation}
 \end{frame}
@@ -1001,7 +1001,7 @@
   \end{itemize}
     \begin{equation}
     \nonumber 
-    \left[\mathbb{I}/\left(\gamma h\right] - \mathbb{J}\right)\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
+    \left[\mathbb{I}/\left(\gamma h\right) - \mathbb{J}\right]\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
                    + \frac{1}{h}\sum_{j=1}^{i-1} c^\prime_{ij}\mathbf{k}^\prime_{j}  + hb_i\frac{d\mathbf{f}}{dt}
   \end{equation}
     \begin{equation}
@@ -1013,9 +1013,9 @@
   \end{itemize}
   \begin{enumerate}
     \item \scriptsize $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n, \mathbf{y}_n\right)$
-    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_2h, \mathbf{y}_n + a^\prime_{21}\mathbf{k}^\prime_1\right) + c^\prime_{21}\mathbf{k}^\prime_1/h$
-    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{31}\mathbf{k}^\prime_1 + c^\prime_{32}\mathbf{k}^\prime_2\right)/h$
-    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{41}\mathbf{k}^\prime_1 + c^\prime_{42}\mathbf{k}^\prime_2 + c^\prime_{43}\mathbf{k}^\prime_3\right)/h$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_2 = \mathbf{f}\left(t_n + d_2h, \mathbf{y}_n + a^\prime_{21}\mathbf{k}^\prime_1\right) + c^\prime_{21}\mathbf{k}^\prime_1/h$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_3 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{31}\mathbf{k}^\prime_1 + c^\prime_{32}\mathbf{k}^\prime_2\right)/h$
+    \item $\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_4 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{41}\mathbf{k}^\prime_1 + c^\prime_{42}\mathbf{k}^\prime_2 + c^\prime_{43}\mathbf{k}^\prime_3\right)/h$
   \end{enumerate}
 \end{frame}
 
@@ -1285,9 +1285,94 @@
   \includegraphics[scale=0.9]{./figs/nordheimfuchs.pdf}
 \end{frame}
 
-\begin{frame}{Point Kinetics w/ Feedback}
+\begin{frame}{PK with fuel and coolant temperature feedback model}
+  \footnotesize
+  \begin{itemize}
+    \item Equation for power (parameters in {\color{red}red} are inputs):
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \frac{dP}{dt} = \frac{\overbrace{{\color{red}\rho_0\left(t\right)} - {\color{red}\alpha_f}\left[T_f\left(t\right) - T_{f,0}\right] - {\color{red}\alpha_c}\left[T_c\left(t\right) - 
+    T_{c,0}\right]}^{\rho\left(t\right)} - {\color{red}{\beta}}}{{\color{red}\Lambda}}P\left(t\right) + \sum_i{\color{red}\lambda_i}C_i\left(t\right)
+  \end{equation}
+    \begin{itemize}
+    \item Equation for precursors:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \frac{dC_i}{dt} = \frac{{\color{red}\beta_i}}{{\color{red}\Lambda}}P\left(t\right) - {\color{red}\lambda_i}C_i\left(t\right)
+  \end{equation}
+    \begin{itemize}
+    \item Equation for fuel temperature ($\xi$ is coolant power deposition fraction):
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \frac{dT_f}{dt} = \frac{1-{\color{red}\xi}}{{\color{red}m_fc_f}}P\left(t\right) - \frac{\color{red}hA}{\color{red}m_fc_f}\left[T_f\left(t\right) - T_c\left(t\right)\right]
+  \end{equation}
+    \begin{itemize}
+    \item Equation for coolant temperature:
+  \end{itemize}
+  \begin{equation}
+    \nonumber
+    \frac{dT_c}{dt} = \frac{{\color{red}\xi}}{{\color{red}m_cc_c}}P\left(t\right) + \frac{\color{red}hA}{\color{red}m_cc_c}\left[T_f\left(t\right) - T_c\left(t\right)\right]
+    - \frac{2\color{red}\dot{m}}{\color{red}m_c}\left[T_c\left(t\right) - {\color{red}T_{in}}\right]
+  \end{equation}
+\end{frame}
+
+\begin{frame}{Jacobian of PK with feedback model}
+  \small
+  \begin{equation}
+    \nonumber
+    \mathbb{J} = \left[
+    \begin{array}{ccccc}
+      \frac{{\color{red}\rho_0\left(t\right)} - {\color{red}\alpha_f}\left[T_f\left(t\right) - T_{f,0}\right] - {\color{red}\alpha_c}\left[T_c\left(t\right) - 
+    T_{c,0}\right]- {\color{red}{\beta}}}{{\color{red}\Lambda}} & \color{red}\lambda_i & \hdots & \frac{-\color{red}\alpha_f}{\color{red}\Lambda}P\left(t\right) 
+    & \frac{-\color{red}\alpha_c}{\color{red}\Lambda}P\left(t\right) \vspace{0.1cm}\\
+    
+    \frac{{\color{red}\beta_i}}{{\color{red}\Lambda}} & -{\color{red}\lambda_i} \\
+    
+    \vdots & & \ddots \\
+    
+    \frac{1-{\color{red}\xi}}{{\color{red}m_fc_f}} & & & -\frac{\color{red}hA}{\color{red}m_fc_f} & \frac{\color{red}hA}{\color{red}m_fc_f} \vspace{0.1cm} \\
+    
+    \frac{{\color{red}\xi}}{{\color{red}m_cc_c}} & & & \frac{\color{red}hA}{\color{red}m_cc_c} & -\frac{{\color{red}hA} + 2\color{red}\dot{m}c_c}{\color{red}m_cc_c}
+    \end{array}\right]
+  \end{equation} \vfill
+  \begin{equation}
+    \nonumber
+     \frac{d\mathbf{f}}{dt} = \left[\begin{array}{c}
+                        \frac{d\color{red}\rho_0}{dt}\frac{P\left(t\right)}{\color{red}\Lambda} \\
+                        0 \\
+                        \vdots
+                      \end{array}\right]
+  \end{equation}
+\end{frame}
+
+\begin{frame}{PK with feedback results}
   \includegraphics[scale=0.9]{./figs/pkfeedback.pdf}
 \end{frame}
+
+\begin{frame}{Convergence rate for PK with feedback}
+  \begin{center}
+  \includegraphics[scale=0.7]{./figs/order_pk_feedback.pdf}
+  \end{center}
+    \begin{itemize}
+   \item 4th order convergence is achieved at first coarse timestep
+   \item Convergence order is lost before peak power is reached
+   \end{itemize}
+\end{frame}
+
+\begin{frame}{Useful References}
+  \begin{enumerate}
+    \item Peter Kaps and Peter Rentrop, Generalized Runge-Kutta Methods of Order Four with Stepsize Control for Stiff Ordinary Differential Equations, Numer. Math. 33, 55-68 (1979).
+    \item P. Kaps and G. Wanner, A Study of Rosenbrock-type Methods of High Order, Numer. Math. 38, 279-298 (1981).
+    \item L. F. Shampine, Implementation of Rosenbrock Methods, ACM Trans. on Math. Software, Vol. 8, No. 2, 93-113 (1982).
+    \item Press, et. al, Numerical Recipes, Cambridge University Press (1986). [Ch. 16-6]
+    \item T. Sutton and B. Aviles, Diffusion Theory Methods for Spatial Kinetics Calculations, Prog. Nucl. Energy, Vol. 30, No.2, 119-182 (1996).
+  \end{enumerate}
+
+\end{frame}
+
 
 %--------------------------------------------------------------------------------
 \end{document}

@@ -60,7 +60,7 @@ contains
     select case(trim(solver_type))
 
       case('rk4')
-        call execute_rk4(y, dfdy, dfdt, dydt, spk_derivs, spk_jacobn, n, spk_post_timestep)
+        call execute_rk4(y, dfdy, dfdt, dydt, spk_derivs, spk_jacobn, n, spk_post_timestep,0.01_8)
 
 !     case('ie1')
 !       call execute_ie1(y, pk_coefmat, NUM_PRECS+1)
@@ -217,7 +217,7 @@ contains
     ng = geometry % nfg
 
     ! change the data
-    call change_data(t)
+    call change_data(t,dfdtptr)
 
     ! rebuild matrices
     call build_loss_matrix(loss)
@@ -239,7 +239,7 @@ contains
     do irow = 1, nf
 
       ! set dfdt for flux equation since total xs changes
-      dfdtptr(irow) = -yptr(irow)
+      dfdtptr(irow) = -yptr(irow)*vel(mod(irow-1,ng)+1)*dfdtptr(irow)
 
       ! get row of matrix M
       call MatGetRow(loss%oper, irow-1, ncols, cols, vals, mpi_err)
@@ -258,7 +258,7 @@ contains
       do i = 1, NUM_PRECS
 
         ! flux by precursors
-        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), lambda(i), INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), lambda(i)*vel(mod(irow-1,ng)+1), INSERT_VALUES, mpi_err)
 
         ! precursors by flux
         call MatGetRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
@@ -291,7 +291,7 @@ contains
 !          FILE_MODE_WRITE, viewer, mpi_err)
 !   call MatView(dfdy, viewer, mpi_err)
 !   call PetscViewerDestroy(viewer, mpi_err)
-stop
+
   end subroutine spk_jacobn 
 
 !===============================================================================
@@ -348,22 +348,22 @@ stop
     ! muliply by flux and store
     dydtptr(1:nf) = csr_matvec_mult(loss%row_csr+1,loss%col+1,loss%val,yptr(1:nf),prod%n)
 
-    ! multiply by velocity
-    do i = 1,nf
-      dydtptr(i) = dydtptr(i)*vel(mod(i-1,ng)+1)
-    end do
-
     ! loop through precursors
     do i = 1,NUM_PRECS
  
       ! from flux equation
-      dydtptr(1:nf) = dydtptr(1:nf) + lambda(i)*yptr((i-1)*n + n + 1:(i-1)*n + 2*n)
+      dydtptr(1:nf) = dydtptr(1:nf) + lambda(i)*yptr((i-1)*nf + nf + 1:(i-1)*nf + 2*nf)
 
       ! from precursor equation
-      dydtptr((i-1)*n + n + 1:(i-1)*n + 2*n) = beta(i)/cmfd%keff*csr_matvec_mult(loss%row_csr+1, &
-                                               loss%col+1,loss%val,yptr(1:nf),prod%n) - lambda(i)*&
-                                               yptr((i-1)*n + n + 1:(i-1)*n + 2*n)
+      dydtptr((i-1)*nf + nf + 1:(i-1)*nf + 2*nf) = beta(i)/cmfd%keff*csr_matvec_mult(prod%row_csr+1, &
+                                               prod%col+1,prod%val,yptr(1:nf),prod%n) - lambda(i)*&
+                                               yptr((i-1)*nf + nf + 1:(i-1)*nf + 2*nf)
 
+    end do
+
+    ! multiply flux equation by velocity
+    do i = 1,nf
+      dydtptr(i) = dydtptr(i)*vel(mod(i-1,ng)+1)
     end do
 
     ! put the pointer back
@@ -482,12 +482,15 @@ stop
     ! get y pointer
     call VecGetArrayF90(y, yptr, mpi_err)
 
+    ! renormalize phi
+    cmfd % phi = cmfd % phi / sum(cmfd % phi) * size(cmfd % phi)
+
     ! compute power
     pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,       &
               cmfd%phi,prod%n))
 
     ! divide flux by power
-    cmfd % phi = cmfd % phi * power / pow
+    cmfd % pfactor = power / pow
 
     ! place flux in pointer
     yptr(1:n) = cmfd % phi 
@@ -512,6 +515,11 @@ stop
 
   subroutine spk_post_timestep(t, y, h)
 
+!---references
+
+    use global,  only: prod, cmfd, geometry
+    use math,    only: csr_matvec_mult
+
 !---arguments
 
     real(8) :: t
@@ -520,19 +528,23 @@ stop
 
 !---local variables
 
-    real(8) :: react
+    integer :: n
+    real(8) :: pow
     real(8), pointer :: yptr(:)
 
 !---begin execution
 
+    ! get size
+    n = geometry % nf
+
     ! get ptr
     call VecGetArrayF90(y, yptr, mpi_err)
 
-    ! compute reactivity
-!   react = get_reactivity(t)
+    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,       &
+              yptr(1:n),prod%n)) * cmfd % pfactor
 
     ! write output
-    print *, 'TIME:', t, 'REACT:', react, 'POWER:', yptr(1), 'STEP:', h
+    print *, 'TIME:', t, 'POWER:', pow, 'STEP:', h
 
     ! restore ptrs
     call VecRestoreArrayF90(y, yptr, mpi_err)
@@ -546,29 +558,35 @@ stop
 ! CHANGE_DATA
 !===============================================================================
 
-  subroutine change_data(t)
+  subroutine change_data(t,dfdtptr)
 
 !---external references
 
-    use constants,        only: ONE, vel, beta, lambda
+    use constants,        only: ONE, vel, beta, lambda, ZERO
     use error,            only: fatal_error
     use global,           only: material, kinetics, n_kins, message, dt,       &
-                                n_materials, cmfd
+                                n_materials, cmfd, geometry
     use kinetics_header,  only: kinetics_type
     use material_header,  only: material_type
 
 !---arguments
 
     real(8) :: t
+    real(8), optional, pointer :: dfdtptr(:)
 
 !---local variables
 
-    integer :: i
+    integer :: i, ii
+    integer :: n
     real(8) :: val
+    real(8) :: slope
     type(kinetics_type), pointer :: k => null()
     type(material_type), pointer :: m => null()
 
 !---begin execution
+
+    ! get size
+    n = geometry % nf
 
     ! begin loop around kinetics mods
     do i = 1, n_kins
@@ -579,12 +597,24 @@ stop
       ! point to material object
       m => material(k % mat_id)
 
-      ! check to shift index
-      if (t > k % time(k % idxt+1)) k % idxt = k % idxt + 1
+      ! search for index
+      k % idxt = 1
+      do ii = 1, size(k % time)
+        if (t < k % time(ii)) then
+          k % idxt = ii - 1
+          exit
+        end if
+      end do
 
       ! interpolate value
-      val = k % val(k%idxt) + (k % val(k%idxt+1) - k % val(k%idxt)) /          &
-            (k % time(k%idxt+1) - k % time(k%idxt)) * (t - k % time(k%idxt))
+      slope = (k % val(k%idxt+1) - k % val(k%idxt)) /          &
+           (k % time(k%idxt+1) - k % time(k%idxt))
+      val = k % val(k%idxt) + slope * (t - k % time(k%idxt))
+
+      ! set dfdt if present
+      if (present(dfdtptr)) then
+        dfdtptr(1:n) = slope
+      end if
 
       ! begin case structure to replace value
       select case (trim(k % xs_id))

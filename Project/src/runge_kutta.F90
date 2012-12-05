@@ -55,6 +55,7 @@ module runge_kutta
 
   Mat :: A
   Vec :: yinit
+  Vec :: yscal
   Vec :: dydtinit
   Vec :: k1
   Vec :: k2
@@ -74,7 +75,7 @@ contains
 ! EXECUTE_RK4
 !===============================================================================
 
-  subroutine execute_rk4(y, dfdy, dfdt, dydt, derivs, jacobn, n, post_timestep)
+  subroutine execute_rk4(y, dfdy, dfdt, dydt, derivs, jacobn, n, post_timestep, Cfactopt)
 
 !---references
 
@@ -84,6 +85,8 @@ contains
 !---arguments
 
     integer :: n 
+
+    real(8), optional :: Cfactopt
 
     Vec :: y
     Mat :: dfdy
@@ -101,6 +104,7 @@ contains
     real(8) :: htry
     real(8) :: eps
     real(8) :: t
+    real(8) :: Cfact
     real(8), pointer :: yptr(:)
 
 !---begin execution
@@ -112,7 +116,14 @@ contains
     t = ZERO
 
     ! set tolerance
-    eps = 1.e-6_8
+    eps = 1.e-4_8
+
+    ! get constant
+    if (present(Cfactopt)) then
+      Cfact = Cfactopt
+    else
+      Cfact = ZERO
+    end if
 
     ! initialize solver
     call init_solver(n, dfdy)
@@ -121,7 +132,7 @@ contains
     do while (t <= time)
 
       ! solve for next time step values
-      call solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn)
+      call solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact)
 
       ! set next time step
       htry = hnext
@@ -217,7 +228,7 @@ contains
 ! SOLVE_TS
 !===============================================================================
 
-  subroutine solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn)
+  subroutine solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact)
 
 !---references
 
@@ -233,6 +244,7 @@ contains
     real(8), intent(in)     :: eps      ! tolerance on solution
     real(8), intent(out)    :: hdid     ! the time step it actually took
     real(8), intent(out)    :: hnext    ! the next estimated time step
+    real(8), intent(in)     :: Cfact    ! C factor
 
     Mat :: dfdy
     Vec :: y
@@ -260,10 +272,18 @@ contains
     real(8), pointer :: rhsptr(:)
     real(8), pointer :: dydtptr(:)
     real(8), pointer :: dfdtptr(:)
-
-    PetscViewer :: viewer
+    real(8), pointer :: yscalptr(:)
 
 !---begin execution
+
+    ! compute scaling vector
+    call VecDuplicate(y, yscal, mpi_err)
+    call VecCopy(y, yscal, mpi_err)
+    call VecGetArrayF90(yscal, yscalptr, mpi_err)
+    where (abs(yscalptr) < Cfact)
+      yscalptr = Cfact
+    end where
+    call VecRestoreArrayF90(yscal, yscalptr, mpi_err)
 
     ! evaluate jacobian at beginning of time step
     call jacobn(t,y,dfdy,dfdt,n)
@@ -323,7 +343,7 @@ contains
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
-
+        
       ! set the operator and finish setting up
       call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
 #     ifdef DEBUG
@@ -479,10 +499,15 @@ contains
 
       ! compute maximum error ratio
       call VecGetArrayF90(err, errptr, mpi_err)
-      call VecGetArrayF90(yinit, yinitptr, mpi_err)
-      errmax = maxval(abs(errptr/yinitptr))/eps
+      call VecGetArrayF90(yscal, yscalptr, mpi_err)
+      where (abs(yscalptr) > ZERO)
+        errptr = abs(errptr/yscalptr)
+      elsewhere
+        errptr = ZERO
+      end where
+      errmax = maxval(errptr)/eps
       call VecRestoreArrayF90(err, errptr, mpi_err)
-      call VecRestoreArrayF90(yinit, yinitptr, mpi_err)
+      call VecRestoreArrayF90(yscal, yscalptr, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif

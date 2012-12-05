@@ -37,5 +37,5 @@ plot 'data' using 1:2 with lines linewidth 3.0 title "Runge-Kutta NFM", 'data' u
 unset key
 set ylabel offset 2.0
 set xlabel "Time [s]"
-set ylabel "Timestep [s]"
+set ylabel "Time step [s]"
 plot 'data' using 1:5 with lines linewidth 3.0

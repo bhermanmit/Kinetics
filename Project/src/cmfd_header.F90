@@ -33,6 +33,9 @@ module cmfd_header
     real(8) :: norm_o
     real(8) :: dr
 
+    ! power normalization factor
+    real(8) :: pfactor = 1.0_8
+
   end type cmfd_type
 
 contains
