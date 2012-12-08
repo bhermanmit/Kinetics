@@ -577,7 +577,8 @@ contains
 !---local variables
 
     integer :: i, ii
-    integer :: n
+    integer :: idx, matidx
+    integer :: n, ng
     real(8) :: val
     real(8) :: slope
     type(kinetics_type), pointer :: k => null()
@@ -587,6 +588,7 @@ contains
 
     ! get size
     n = geometry % nf
+    ng = geometry % nfg
 
     ! begin loop around kinetics mods
     do i = 1, n_kins
@@ -613,7 +615,16 @@ contains
 
       ! set dfdt if present
       if (present(dfdtptr)) then
-        dfdtptr(1:n) = slope
+        do ii = 1, n
+          ! get material id
+          idx = ceiling(real(ii)/real(ng))
+
+          ! set material pointer
+          matidx = geometry % fmat_map(idx)
+         
+          ! add slope
+          if (mod(ii-1,ng)+1 == k % g .and. matidx == k % mat_id) dfdtptr(ii) = slope
+        end do
       end if
 
       ! begin case structure to replace value
