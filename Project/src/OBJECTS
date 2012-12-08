@@ -14,6 +14,7 @@ kinetics_header.o \
 kinetics_operator.o \
 kinetics_solver.o \
 loss_operator.o \
+LRA_feedback.o \
 main.o \
 material_header.o \
 math.o \

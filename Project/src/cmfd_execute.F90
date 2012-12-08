@@ -21,6 +21,7 @@ contains
     use global,           only: solver_type, message, mode,                    &
                                 adjoint
     use kinetics_solver,  only: kinetics_execute
+    use LRA_feedback,     only: run_LRAfeedback
     use nordheim_fuchs,   only: run_nordheimfuchs
     use output,           only: header
     use pk_feedback,      only: run_pkfeedback
@@ -60,6 +61,10 @@ contains
       case('pk_feedback')
 
         call run_pkfeedback()
+
+      case('LRA_feedback')
+         call power_execute()
+         call run_LRAfeedback()
 
       case DEFAULT
         message = 'Calculation Mode not Supported!'

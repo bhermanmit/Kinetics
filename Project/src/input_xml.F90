@@ -249,7 +249,10 @@ contains
 
     end do
 
-    if (trim(mode) == 'point_kinetics' .or. trim(mode) == 'nordfuchs' .or. trim(mode) == 'pk_feedback') then
+    if (trim(mode) == 'point_kinetics' .or. trim(mode) == 'nordfuchs' &
+       .or. trim(mode) == 'pk_feedback' .or. trim(mode) == 'LRA_feedback') then
+
+      if (.not. trim(mode) == 'LRA_feedback') then
 
       ! read in point kinetics data
       pke % n = size(pke_ % rho)
@@ -261,6 +264,7 @@ contains
       pke % rho = pke_ % rho
       pke % time = pke_ % time
 
+      end if
 
       if (.not. trim(mode) == 'point_kinetics') then
 
