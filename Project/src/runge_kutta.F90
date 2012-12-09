@@ -313,9 +313,11 @@ contains
 
     ! begin loop over trial time steps
     do istep = 1, MAXTRY
+    ! create coefficient matrix
+    call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
 
-      ! copy jacobian over
-      call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
+!     ! copy jacobian over
+!     call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
 #     ifdef DEBUG 
         CHKERRQ(mpi_err)
 #     endif
@@ -327,8 +329,8 @@ contains
 #     endif
 
       ! create left hand side matrix
-      call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
-      call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+!     call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
+!     call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
@@ -512,6 +514,7 @@ contains
         CHKERRQ(mpi_err)
 #     endif
 
+        call MatDestroy(A, mpi_err)
       ! check for variable time stepping off
       if (.not. var_ts) then
         hnext = h
@@ -528,7 +531,7 @@ contains
         else
           hnext = GROW*h
         end if
-        call MatDestroy(A, mpi_err)
+!       call MatDestroy(A, mpi_err)
         return
      else
         hnext = SAFETY*h*errmax**PSHRNK

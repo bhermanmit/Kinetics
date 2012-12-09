@@ -636,12 +636,15 @@ contains
     real(8) :: val(1)
     real(8) :: absxs 
     type(material_type), pointer :: m => null()
+real(8), allocatable :: val_tmp(:)
 
 !---begin execution
 
     ! get sizes
     nf = geometry % nf
     ng = geometry % nfg
+allocate(val_tmp(nf))
+val_tmp = ZERO
 
     ! begin loop around space
     do i = 1,nf
@@ -669,23 +672,28 @@ contains
 
         ! adjust absorption xs
         val(1) = val(1) - m % absorxs(g) + absxs
+        val_tmp(i) = absxs - m % absorxs(g)
 
         ! put back in buckling
         m % absorxs = m % absorxs + m % diffcof * m % buckling
 
         ! restore row
-        call MatSetValue(loss%oper, i-1, i-1, val(1), INSERT_VALUES, mpi_err)
+!       call MatSetValue(loss%oper, i-1, i-1, val(1), INSERT_VALUES, mpi_err)
         ! lock matrix values
-        call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-        call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
+!       call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
+!       call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
 
       end if
     end do
-
+    call MatAssemblyBegin(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
+    call MatAssemblyEnd(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
+    do i = 1,nf
+      call MatSetValue(loss%oper, i-1,  i-1, val_tmp(i), ADD_VALUES, mpi_err)
+    end do
     ! lock matrix values
     call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
     call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-
+   deallocate(val_tmp)
   end subroutine perform_feedback
 
 !===============================================================================
