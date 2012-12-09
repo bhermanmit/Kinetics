@@ -329,7 +329,6 @@ contains
            FILE_MODE_WRITE, viewer, mpi_err)
     call MatView(dfdy, viewer, mpi_err)
     call PetscViewerDestroy(viewer, mpi_err)
-stop
 
   end subroutine spk_jacobn 
 
@@ -362,7 +361,7 @@ stop
     integer :: i   ! loop counter
     real(8), pointer :: yptr(:)
     real(8), pointer :: dydtptr(:)
-
+    PetscViewer :: viewer
 !---begin execution
 
     ! get sub size
@@ -375,6 +374,14 @@ stop
     ! rebuild matrices
     call build_loss_matrix(loss)
     call build_prod_matrix(prod)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'lossmat.bin', &
+           FILE_MODE_WRITE, viewer, mpi_err)
+    call MatView(loss%oper, viewer, mpi_err)
+    call PetscViewerDestroy(viewer, mpi_err)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'prodmat.bin', &
+           FILE_MODE_WRITE, viewer, mpi_err)
+    call MatView(prod%oper, viewer, mpi_err)
+    call PetscViewerDestroy(viewer, mpi_err)
 
     ! get pointer to solution
     call VecGetArrayF90(y, yptr, mpi_err)
@@ -410,12 +417,12 @@ stop
 
     ! calculate temperatures
     dydtptr((1+NUM_PRECS)*nf + 1: (1+NUM_PRECS)*nf+nf/ng) = &
-                      calc_fiss_rate(yptr(1:nf), ALPHA/NU, nf, nf/ng, vol=.false.)
-write(100,*) dydtptr
+                      calc_fiss_rate(yptr(1:nf), ALPHA/NU/cmfd%keff, nf, nf/ng, vol=.false.)
+
     ! put the pointer back
     call VecRestoreArrayF90(y, yptr, mpi_err)
     call VecRestoreArrayF90(dydt, dydtptr, mpi_err)
-stop
+
   end subroutine spk_derivs
 
 !===============================================================================
@@ -450,14 +457,11 @@ stop
     ! get y pointer
     call VecGetArrayF90(y, yptr, mpi_err)
 
-    ! renormalize phi
-    cmfd % phi = cmfd % phi / sum(cmfd % phi) * size(cmfd % phi)
-
     ! compute power
-    pow = sum(calc_fiss_rate(yptr(1:n), KAPPA/NU, n, n/ng, vol=.true.))
+    pow = sum(calc_fiss_rate(cmfd%phi, KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.))
 
     ! divide flux by power
-    cmfd % pfactor = power / pow
+    cmfd % phi = cmfd % phi * power / pow
 
     ! place flux in pointer
     yptr(1:n) = cmfd % phi 
@@ -473,7 +477,7 @@ stop
 
     ! set initial temperature
     yptr((1+NUM_PRECS)*n + 1:(1+NUM_PRECS)*n + n/ng) = fuel_T
-    print *, (1+NUM_PRECS)*n + 1, (1+NUM_PRECS)*n + n/ng, fuel_T
+
     ! place back pointer
     call VecRestoreArrayF90(y, yptr, mpi_err)
 
@@ -487,7 +491,7 @@ stop
 
 !---references
 
-    use global,  only: prod, cmfd, geometry
+    use global,  only: prod, cmfd, geometry, material
     use math,    only: csr_matvec_mult
 
 !---arguments
@@ -498,7 +502,7 @@ stop
 
 !---local variables
 
-    integer :: n
+    integer :: n, ng
     real(8) :: pow
     real(8), pointer :: yptr(:)
 
@@ -506,15 +510,16 @@ stop
 
     ! get size
     n = geometry % nf
+    ng = geometry % nfg
 
     ! get ptr
     call VecGetArrayF90(y, yptr, mpi_err)
 
-    pow = sum(csr_matvec_mult(prod%row_csr+1,prod%col+1,prod%val/cmfd%keff,       &
-              yptr(1:n),prod%n)) * cmfd % pfactor
+    pow = sum(calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)) &
+         * cmfd % pfactor
 
     ! write output
-    print *, 'TIME:', t, 'POWER:', pow, 'STEP:', h
+    print *, 'TIME:', t, 'POWER:', pow, 'STEP:', h, material(6)%absorxs(2)
 
     ! restore ptrs
     call VecRestoreArrayF90(y, yptr, mpi_err)
@@ -559,45 +564,51 @@ stop
     nf = geometry % nf
     ng = geometry % nfg
 
-    ! set pointers
-    m => material(6)
-    k => kinetics(1)
-
-    ! undo buckling for all material 6
-    m % absorxs = m % absorxs - m % diffcof * m % buckling
-
     ! change material 6
     if (t <= 2) then
+
+      ! set pointers
+      m => material(6)
+      k => kinetics(1)
+
+      ! undo buckling for all material 6
+      m % absorxs(2) = m % absorxs(2) - m % diffcof(2) * m % buckling
 
       ! change value of absxs
       m % absorxs(2) = k%val(1)*(ONE - 0.0606184_8*t)
 
+      ! put all buckling back in
+      m % absorxs(2) = m % absorxs(2) + m % diffcof(2) * m % buckling
+
+      ! calculate new removal
+      m % removxs(2) = m % absorxs(2) + sum(m % scattxs(:,2)) - m % scattxs(2,2)
+
+      ! adjust scattering to account for this removal
+      m % scattxs(2,2) = m % totalxs(2) - m % removxs(2)
+
+      ! dfdt 
+      if (present(dfdtptr)) then
+
+        ! loop over all flux points
+        do i = 1, nf
+
+          ! compute group
+          g = mod(i-1,ng)+1
+
+          ! compute spatial idx
+          sidx = (i-1)/ng + 1
+
+          ! get material id
+          matidx = geometry % fmat_map(sidx)
+
+          ! check for material six and compute slope
+          if (matidx == 6 .and. g == 2) dfdtptr(i) = -k%val(1)*0.0606184_8
+
+        end do
+
+      end if
+
     end if
-
-    ! dfdt 
-    if (present(dfdtptr)) then
-
-      ! loop over all flux points
-      do i = 1, nf
-
-        ! compute group
-        g = mod(i-1,ng)+1
-
-        ! compute spatial idx
-        sidx = (i-1)/ng + 1
-
-        ! get material id
-        matidx = geometry % fmat_map(sidx)
-
-        ! check for material six and compute slope
-        if (matidx == 6 .and. g == 2) dfdtptr(i) = k%val(1)*0.0606184_8
-
-      end do
-
-    end if
-
-    ! put all buckling back in
-    m % absorxs = m % absorxs + m % diffcof * m % buckling
 
   end subroutine change_data
 
@@ -622,29 +633,15 @@ stop
     integer :: i, ii
     integer :: g, sidx
     integer :: nf, ng
-    integer :: ncols
-    integer, allocatable :: cols(:)
-    real(8), allocatable :: vals(:)
+    real(8) :: val(1)
     real(8) :: absxs 
     type(material_type), pointer :: m => null()
 
 !---begin execution
 
-    ! allow matrix to be edited
-!   call MatAssemblyBegin(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
-!   call MatAssemblyEnd(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
-
     ! get sizes
     nf = geometry % nf
     ng = geometry % nfg
-
-    ! allocate cols and  initialize to zero
-    if (.not. allocated(cols)) allocate(cols(&
-         maxval(loss%d_nnz + loss%o_nnz)))
-    if (.not. allocated(vals)) allocate(vals(&
-         maxval(loss%d_nnz + loss%o_nnz)))
-    cols = 0
-    vals = ZERO
 
     ! begin loop around space
     do i = 1,nf
@@ -662,38 +659,28 @@ stop
         m => material(geometry % fmat_map(sidx))
 
         ! Get row
-        call MatGetRow(loss%oper, i-1, ncols, cols, vals, mpi_err)
+        call MatGetValues(loss%oper, 1, (/i-1/), 1, (/i-1/), val, mpi_err)
 
-        ! loop around for diagonal
-        do ii = 1, ncols
+        ! take away buckling
+        m % absorxs = m % absorxs - m % diffcof * m % buckling
 
-          if (cols(ii) /= i-1) cycle
+        ! calculate what absorption should be
+        absxs = m % absorxs(g) * (ONE + GAM*(sqrt(yptr((1+NUM_PRECS)*nf+sidx)) - sqrt(fuel_T)))
 
-          ! take away buckling
-          m % absorxs = m % absorxs - m % diffcof * m % buckling
+        ! adjust absorption xs
+        val(1) = val(1) - m % absorxs(g) + absxs
 
-          ! calculate what absorption should be
-          absxs = m % absorxs(g) * (ONE + GAM*(sqrt(yptr((1+NUM_PRECS)*nf+sidx)) - sqrt(fuel_T)))
+        ! put back in buckling
+        m % absorxs = m % absorxs + m % diffcof * m % buckling
 
-          ! adjust absorption xs
-          vals(ii) = vals(ii) - m % absorxs(g) + absxs
+        ! restore row
+        call MatSetValue(loss%oper, i-1, i-1, val(1), INSERT_VALUES, mpi_err)
+        ! lock matrix values
+        call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
+        call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
 
-          ! put back in buckling
-          m % absorxs = m % absorxs + m % diffcof * m % buckling
-
-          ! restore row
-          call MatRestoreRow(loss%oper, i-1, ncols, cols(1:ncols), vals, mpi_err)
-
-          ! break loop
-          exit
-
-        end do
       end if
     end do
-
-    ! free memory
-    deallocate(cols)
-    deallocate(vals)
 
     ! lock matrix values
     call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
