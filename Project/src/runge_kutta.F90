@@ -302,25 +302,14 @@ contains
 #   endif
     tinit = t
 
-    ! create coefficient matrix
-    call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
-#   ifdef DEBUG
-      CHKERRQ(mpi_err)
-#   endif
-
     ! set up initial trial time step
     h = htry
 
     ! begin loop over trial time steps
     do istep = 1, MAXTRY
-    ! create coefficient matrix
-    call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
 
-!     ! copy jacobian over
-!     call MatCopy(dfdy, A, SAME_NONZERO_PATTERN, mpi_err)
-#     ifdef DEBUG 
-        CHKERRQ(mpi_err)
-#     endif
+      ! create coefficient matrix
+      call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
 
       ! multiply values by -1
       call MatScale(A, -1.0_8, mpi_err)
@@ -328,20 +317,8 @@ contains
         CHKERRQ(mpi_err)
 #     endif
 
-      ! create left hand side matrix
-!     call MatAssemblyBegin(A, MAT_FLUSH_ASSEMBLY, mpi_err)
-!     call MatAssemblyEnd(A, MAT_FLUSH_ASSEMBLY, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
-      do irow = 1, n
-        call MatSetValue(A, irow-1, irow-1, ONE/(GAM*h), ADD_VALUES, mpi_err)
-#       ifdef DEBUG
-          CHKERRQ(mpi_err)
-#       endif
-      end do
-      call MatAssemblyBegin(A, MAT_FINAL_ASSEMBLY, mpi_err)
-      call MatAssemblyEnd(A, MAT_FINAL_ASSEMBLY, mpi_err)
+      ! modify diagonal
+      call MatShift(A, ONE/(GAM*h), mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
@@ -514,12 +491,13 @@ contains
         CHKERRQ(mpi_err)
 #     endif
 
-        call MatDestroy(A, mpi_err)
+      ! get rid of A matrix
+      call MatDestroy(A, mpi_err)
+
       ! check for variable time stepping off
       if (.not. var_ts) then
         hnext = h
         hdid = h
-        call MatDestroy(A, mpi_err)
         return
       end if
 

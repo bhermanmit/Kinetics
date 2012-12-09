@@ -374,14 +374,14 @@ contains
     ! rebuild matrices
     call build_loss_matrix(loss)
     call build_prod_matrix(prod)
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'lossmat.bin', &
-           FILE_MODE_WRITE, viewer, mpi_err)
-    call MatView(loss%oper, viewer, mpi_err)
-    call PetscViewerDestroy(viewer, mpi_err)
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'prodmat.bin', &
-           FILE_MODE_WRITE, viewer, mpi_err)
-    call MatView(prod%oper, viewer, mpi_err)
-    call PetscViewerDestroy(viewer, mpi_err)
+!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'lossmat.bin', &
+!          FILE_MODE_WRITE, viewer, mpi_err)
+!   call MatView(loss%oper, viewer, mpi_err)
+!   call PetscViewerDestroy(viewer, mpi_err)
+!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'prodmat.bin', &
+!          FILE_MODE_WRITE, viewer, mpi_err)
+!   call MatView(prod%oper, viewer, mpi_err)
+!   call PetscViewerDestroy(viewer, mpi_err)
 
     ! get pointer to solution
     call VecGetArrayF90(y, yptr, mpi_err)
@@ -636,15 +636,18 @@ contains
     real(8) :: val(1)
     real(8) :: absxs 
     type(material_type), pointer :: m => null()
-real(8), allocatable :: val_tmp(:)
+    real(8), allocatable :: val_tmp(:)
+    Vec :: D
 
 !---begin execution
 
     ! get sizes
     nf = geometry % nf
     ng = geometry % nfg
-allocate(val_tmp(nf))
-val_tmp = ZERO
+
+    ! allocate temporary vector
+    allocate(val_tmp(nf))
+    val_tmp = ZERO
 
     ! begin loop around space
     do i = 1,nf
@@ -661,9 +664,6 @@ val_tmp = ZERO
         ! get pointer to material
         m => material(geometry % fmat_map(sidx))
 
-        ! Get row
-        call MatGetValues(loss%oper, 1, (/i-1/), 1, (/i-1/), val, mpi_err)
-
         ! take away buckling
         m % absorxs = m % absorxs - m % diffcof * m % buckling
 
@@ -671,29 +671,23 @@ val_tmp = ZERO
         absxs = m % absorxs(g) * (ONE + GAM*(sqrt(yptr((1+NUM_PRECS)*nf+sidx)) - sqrt(fuel_T)))
 
         ! adjust absorption xs
-        val(1) = val(1) - m % absorxs(g) + absxs
         val_tmp(i) = absxs - m % absorxs(g)
 
         ! put back in buckling
         m % absorxs = m % absorxs + m % diffcof * m % buckling
 
-        ! restore row
-!       call MatSetValue(loss%oper, i-1, i-1, val(1), INSERT_VALUES, mpi_err)
-        ! lock matrix values
-!       call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-!       call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-
       end if
     end do
-    call MatAssemblyBegin(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
-    call MatAssemblyEnd(loss%oper, MAT_FLUSH_ASSEMBLY, mpi_err)
-    do i = 1,nf
-      call MatSetValue(loss%oper, i-1,  i-1, val_tmp(i), ADD_VALUES, mpi_err)
-    end do
-    ! lock matrix values
-    call MatAssemblyBegin(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-    call MatAssemblyEnd(loss%oper, MAT_FINAL_ASSEMBLY, mpi_err)
-   deallocate(val_tmp)
+
+    ! place values in petsc vector
+    call VecCreateSeqWithArray(PETSC_COMM_WORLD, 1, nf, val_tmp, D, mpi_err)
+
+    ! put in diagonal
+    call MatDiagonalSet(loss%oper, D, ADD_VALUES, mpi_err)
+
+    ! free memory
+    deallocate(val_tmp)
+
   end subroutine perform_feedback
 
 !===============================================================================
