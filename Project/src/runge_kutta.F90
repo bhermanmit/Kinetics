@@ -68,7 +68,7 @@ module runge_kutta
 
   KSP :: ksp
   PC  :: pc
-
+  PetscViewer :: viewer
 contains
 
 !===============================================================================
@@ -286,7 +286,7 @@ contains
     call VecRestoreArrayF90(yscal, yscalptr, mpi_err)
 
     ! evaluate jacobian at beginning of time step
-    call jacobn(t,y,dfdy,dfdt,n)
+!   call jacobn(t,y,dfdy,dfdt,n)
 
     ! call derivs to get dydt vector
     call derivs(t, y, dydt, n)
@@ -309,22 +309,28 @@ contains
     do istep = 1, MAXTRY
 
       ! create coefficient matrix
-      call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
-
+!     call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
+      ! evaluate jacobian at beginning of time step
+      call jacobn(t,y,dfdy,dfdt,n, ONE/(GAM*h))
       ! multiply values by -1
-      call MatScale(A, -1.0_8, mpi_err)
+!     call MatScale(A, -1.0_8, mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
 
       ! modify diagonal
-      call MatShift(A, ONE/(GAM*h), mpi_err)
+!     call MatShift(A, ONE/(GAM*h), mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
-        
+
       ! set the operator and finish setting up
-      call KSPSetOperators(ksp, A, A, SAME_NONZERO_PATTERN, mpi_err)
+      call KSPSetOperators(ksp, dfdy, dfdy, SAME_NONZERO_PATTERN, mpi_err)
+!  call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'jacnew.bin', &
+!         FILE_MODE_WRITE, viewer, mpi_err)
+!  call MatView(dfdy, viewer, mpi_err)
+!  call PetscViewerDestroy(viewer, mpi_err)
+
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
@@ -492,7 +498,7 @@ contains
 #     endif
 
       ! get rid of A matrix
-      call MatDestroy(A, mpi_err)
+!     call MatDestroy(A, mpi_err)
 
       ! check for variable time stepping off
       if (.not. var_ts) then

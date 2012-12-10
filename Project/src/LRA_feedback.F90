@@ -136,7 +136,7 @@ contains
     ! create dfdy matrix
     d_nnz(1:n) = loss % d_nnz + NUM_PRECS + 1
     d_nnz(n+1:n+NUM_PRECS*n) = ng + 1
-    d_nnz((1+NUM_PRECS)*n+1:(1+NUM_PRECS)*n+n/ng) = ng 
+    d_nnz((1+NUM_PRECS)*n+1:(1+NUM_PRECS)*n+n/ng) = ng + 1 
     o_nnz = 0
     call MatCreateAIJ(PETSC_COMM_WORLD,n+NUM_PRECS*n+n/ng, n+NUM_PRECS*n+n/ng,&
                       PETSC_DETERMINE, PETSC_DETERMINE, PETSC_NULL, d_nnz,&
@@ -179,7 +179,7 @@ contains
 ! SETUP_COEFMAT
 !===============================================================================
 
-  subroutine spk_jacobn(t,y,dfdy,dfdt,n)
+  subroutine spk_jacobn(t,y,dfdy,dfdt,n,const)
 
 !---external references
 
@@ -192,7 +192,9 @@ contains
 !---arguments
 
     integer :: n
+    integer :: ii
     real(8) :: t
+    real(8) :: const
     Mat     :: dfdy
     Vec     :: dfdt
     Vec     :: y
@@ -262,9 +264,15 @@ contains
 
       ! multiply values by group velocity
       vals = vel(mod(irow-1,ng)+1)*vals
+      do ii = 1, ncols
+        if (cols(ii) == irow - 1) then
+          vals(ii) = vals(ii) - const
+          exit
+        end if
+      end do
 
       ! put values in jacobian
-      call MatSetValues(dfdy, 1, irow-1, ncols, cols(1:ncols), vals, &
+      call MatSetValues(dfdy, 1, irow-1, ncols, cols(1:ncols), -vals(1:ncols), &
                         INSERT_VALUES, mpi_err)
 
       ! put the row back
@@ -274,18 +282,18 @@ contains
       do i = 1, NUM_PRECS
 
         ! flux by precursors
-        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), lambda(i)*vel(mod(irow-1,ng)+1), INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), -lambda(i)*vel(mod(irow-1,ng)+1), INSERT_VALUES, mpi_err)
 
         ! precursors by flux
         vals = ZERO
         call MatGetRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
         vals = vals*beta(i)/cmfd%keff
-        call MatSetValues(dfdy, 1, i*nf + (irow-1), ncols, cols(1:ncols), vals, &
+        call MatSetValues(dfdy, 1, i*nf + (irow-1), ncols, cols(1:ncols), -vals, &
                           INSERT_VALUES, mpi_err)
         call MatRestoreRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
 
         ! precursors by precursors
-        call MatSetValue(dfdy, i*nf + (irow - 1), i*nf + (irow - 1), -lambda(i), INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, i*nf + (irow - 1), i*nf + (irow - 1), lambda(i) + const, INSERT_VALUES, mpi_err)
 
       end do
 
@@ -297,7 +305,7 @@ contains
         absxs = m % absorxs(g) - m % diffcof(g) * m % buckling ! get base absxs 
         val = -0.5_8*absxs*GAM*yptr((1+NUM_PRECS)*nf+sidx)**(-0.5) * &
               vel(mod(irow-1,ng)+1) * yptr(irow)
-        call MatSetValue(dfdy, irow-1, (1+NUM_PRECS)*nf+sidx-1, val, INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, irow-1, (1+NUM_PRECS)*nf+sidx-1, -val, INSERT_VALUES, mpi_err)
       end if
 
     end do
@@ -309,7 +317,9 @@ contains
       vals(1) = m % fissvec(1)/NU*ALPHA
       vals(2) = m % fissvec(2)/NU*ALPHA
       call MatSetValues(dfdy, 1, (NUM_PRECS+1)*nf+irow-1, 2, &
-           (/irow-1,irow/), vals(1:2), INSERT_VALUES, mpi_err)
+           (/irow-1,irow/), -vals(1:2), INSERT_VALUES, mpi_err)
+      call MatSetValue(dfdy, (NUM_PRECS+1)*nf+irow-1, &
+           (NUM_PRECS+1)*nf+irow-1, const, INSERT_VALUES, mpi_err)
     end do
 
     ! assemble matrix
