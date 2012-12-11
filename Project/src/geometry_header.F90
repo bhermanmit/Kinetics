@@ -1,5 +1,9 @@
 module geometry_header
 
+!-module references
+
+  use constants, only: ZERO
+
 !-module options
 
   implicit none
@@ -28,6 +32,12 @@ module geometry_header
 
     ! number of regions
     integer :: n_regs
+
+    ! number of fuel regions
+    integer :: n_fregs
+
+    ! fissile volume
+    real(8) :: fiss_vol = ZERO
 
     ! material map
     integer, allocatable :: mat_map(:,:,:)
@@ -110,11 +120,16 @@ contains
 ! GENERATE_FINE_MAP
 !===============================================================================
 
-  subroutine generate_fine_map(this)
+  subroutine generate_fine_map(this, material)
+
+!---references
+
+    use material_header, only: material_type
 
 !---arguments
 
     type(geometry_type) :: this
+    type(material_type) :: material(:)
 
 !---local variables
 
@@ -160,6 +175,10 @@ contains
                 this % fdz_map(n)  = this % dz(k)
                 this % fvol_map(n) = (this % dx(i) *      &
                                    this % dy(j) * this % dz(k))
+
+                ! save fissile volume
+                if (sum(material(this%fmat_map(n))%fissvec) > 1.e-8) & 
+                  this % fiss_vol = this % fiss_vol + this % fvol_map(n)
 
               end do FXLOOP
 

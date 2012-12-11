@@ -68,6 +68,7 @@ module global
 
   integer :: hdf5_err
   integer(HID_T) :: hdf5_output_file
+  integer(HID_T) :: time_group
 
 !-Message used in message/warning/fatal_error
 

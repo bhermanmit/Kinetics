@@ -118,7 +118,7 @@ contains
 !---external references
 
     use geometry_header,  only: generate_fine_map, compute_widths
-    use global,           only: geometry
+    use global,           only: geometry, material
 
 !---begin execution
 
@@ -126,7 +126,7 @@ contains
     call compute_widths(geometry) 
 
     ! set up geometry fine map
-    call generate_fine_map(geometry)
+    call generate_fine_map(geometry, material)
 
     ! compute geometry product
     geometry % nf = geometry % nfx * geometry % nfy * geometry % nfz * geometry % nfg

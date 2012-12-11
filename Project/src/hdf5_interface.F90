@@ -63,6 +63,32 @@ contains
   end subroutine hdf5_close_file
 
 !===============================================================================
+! HDF5_create_group
+!===============================================================================
+
+  subroutine hdf5_create_group(root, group, name)
+
+   integer(HID_T) :: root
+   integer(HID_T) :: group
+   character(*)   :: name
+
+   call h5gcreate_f(root, name, group, hdf5_err)
+
+  end subroutine hdf5_create_group
+
+!===============================================================================
+! HDF5_close_group
+!===============================================================================
+
+  subroutine hdf5_close_group(group)
+
+    integer(HID_T) :: group
+
+    call h5gclose_f(group, hdf5_err)
+
+  end subroutine hdf5_close_group
+
+!===============================================================================
 ! HDF5_MAKE_INTEGER
 !===============================================================================
 

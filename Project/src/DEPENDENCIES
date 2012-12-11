@@ -20,6 +20,9 @@ finalize.o: material_header.o
 finalize.o: output.o
 finalize.o: timing.o
 
+geometry_header.o: constants.o
+geometry_header.o: material_header.o
+
 global.o: cmfd_header.o
 global.o: geometry_header.o
 global.o: kinetics_header.o

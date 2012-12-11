@@ -99,6 +99,7 @@ contains
 
 !---local variables
 
+    integer :: i
     real(8) :: hdid
     real(8) :: hnext
     real(8) :: htry
@@ -114,6 +115,7 @@ contains
     hdid = ZERO
     hnext = ZERO
     t = ZERO
+    i = 0
 
     ! set tolerance
     eps = 1.e-4_8
@@ -137,8 +139,10 @@ contains
       ! set next time step
       htry = hnext
 
+      i = i + 1
+
       ! post timestep routine
-      call post_timestep(t, y, hdid)
+      call post_timestep(t, y, hdid, i)
 
     end do
 
@@ -208,7 +212,7 @@ contains
 
     ! create ksp object
     call KSPCreate(PETSC_COMM_WORLD, ksp, mpi_err)
-    call KSPSetTolerances(ksp, itol, itol, PETSC_DEFAULT_DOUBLE_PRECISION,&
+    call KSPSetTolerances(ksp, 1.e-6_8, 1.e-6_8, PETSC_DEFAULT_DOUBLE_PRECISION,&
                           PETSC_DEFAULT_INTEGER, mpi_err)
     call KSPSetType(ksp, KSPGMRES, mpi_err)
 #   ifdef DEBUG

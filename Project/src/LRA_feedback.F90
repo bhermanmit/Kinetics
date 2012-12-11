@@ -3,6 +3,7 @@ module LRA_feedback
 !-references
 
   use global,  only: mpi_err
+  use hdf5_interface
 
 !-module options
 
@@ -56,6 +57,9 @@ contains
     ! print header for run
     call header("Spatial KINETICS SIMULATION", level=1)
 
+    ! open up hdf5
+    call hdf5_create_file('output.h5')
+
     ! compute size (flux + precursors + temperature)
     n = geometry % nf + NUM_PRECS * geometry % nf + geometry % nf / geometry % nfg
 
@@ -76,6 +80,9 @@ contains
     end select
 
     call destroy_objects(dfdy, dfdt, dydt, y)
+
+    ! close file
+    call hdf5_close_file()
 
   end subroutine run_LRAfeedback
 
@@ -468,7 +475,7 @@ contains
     call VecGetArrayF90(y, yptr, mpi_err)
 
     ! compute power
-    pow = sum(calc_fiss_rate(cmfd%phi, KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.))
+    pow = sum(calc_fiss_rate(cmfd%phi, KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.))/geometry%fiss_vol
 
     ! divide flux by power
     cmfd % phi = cmfd % phi * power / pow
@@ -497,7 +504,7 @@ contains
 ! PK_POST_TIMESTEP
 !===============================================================================
 
-  subroutine spk_post_timestep(t, y, h)
+  subroutine spk_post_timestep(t, y, h, i)
 
 !---references
 
@@ -506,36 +513,57 @@ contains
 
 !---arguments
 
+    integer :: i
     real(8) :: t
     real(8) :: h
     Vec :: y
 
 !---local variables
 
-    integer :: n, ng
+    integer :: n, ng, nr
     real(8) :: pow
+    real(8) :: temp
+    real(8) :: maxt
     real(8), pointer :: yptr(:)
+    real(8), allocatable :: powers(:)
+    real(8), allocatable :: assy_pow(:)
+    real(8), allocatable :: assy_temp(:)
 
 !---begin execution
 
     ! get size
     n = geometry % nf
     ng = geometry % nfg
+    nr = maxval(geometry % freg_map)
+
+    ! allocate powers
+    allocate(powers(n/ng))
+
+    ! allocate assembly vectors
+    allocate(assy_pow(nr))
+    allocate(assy_temp(nr))
 
     ! get ptr
     call VecGetArrayF90(y, yptr, mpi_err)
 
-    pow = sum(calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)) &
-         * cmfd % pfactor
+    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)
+    pow = sum(powers)/geometry%fiss_vol
+    temp = calc_core_temp(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), n/ng)
+    maxt = maxval(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng))
 
     ! write output
-    print *, 'TIME:', t, 'POWER:', pow, 'STEP:', h, material(6)%absorxs(2)
+    print *, i, 'TIME:', t, 'POWER:', pow, 'TEMP:', temp, 'MAX_T:', maxt, 'STEP:', h
+    call write_hdf5(i, t, pow, temp, maxt, h)
 
     ! restore ptrs
     call VecRestoreArrayF90(y, yptr, mpi_err)
 #   ifdef DEBUG
       CHKERRQ(mpi_err)
 #   endif
+
+    deallocate(powers)
+    deallocate(assy_pow)
+    deallocate(assy_temp)
 
   end subroutine spk_post_timestep
 
@@ -744,6 +772,91 @@ contains
     end do
 
   end function calc_fiss_rate
+
+!===============================================================================
+! CALC_CORE_TEMP
+!===============================================================================
+
+  function calc_core_temp(tempvec, n) result(temp)
+
+!---references
+
+    use constants,  only: ZERO
+    use global,  only: geometry
+
+!---arguments
+
+    integer, intent(in)   :: n
+    real(8), intent(in)   :: tempvec(n)
+    real(8)  :: temp 
+
+!---local variables
+
+    integer :: i
+    integer :: nf, ng
+    real(8) :: sumtemp
+
+!---begin execution
+
+    ! get sizes
+    nf = geometry % nf
+    ng = geometry % nfg
+
+    ! reset counter
+    sumtemp = ZERO
+
+    ! begin loop over space
+    do i = 1,nf/ng
+
+      ! skip the water region, only do fuel
+      if (geometry % fmat_map(i) == 5) cycle
+
+      ! sum the weighted temp
+      sumtemp = sumtemp + tempvec(i) * geometry % fvol_map(i) 
+
+    end do
+
+    ! divide sum by volume of fuel region
+    temp = sumtemp / geometry % fiss_vol
+
+  end function calc_core_temp
+
+!===============================================================================
+! WRITE_HDF5
+!===============================================================================
+
+  subroutine write_hdf5(i, t, pow, temp, maxt, h)
+
+!---references
+
+    use global,  only: hdf5_output_file, time_group
+    use string,  only: to_str
+
+!---arguments
+
+    integer :: i
+    real(8) :: t
+    real(8) :: pow
+    real(8) :: temp
+    real(8) :: maxt
+    real(8) :: h 
+
+!---begin execution
+
+    ! create a group
+    call hdf5_create_group(hdf5_output_file, time_group, 'time'//trim(to_str(i)))
+
+    ! write out data
+    call hdf5_make_double(time_group, 'time', t)
+    call hdf5_make_double(time_group, 'pow', pow)
+    call hdf5_make_double(time_group, 'avg_T', temp)
+    call hdf5_make_double(time_group, 'max_T', maxt)
+    call hdf5_make_double(time_group, 'h', h)
+
+    ! close the group
+    call hdf5_close_group(time_group)
+
+  end subroutine write_hdf5
 
 !===============================================================================
 ! DESTROY_OBJECTS
