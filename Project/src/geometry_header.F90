@@ -34,7 +34,7 @@ module geometry_header
     integer :: n_regs
 
     ! number of fuel regions
-    integer :: n_fregs
+    integer :: n_fregs = 0
 
     ! fissile volume
     real(8) :: fiss_vol = ZERO
@@ -177,8 +177,9 @@ contains
                                    this % dy(j) * this % dz(k))
 
                 ! save fissile volume
-                if (sum(material(this%fmat_map(n))%fissvec) > 1.e-8) & 
+                if (sum(material(this%fmat_map(n))%fissvec) > 1.e-8) then 
                   this % fiss_vol = this % fiss_vol + this % fvol_map(n)
+                end if
 
               end do FXLOOP
 

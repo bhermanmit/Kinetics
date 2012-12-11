@@ -450,7 +450,7 @@ contains
 
 !---external references
 
-    use constants,  only: ONE
+    use constants,  only: ONE, ZERO
     use global,     only: cmfd, prod, power, geometry, fuel_T
     use math,       only: csr_matvec_mult
 
@@ -461,15 +461,28 @@ contains
 !---local variables
 
     integer :: i
-    integer :: n, ng
+    integer :: n, ng, nr
     real(8) :: pow
+    real(8) :: maxt
+    real(8) :: temp
     real(8), pointer :: yptr(:)
+    real(8), allocatable :: powers(:)
+    real(8), allocatable :: assy_pow(:)
+    real(8), allocatable :: assy_temp(:)
 
 !---begin execution  
 
     ! get size
     n = geometry % nf
     ng = geometry % nfg
+    nr = maxval(geometry % freg_map)
+
+    ! allocate powers
+    allocate(powers(n/ng))
+
+    ! allocate assembly vectors
+    allocate(assy_pow(nr))
+    allocate(assy_temp(nr))
 
     ! get y pointer
     call VecGetArrayF90(y, yptr, mpi_err)
@@ -494,6 +507,22 @@ contains
 
     ! set initial temperature
     yptr((1+NUM_PRECS)*n + 1:(1+NUM_PRECS)*n + n/ng) = fuel_T
+
+    ! compute initial data
+    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)
+    pow = sum(powers)/geometry%fiss_vol
+    temp = calc_core_temp(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), n/ng)
+    maxt = maxval(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng))
+    call calc_assy_data(powers, yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), assy_pow, assy_temp, nr)
+
+    print *, 0, 'TIME:', ZERO, 'POWER:', pow, 'TEMP:', temp, 'MAX_T:', maxt, 'STEP:', ZERO
+    call write_hdf5(0, ZERO, pow, temp, maxt, ZERO, assy_pow, assy_temp)
+
+    ! deallocate memory
+    pow = sum(powers)/geometry%fiss_vol
+    deallocate(powers)
+    deallocate(assy_pow)
+    deallocate(assy_temp)
 
     ! place back pointer
     call VecRestoreArrayF90(y, yptr, mpi_err)
@@ -546,14 +575,16 @@ contains
     ! get ptr
     call VecGetArrayF90(y, yptr, mpi_err)
 
+    ! compute data
     powers = calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)
     pow = sum(powers)/geometry%fiss_vol
     temp = calc_core_temp(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), n/ng)
     maxt = maxval(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng))
+    call calc_assy_data(powers, yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), assy_pow, assy_temp, nr)
 
     ! write output
     print *, i, 'TIME:', t, 'POWER:', pow, 'TEMP:', temp, 'MAX_T:', maxt, 'STEP:', h
-    call write_hdf5(i, t, pow, temp, maxt, h)
+    call write_hdf5(i, t, pow, temp, maxt, h, assy_pow, assy_temp)
 
     ! restore ptrs
     call VecRestoreArrayF90(y, yptr, mpi_err)
@@ -822,10 +853,74 @@ contains
   end function calc_core_temp
 
 !===============================================================================
+! CALC_ASSY_DATA
+!===============================================================================
+
+  subroutine calc_assy_data(powers, temps, assy_pow, assy_temp, nr)
+
+!---references
+
+    use constants,  only: ZERO
+    use global,     only: geometry
+
+!---arguments
+
+    integer :: nr
+    real(8) :: powers(:)
+    real(8) :: temps(:)
+    real(8) :: assy_pow(:)
+    real(8) :: assy_temp(:)
+
+!---local variables
+
+    integer :: i
+    integer :: nf, ng
+    integer :: reg
+    real(8), allocatable :: vol(:)
+
+!---begin execution
+
+    ! get sizes
+    nf = geometry % nf
+    ng = geometry % nfg
+
+    ! allocate volume
+    allocate(vol(nr))
+
+    ! reset sums
+    assy_pow = ZERO
+    assy_temp = ZERO
+    vol = ZERO
+
+    ! begin loop over space
+    do i = 1,nf/ng
+
+      ! get region id
+      reg = geometry % freg_map(i)
+
+      ! sum the power and weighted temp, also get volume 
+      assy_pow(reg) = assy_pow(reg) + powers(i)
+      assy_temp(reg) = assy_temp(reg) + temps(i)*geometry % fvol_map(i)
+      vol(reg) = vol(reg) + geometry % fvol_map(i)
+
+    end do
+
+    ! divide sum by volume of fuel region
+    assy_temp = assy_temp / vol 
+
+    ! normalize powers
+    assy_pow = assy_pow*count(assy_pow > 1.e-8) / sum(assy_pow)
+
+    ! deallocate volume
+    deallocate(vol)
+
+  end subroutine calc_assy_data
+
+!===============================================================================
 ! WRITE_HDF5
 !===============================================================================
 
-  subroutine write_hdf5(i, t, pow, temp, maxt, h)
+  subroutine write_hdf5(i, t, pow, temp, maxt, h, assy_pow, assy_temp)
 
 !---references
 
@@ -839,7 +934,9 @@ contains
     real(8) :: pow
     real(8) :: temp
     real(8) :: maxt
-    real(8) :: h 
+    real(8) :: h
+    real(8) :: assy_pow(:)
+    real(8) :: assy_temp(:)
 
 !---begin execution
 
@@ -852,6 +949,8 @@ contains
     call hdf5_make_double(time_group, 'avg_T', temp)
     call hdf5_make_double(time_group, 'max_T', maxt)
     call hdf5_make_double(time_group, 'h', h)
+    call hdf5_make_array(time_group, "assy_pow", assy_pow, size(assy_pow))
+    call hdf5_make_array(time_group, "assy_temp", assy_temp, size(assy_temp))
 
     ! close the group
     call hdf5_close_group(time_group)
