@@ -46,7 +46,7 @@
     <nnx>3 3 3 3 3 3 3 3 3 3 3</nnx>
     <nny>3 3 3 3 3 3 3 3 3 3 3</nny>
     <nnz>1</nnz>
-    <bc> 1.0 1.0 1.0 1.0 1.0 1.0 </bc>
+    <bc> 1.0 0.0 1.0 0.0 1.0 1.0 </bc>
   </geometry>
 
 <!-- Defition of Materials -->
