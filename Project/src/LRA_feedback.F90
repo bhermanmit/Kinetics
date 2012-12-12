@@ -23,7 +23,7 @@ module LRA_feedback
   real(8), parameter :: ALPHA = 3.83e-11_8
   real(8), parameter :: GAM = 2.034e-3_8
   real(8), parameter :: KAPPA = 3.204e-11_8
-  real(8), parameter :: NU = 3.24_8
+  real(8), parameter :: NU = 2.43_8
   integer, parameter :: NUM_PRECS = 2
 
 contains
@@ -36,7 +36,7 @@ contains
 
 !---external references
 
-    use global,          only: pke, time, solver_type, geometry
+    use global,          only: pke, time, solver_type, geometry, time
     use output,          only: header
     use runge_kutta,     only: execute_rk4
 
@@ -68,6 +68,9 @@ contains
 
     ! set initial values in y
     call set_init(y)
+
+    ! check for time > 0
+    if (time < 1.e-8_8) solver_type = 'none'
 
     ! perform 4th order kaps rentrop
     select case(trim(solver_type))
@@ -310,6 +313,7 @@ contains
       if (g == 1) then
         m => material(geometry % fmat_map(sidx))
         absxs = m % absorxs(g) - m % diffcof(g) * m % buckling ! get base absxs 
+!       absxs = m % absorxs(g)
         val = -0.5_8*absxs*GAM*yptr((1+NUM_PRECS)*nf+sidx)**(-0.5) * &
               vel(mod(irow-1,ng)+1) * yptr(irow)
         call MatSetValue(dfdy, irow-1, (1+NUM_PRECS)*nf+sidx-1, -val, INSERT_VALUES, mpi_err)
@@ -342,10 +346,10 @@ contains
     deallocate(vals)
 
     ! print out matrix
-    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'jacobian.bin', &
-           FILE_MODE_WRITE, viewer, mpi_err)
-    call MatView(dfdy, viewer, mpi_err)
-    call PetscViewerDestroy(viewer, mpi_err)
+!   call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'jacobian.bin', &
+!          FILE_MODE_WRITE, viewer, mpi_err)
+!   call MatView(dfdy, viewer, mpi_err)
+!   call PetscViewerDestroy(viewer, mpi_err)
 
   end subroutine spk_jacobn 
 
@@ -434,7 +438,7 @@ contains
 
     ! calculate temperatures
     dydtptr((1+NUM_PRECS)*nf + 1: (1+NUM_PRECS)*nf+nf/ng) = &
-                      calc_fiss_rate(yptr(1:nf), ALPHA/NU/cmfd%keff, nf, nf/ng, vol=.false.)
+                      calc_fiss_rate(yptr(1:nf), ALPHA/NU, nf, nf/ng, vol=.false.)
 
     ! put the pointer back
     call VecRestoreArrayF90(y, yptr, mpi_err)
@@ -488,7 +492,7 @@ contains
     call VecGetArrayF90(y, yptr, mpi_err)
 
     ! compute power
-    pow = sum(calc_fiss_rate(cmfd%phi, KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.))/geometry%fiss_vol
+    pow = sum(calc_fiss_rate(cmfd%phi, KAPPA/NU, n, n/ng, vol=.true.))/geometry%fiss_vol
 
     ! divide flux by power
     cmfd % phi = cmfd % phi * power / pow
@@ -509,7 +513,7 @@ contains
     yptr((1+NUM_PRECS)*n + 1:(1+NUM_PRECS)*n + n/ng) = fuel_T
 
     ! compute initial data
-    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)
+    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU, n, n/ng, vol=.true.)
     pow = sum(powers)/geometry%fiss_vol
     temp = calc_core_temp(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), n/ng)
     maxt = maxval(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng))
@@ -576,7 +580,7 @@ contains
     call VecGetArrayF90(y, yptr, mpi_err)
 
     ! compute data
-    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU/cmfd%keff, n, n/ng, vol=.true.)
+    powers = calc_fiss_rate(yptr(1:n), KAPPA/NU, n, n/ng, vol=.true.)
     pow = sum(powers)/geometry%fiss_vol
     temp = calc_core_temp(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), n/ng)
     maxt = maxval(yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng))
@@ -690,7 +694,7 @@ contains
 !---references
 
     use constants,  only: ZERO, ONE
-    use global,  only: loss, geometry, material, fuel_T
+    use global,  only: loss, geometry, material, fuel_T, kinetics
     use material_header,  only: material_type
 
 !---arguments
@@ -924,7 +928,7 @@ contains
 
 !---references
 
-    use global,  only: hdf5_output_file, time_group
+    use global,  only: hdf5_output_file, time_group, cmfd
     use string,  only: to_str
 
 !---arguments
@@ -944,6 +948,7 @@ contains
     call hdf5_create_group(hdf5_output_file, time_group, 'time'//trim(to_str(i)))
 
     ! write out data
+    call hdf5_make_double(time_group, 'keff', cmfd%keff)
     call hdf5_make_double(time_group, 'time', t)
     call hdf5_make_double(time_group, 'pow', pow)
     call hdf5_make_double(time_group, 'avg_T', temp)
