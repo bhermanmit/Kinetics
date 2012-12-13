@@ -1,0 +1,61 @@
+\documentclass{ansconf}
+
+\usepackage[T1]{fontenc}     % Use T1 encoding instead of OT1
+\usepackage[utf8]{inputenc}  % Use UTF8 input encoding
+\usepackage{microtype}       % Improve typography
+\usepackage{amsmath}         % AMS Math extensions
+\usepackage{booktabs}        % Improved table spacing
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{tikz}
+\usepackage{subfigure}
+\usetikzlibrary{arrows,shapes,positioning}
+\usetikzlibrary{decorations.markings}
+\usepackage{etoolbox}
+\usetikzlibrary{matrix,calc}
+
+\authorHead{Herman}
+\shortTitle{4-th Order Generalized Runge-Kutta}
+\confTitle{}
+\confLocation{}
+\confPublished{}
+
+\begin{document}
+
+\title{Generalized Runge-Kutta Methods for Solving Stiff Ordinary Differential Equations for Reactor Physics Applications}
+
+\author{Bryan R. Herman}
+\affil{Massachusetts Institute of Technology}
+
+\maketitle
+
+\Section{Introduction}
+
+When dealing with multiple coupled ordinary first order differential equations, the question of stiffness of the system arises. The can occur when independent variables of the system are represented on different scales and their magnitudes may span many orders of magnitude. An example that we encounter in nuclear reactor analysis is the neutron kinetics equations where fluxes and precursor concentrations are calculated. Furthermore when coupling to thermal-hydraulics, a different set of physics is introduced that is represented on a different scale. Therefore, it is import to understand how to solve stiff sets of ordinary differential equations.
+
+There are many methods that we can try and use to solve stiff sets of equations. First, we can try and use a simple explicit method. However, in this method, we must follow the equation with the shortest length scale to maintain stability of the system. If an simple implicit scheme is used, stability can be guaranteed, but we give up accuracy if we use a large time step. In this study, we wish to investigate methods that will allow us to take a larger time step, but are also relatively stable. 
+
+In order to use large time steps, we must use a higher order time integration scheme. Here, we chose higher order generalized Runge-Kutta methods called Rosenbrock methods. These methods were first practically applied in the work of Kaps and Rentrop and thus are also referred to as Kaps-Rentrop methods. These methods are relatively simple to implement and have shown to remain reliable. Also with these methods, an automatic step size adjustment can be embedded in the algorithm. Kaps and Rentrop showed that the smallest order for which embedding a an error estimator for automatic time step size is four. This report focuses on the derivation and implementation of a fourth-order Kaps-Rentrop method with embedded third-order truncation error estimation for automatic time step size adjustment for neutron kinetics applications.
+
+\Section{Generalized Runge-Kutta Methods}
+
+\include{./scripts/enr}
+
+\Subsection{Determining Runge-Kutta Coefficients}
+
+\Subsection{Automated Time Step Size Adjustment}
+
+\Subsection{Implementation of 4-th Order GRK Algorithm}
+
+\Section{Point Kinetics Equations}
+
+\Section{1-D Spatial Kinetics no Feedback}
+
+\Section{2-D LRA Benchmark}
+
+\setlength{\baselineskip}{12pt}
+
+\bibliographystyle{ans}
+\bibliography{references}
+
+\end{document}
