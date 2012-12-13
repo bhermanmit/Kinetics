@@ -650,10 +650,15 @@ class CoreFig:
           if not val:
             fh.write(color_t.format(colorname=pocolkey,r=1,g=1,b=1))
           else:
-            h = (1-(val-min(self.values))/(max(self.values) - min(self.values)))/3
-            s = 0.8
-            v = 0.8
-            r,g,b = colorsys.hsv_to_rgb(h,s,v)
+            if max(self.values) - min(self.values) < 1.e-6:
+              r = 0.16
+              g = 0.8
+              b = 0.16
+            else:
+              h = (1-(val-min(self.values))/(max(self.values) - min(self.values)))/3
+              s = 0.8
+              v = 0.8
+              r,g,b = colorsys.hsv_to_rgb(h,s,v)
             fh.write(color_t.format(colorname=pocolkey,r=r,g=g,b=b))
     
       head_lhm = r"\RPVOR/\latWidth"
