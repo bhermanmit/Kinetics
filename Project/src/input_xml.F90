@@ -296,6 +296,9 @@ contains
     ! variable time step for rk4
     var_ts = var_ts_
 
+    ! error tolerance on var time
+    eps = eps_
+
   end subroutine read_input_xml
 
 end module input_xml 

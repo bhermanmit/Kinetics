@@ -80,7 +80,7 @@ contains
 !---references
 
     use constants,  only: ZERO
-    use global,     only: time, dt
+    use global,     only: time, dt, eps
 
 !---arguments
 
@@ -103,7 +103,6 @@ contains
     real(8) :: hdid
     real(8) :: hnext
     real(8) :: htry
-    real(8) :: eps
     real(8) :: t
     real(8) :: Cfact
     real(8), pointer :: yptr(:)
@@ -116,9 +115,6 @@ contains
     hnext = ZERO
     t = ZERO
     i = 0
-
-    ! set tolerance
-    eps = 1.e-4_8
 
     ! get constant
     if (present(Cfactopt)) then
@@ -212,7 +208,7 @@ contains
 
     ! create ksp object
     call KSPCreate(PETSC_COMM_WORLD, ksp, mpi_err)
-    call KSPSetTolerances(ksp, 1.e-6_8, 1.e-6_8, PETSC_DEFAULT_DOUBLE_PRECISION,&
+    call KSPSetTolerances(ksp, 1.e-10_8, 1.e-10_8, PETSC_DEFAULT_DOUBLE_PRECISION,&
                           PETSC_DEFAULT_INTEGER, mpi_err)
     call KSPSetType(ksp, KSPGMRES, mpi_err)
 #   ifdef DEBUG

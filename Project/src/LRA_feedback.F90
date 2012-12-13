@@ -19,9 +19,9 @@ module LRA_feedback
 
   real(8), parameter :: VEL(2) = (/3.0e7_8, 3.0e5_8/)
   real(8), parameter :: BETA(2) = (/0.0054_8, 0.001087_8/)
-  real(8), parameter :: LAMBDA(2) = (/0.00654_8, 1.35_8/)
+  real(8), parameter :: LAMBDA(2) = (/0.0654_8, 1.35_8/)
   real(8), parameter :: ALPHA = 3.83e-11_8
-  real(8), parameter :: GAM = 2.034e-3_8
+  real(8), parameter :: GAM = 3.034e-3_8
   real(8), parameter :: KAPPA = 3.204e-11_8
   real(8), parameter :: NU = 2.43_8
   integer, parameter :: NUM_PRECS = 2
@@ -678,8 +678,31 @@ contains
           if (matidx == 6 .and. g == 2) dfdtptr(i) = -k%val(1)*0.0606184_8
 
         end do
-
       end if
+
+    else
+
+      ! set pointers
+      m => material(6)
+      k => kinetics(1)
+
+      ! undo buckling for all material 6
+      m % absorxs(2) = m % absorxs(2) - m % diffcof(2) * m % buckling
+
+      ! change value of absxs
+      m % absorxs(2) = k%val(1)*(ONE - 0.0606184_8*2._8)
+
+      ! put all buckling back in
+      m % absorxs(2) = m % absorxs(2) + m % diffcof(2) * m % buckling
+
+      ! calculate new removal
+      m % removxs(2) = m % absorxs(2) + sum(m % scattxs(:,2)) - m % scattxs(2,2)
+
+      ! adjust scattering to account for this removal
+      m % scattxs(2,2) = m % totalxs(2) - m % removxs(2)
+
+     ! set dfdt pointer to 0
+!    dfdtptr = ZERO
 
     end if
 
@@ -914,6 +937,17 @@ contains
 
     ! normalize powers
     assy_pow = assy_pow*count(assy_pow > 1.e-8) / sum(assy_pow)
+
+!   ! edit temps for assembly wise feedback
+!   do i = 1,nf/ng
+!
+!     ! get region id
+!     reg = geometry % freg_map(i)
+!
+!     ! set temperature
+!     temps(i) = assy_temp(reg)
+!
+!   end do
 
     ! deallocate volume
     deallocate(vol)

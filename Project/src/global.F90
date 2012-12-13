@@ -132,4 +132,8 @@ module global
   real(8) :: Tin    ! inlet temperature of coolant
   real(8) :: P_frac ! fraction of power deposited directly to COOLANT
 
+!-truncation error tolerance
+
+  real(8) :: eps
+
 end module global

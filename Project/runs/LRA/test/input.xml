@@ -7,6 +7,7 @@
   <ktol> 1e-8 </ktol>
   <stol> 1e-8 </stol>
   <itol> 1e-10 </itol>
+  <eps> 1e-6 </eps>
 
 <!-- Definition of Geometry -->
   <geometry>
@@ -46,7 +47,7 @@
     <nnx>3 3 3 3 3 3 3 3 3 3 3</nnx>
     <nny>3 3 3 3 3 3 3 3 3 3 3</nny>
     <nnz>1</nnz>
-    <bc> 1.0 0.0 1.0 0.0 1.0 1.0 </bc>
+    <bc> 1.0 -1.0 1.0 -1.0 1.0 1.0 </bc>
   </geometry>
 
 <!-- Defition of Materials -->

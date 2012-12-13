@@ -54,6 +54,7 @@
   <variable name="ktol_"     tag="ktol"     type="double" default="1.e-8" />
   <variable name="stol_"     tag="stol"     type="double" default="1.e-6" />
   <variable name="itol_"     tag="itol"     type="double" default="1.e-10" />
+  <variable name="eps_"      tag="eps"      type="double" default="1.e-4"/>
   <variable name="solver_"   tag="solver"   type="word" length="50" default="'jacobi'" />
   <variable name="guess_"    tag="guess"    type="word" length="50" default="'flat'" />
   <variable name="adjoint_"  tag="adjoint"  type="word" length="50" default="''" />
