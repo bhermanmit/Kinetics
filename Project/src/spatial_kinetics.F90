@@ -172,7 +172,7 @@ contains
 ! SETUP_COEFMAT
 !===============================================================================
 
-  subroutine spk_jacobn(t,y,dfdy,dfdt,n)
+  subroutine spk_jacobn(t,y,dfdy,dfdt,n,const)
 
 !---external references
 
@@ -185,6 +185,7 @@ contains
 
     integer :: n
     real(8) :: t
+    real(8) :: const
     Mat     :: dfdy
     Vec     :: dfdt
     Vec     :: y
@@ -194,7 +195,7 @@ contains
     integer :: nf
     integer :: ng
     integer :: ncols
-    integer :: i    ! loop counter
+    integer :: i, ii    ! loop counter
     integer :: irow ! row counter
     integer, allocatable :: cols(:)
     real(8) :: val  ! temp value for matrix setting
@@ -246,9 +247,15 @@ contains
 
       ! multiply values by group velocity
       vals = vel(mod(irow-1,ng)+1)*vals
+      do ii = 1, ncols
+        if (cols(ii) == irow - 1) then
+          vals(ii) = vals(ii) - const
+          exit
+        end if
+      end do
 
       ! put values in jacobian
-      call MatSetValues(dfdy, 1, irow-1, ncols, cols(1:ncols), vals, &
+      call MatSetValues(dfdy, 1, irow-1, ncols, cols(1:ncols), -vals, &
                         INSERT_VALUES, mpi_err)
 
       ! put the row back
@@ -258,7 +265,7 @@ contains
       do i = 1, NUM_PRECS
 
         ! flux by precursors
-        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), lambda(i)*vel(mod(irow-1,ng)+1), INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, irow-1, i*nf + (irow - 1), -lambda(i)*vel(mod(irow-1,ng)+1), INSERT_VALUES, mpi_err)
 
         ! precursors by flux
         call MatGetRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
@@ -268,7 +275,7 @@ contains
         call MatRestoreRow(prod%oper, irow-1, ncols, cols, vals, mpi_err)
 
         ! precursors by precursors
-        call MatSetValue(dfdy, i*nf + (irow - 1), i*nf + (irow - 1), -lambda(i), INSERT_VALUES, mpi_err)
+        call MatSetValue(dfdy, i*nf + (irow - 1), i*nf + (irow - 1), const + lambda(i), INSERT_VALUES, mpi_err)
 
       end do
 
