@@ -24,30 +24,9 @@ if CATAWBA:
   label = "LRA_layout"
   out = 'LRA_layout' 
 
-  fig = CoreFig(caption,label)
+  fig = CoreFig(caption,label,scale=1.8,scalebox=0.9)
 
   fig.set_legend()
-
-  fig.write_fig(out+'.tex')
-
-###################################################################################
-
-  caption = "test"
-  altcap = ''
-  label = "fig_test"
-  out = "test"
-
-  fig = CoreFig(caption,label,altcap=altcap,scale=1.1,scalebox=0.9,colorbyval=True)
-
-  text="1.0"
-  v = 1.0
-  fig.set_pos("A1",text,val=v)
-  text="0.0"
-  v = 0.1
-  fig.set_pos("D10",text,val=v)
-  text="0.5"
-  v = 0.5
-  fig.set_pos("K7",text,val=v)
 
   fig.write_fig(out+'.tex')
 

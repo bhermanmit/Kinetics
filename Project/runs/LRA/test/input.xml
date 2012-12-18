@@ -7,7 +7,7 @@
   <ktol> 1e-8 </ktol>
   <stol> 1e-8 </stol>
   <itol> 1e-10 </itol>
-  <eps> 1e-6 </eps>
+  <eps> 1e-4 </eps>
 
 <!-- Definition of Geometry -->
   <geometry>

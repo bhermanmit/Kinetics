@@ -587,7 +587,7 @@ contains
     call calc_assy_data(powers, yptr((NUM_PRECS+1)*n+1:(NUM_PRECS+1)*n+n/ng), assy_pow, assy_temp, nr)
 
     ! write output
-    print *, i, 'TIME:', t, 'POWER:', pow, 'TEMP:', temp, 'MAX_T:', maxt, 'STEP:', h
+    print *, i, 'TIME:', t, 'POWER:', pow, 'MAX P:', maxval(assy_pow), 'TEMP:', temp, 'MAX_T:', maxt, 'STEP:', h
     call write_hdf5(i, t, pow, temp, maxt, h, assy_pow, assy_temp)
 
     ! restore ptrs
