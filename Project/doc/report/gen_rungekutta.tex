@@ -14,6 +14,8 @@
 \usetikzlibrary{decorations.markings}
 \usepackage{etoolbox}
 \usetikzlibrary{matrix,calc}
+% \usepackage{flafter}
+\usepackage{multirow}
 
 \numberwithin{equation}{section}
 
@@ -36,7 +38,7 @@
 
 \Section{Introduction}
 
-When dealing with multiple coupled ordinary first order differential equations, the question of stiffness of the system arises. The can occur when independent variables of the system are represented on different scales and their magnitudes may span many orders of magnitude. An example that we encounter in nuclear reactor analysis is the neutron kinetics equations where fluxes and precursor concentrations are calculated. Furthermore when coupling to thermal-hydraulics, a different set of physics is introduced that is represented on a different scale. Therefore, it is import to understand how to solve stiff sets of ordinary differential equations.
+When dealing with multiple coupled ordinary first order differential equations, the question of stiffness of the system arises. This can occur when independent variables of the system are represented on different scales and their magnitudes may span many orders of magnitude. An example that we encounter in nuclear reactor analysis is the neutron kinetics equations where fluxes and precursor concentrations are calculated. Furthermore when coupling to thermal-hydraulics, a different set of physics is introduced that is represented on a different scale. Therefore, it is important to understand how to solve stiff sets of ordinary differential equations.
 
 There are many methods that we can try and use to solve stiff sets of equations. First, we can try and use a simple explicit method. However, in this method, we must follow the equation with the shortest length scale to maintain stability of the system. If an simple implicit scheme is used, stability can be guaranteed, but we give up accuracy if we use a large time step. In this study, we wish to investigate methods that will allow us to take a larger time step, but are also relatively stable. 
 
@@ -46,7 +48,7 @@ In order to use large time steps, we must use a higher order time integration sc
 
 \Subsection{Determining Runge-Kutta Coefficients}
 
-\Subsection{Automated Time Step Size Adjustment}
+\Subsection{Automated Time Step Size Adjustment} \label{sec:var_ts}
 
 \Subsection{Implementation of 4-th Order GRK Algorithm}
 
@@ -89,7 +91,29 @@ The corresponding Jacobian matrix for this model is written as
 \end{array} \right].
 \end{equation}
 
-This model was coded up and interfaced with the GRK solver. The simplest case to run is PKE with a constant reactivity insertion. Therefore, the derivative of the reactivity will be zero. The power shape from this case is shown in Figure \ref{fig:pk_rho_const_power}. As expected, there is a prompt jump immediately in the power and then an asymptotic exponential increase persists.  It is also very important to look at the rate at which the power converges in time to confirm that the method is 4th order. A convergence plot is shown in Figure \ref{fig:pk_rho_const_order}.
+This model was coded up and interfaced with the GRK solver. Input data used in this simulation is presented in Table \ref{tab:pk_input}.
+\begin{table}
+\caption{Input Values used for PKE Feedback Analysis}
+\label{tab:pk_input}
+\centering
+\begin{tabular}{cc||cc}
+\toprule 
+Parameter & Value & Parameter & Value\tabularnewline
+\midrule
+\midrule 
+$\beta_1$ & 0.000218 & $\lambda_1$ & 0.012467 1/s \tabularnewline
+$\beta_2$ & 0.001023 & $\lambda_2$ & 0.028292 1/s \tabularnewline
+$\beta_3$ & 0.000605 & $\lambda_3$ & 0.042524 1/s \tabularnewline
+$\beta_4$ & 0.001310 & $\lambda_4$ & 0.133042 1/s \tabularnewline
+$\beta_5$ & 0.002200 & $\lambda_5$ & 0.292467 1/s \tabularnewline
+$\beta_6$ & 0.000600 & $\lambda_6$ & 0.666488 1/s \tabularnewline
+$\beta_7$ & 0.000540 & $\lambda_7$ & 1.634781 1/s \tabularnewline
+$\beta_8$ & 0.000152 & $\lambda_8$ & 3.554600 1/s \tabularnewline
+$\Lambda$ & $5.902\times 10^6$ s & & \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+The simplest case to run is PKE with a constant reactivity insertion. Therefore, the derivative of the reactivity will be zero. The power shape from a 0.1\$ reactivity insertion is shown in Figure \ref{fig:pk_rho_const_power}. As expected, there is a prompt jump immediately in the power and then an asymptotic exponential increase persists.  It is also very important to look at the rate at which the power converges in time to confirm that the method is 4th order. A convergence plot is shown in Figure \ref{fig:pk_rho_const_order}.
 \begin{figure} 
 \centering \includegraphics[scale=1.00]{./figs/pk_rho_const_power.pdf}
 \caption{PKE relative power from constant reactivity insertion.}
@@ -102,7 +126,7 @@ This model was coded up and interfaced with the GRK solver. The simplest case to
 \end{figure}
 Two convergence rate results are shown in the plot. The first shows first order convergence of backward Euler and the second verifies 4th order convergence rate of the implemented GRK algorithm.  The reference was taken to be the GRK results at a time step of 1e-5 seconds at the end of the transient. It is also observed that the error in the GRK scheme is orders of magnitude less than backward Euler.
 
-The next example for PKE is a case with a linear ramp reactivity insertion. This is different than the last example in that there is now a constant $\frac{d\mathbf{f}}{dt}$ term. This term is known exactly and has the slope of the reactivity ramp in it. The results of this case are shown in Figure \ref{fig:pk_rho_ramp_power}. The power looks to be the correct shape for this transient. A convergence rate test was generated again. Again, the reference is a time step of 1e-5 seconds at the end of the transient.  The results, shown in Figure \ref{fig:pk_rho_ramp_order}, show that close to 4-th order is achieved as the time step is reduced. However, numerical precision error may start to occur around 1e-10\% difference and so 4-th order is never really observed.
+The next example for PKE is a case with a linear ramp reactivity insertion where 0.1\$ is inserted over 10 seconds. This is different than the last example in that there is now a constant $\frac{d\mathbf{f}}{dt}$ term. This term is known exactly and has the slope of the reactivity ramp in it. The results of this case are shown in Figure \ref{fig:pk_rho_ramp_power}. The power looks to be the correct shape for this transient. A convergence rate test was generated again. Again, the reference is a time step of 1e-5 seconds at the end of the transient.  The results, shown in Figure \ref{fig:pk_rho_ramp_order}, show that close to 4-th order is achieved as the time step is reduced. However, numerical precision error may start to occur around 1e-10\% difference and so 4-th order is never really observed.
 \begin{figure} 
 \centering \includegraphics[scale=1.00]{./figs/pk_rho_ramp_power.pdf}
 \caption{PKE relative power from ramp reactivity insertion.}
@@ -250,7 +274,7 @@ and
                         \vdots
                       \end{array}\right].
   \end{equation}
-Using this model, a rod ejection is simulated where reactivity is inserted linearly to \$1.2 over 0.2 seconds and is held constant. We expect the power to quickly rise when the rod is ejected. However, due to temperature feedback in the fuel and coolant, this abrupt power increase will be halted and a new steady state will form. Table \ref{tab:pk_feedback_input} lists all of the input variables used in this simulation.  The same eight group delayed neutron data that was used in previous analyses was used here. The initial power of the system is 5 MW. All of the other steady state values can be inferred by setting the derivatives in Eqs. \eqref{eq:pk_power}-\eqref{eq:pk_temp} to zero.
+Using this model, a rod ejection is simulated where reactivity is inserted linearly to \$1.2 over 0.2 seconds and is held constant. We expect the power to quickly rise when the rod is ejected. However, due to temperature feedback in the fuel and coolant, this abrupt power increase will be halted and a new steady state will form. Tables \ref{tab:pk_input} and \ref{tab:pk_feedback_input} list all of the input variables used in this simulation. The initial power of the system is 5 MW. All of the other steady state values can be inferred by setting the derivatives in Eqs. \eqref{eq:pk_power}-\eqref{eq:pk_temp} to zero.
 \begin{table}
 \caption{Input Values used for PKE Feedback Analysis}
 \label{tab:pk_feedback_input}
@@ -273,7 +297,7 @@ $\dot{m}$ & $24.1$ kg/s & $T_{in}$ & $559$ K \tabularnewline
 \end{tabular}
 \end{table}
 
-These transient was solved in the GRK code. Figure \ref{fig:pk_feedback_all} shows the results of the analysis.
+This transient was solved in the GRK code. Figure \ref{fig:pk_feedback_all} shows the results of the analysis.
 \begin{figure} 
 \centering \includegraphics[scale=1.00]{./figs/pk_feedback_all.pdf}
 \caption{Transient results for PKE with feedback.}
@@ -320,7 +344,7 @@ where $D_{l,m,n}^g$ is the diffusion coefficient and $\overline{\phi}^g$ is the 
 \begin{itemize}
 	\item cell-to-cell coupling
 	\begin{equation}
-	    \overline{J}^{u,g}_{l\pm1/2,m,n} = \frac{2D_{l\pm1,m,n}^gD_{l,m,n}^g}{D_{l\pm1,m,n}^g\Delta_l^u + D_{l,m,n}^g\Delta_{l\pm1}^u}\overline{\overline{\phi}}_{l,m,n}^g,
+	    \overline{J}^{u,g}_{l\pm1/2,m,n} = \frac{2D_{l\pm1,m,n}^gD_{l,m,n}^g}{D_{l\pm1,m,n}^g\Delta_l^u + D_{l,m,n}^g\Delta_{l\pm1}^u}\left(\pm\overline{\overline{\phi}}_{l\pm1,m,n}^g\mp \overline{\overline{\phi}}_{l,m,n}^g\right),
 	\end{equation}
 	\item cell-to-boundary coupling
 	\begin{equation}
@@ -340,15 +364,191 @@ After getting the steady state values, the transient diffusion equations or spat
 \label{eq:time_NBE}
 \left(\frac{1}{v}\right)_{l,m,n}^g\frac{\partial}{\partial t}\overline{\overline{\phi}}_{l,m,n}^g + \sum_{u \in x,y,z} \frac{\overline{J}^{u,g}_{l+1/2,m,n} - \overline{J}^{u,g}_{l-1/2,m,n}}{\Delta_l^u} + \overline\Sigma_{t_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^g  & = \sum_{h=1}^G\upsilon\overline\Sigma^{h\rightarrow g}_{s_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^h \\ + \frac{\chi_{l,m,n}^{p,g}\left(1-\beta\right)}{k}\sum_{h=1}^G\nu\overline\Sigma^{hg}_{f_{l,m,n}}  \overline{\overline{\phi}}_{l,m,n}^h + \sum_i\chi_{i_{l,m,n}}^{d,g}\lambda_i C_{i_{l,m,n}}\nonumber.
 \end{align}
-Note that in Eq. \eqref{eq:time_NBE} all of the macroscopic cross sections may be time-dependent. Since we added time dependence back, we must include the delayed neutron precursors, which have their own separate balance equation (shown later). If we make some simple assumptions we can write this in similar operator form as above. The first assumption is that the delayed fission spectrum is independent of precursor groups and that it is equivalent to the prompt neutron spectrum. This assumption will be fine for the cases in this work, but may not be applicable to all problems.
-
-We can write this in operator notation similar to Eq. \eqref{eq:steady_oper},
+Note that in Eq. \eqref{eq:time_NBE} all of the macroscopic cross sections may be time-dependent. Since we added time dependence back, we must include the delayed neutron precursors, which have their own separate balance equation. This balance is shown as
 \begin{equation}
-    \left(\boldsymbol{\frac{1}{v}}\right)\frac{d}{dt}\boldsymbol{\Phi} + \mathbb{M}\boldsymbol{\Phi} = \frac{1}{k}\mathbb{F}\boldsymbol{\Phi}.
+    \frac{\partial}{\partial t}C_{i_{l,m,n}} = \frac{\beta_i}{k}\sum_{h=1}^G\nu\overline\Sigma^{hg}_{f_{l,m,n}} \overline{\overline{\phi}}_{l,m,n}^h - \lambda_iC_{i_{l,m,n}}.
 \end{equation}
-After spatial discretization, the equation becomes an ordinary differential equation. This can be directly used in the GRK code. Note that the transient will be started off the steady state solution that includes $\boldsymbol{\Phi}$ and $k$.  The multiplication factor, which balances production and destruction of neutrons at steady state, must be held constant throughout the transient.
+If we make some simple assumptions we can write this in similar operator form as above. The first assumption is that the delayed fission spectrum is independent of precursor groups and that it is equivalent to the prompt neutron spectrum. This assumption will be fine for the cases in this work, but may not be applicable to all problems. We also define a modified precursor concentration which makes them energy group dependent
+\begin{equation}
+    \widetilde{C}_{i_{l,m,n}}^g = \chi_{l,m,n}^g C_{i_{l,m,n}}. 
+\end{equation}
+Therefore the simplified spatial kinetics equations and precursor balance equations are
+\begin{align}
+    \left(\frac{1}{v}\right)_{l,m,n}^g\frac{\partial}{\partial t}\overline{\overline{\phi}}_{l,m,n}^g + \sum_{u \in x,y,z} \frac{\overline{J}^{u,g}_{l+1/2,m,n} - \overline{J}^{u,g}_{l-1/2,m,n}}{\Delta_l^u} + \overline\Sigma_{t_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^g  & = \sum_{h=1}^G\upsilon\overline\Sigma^{h\rightarrow g}_{s_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^h \\ + \frac{\chi_{l,m,n}^{g}\left(1-\beta\right)}{k}\sum_{h=1}^G\nu\overline\Sigma^{hg}_{f_{l,m,n}}  \overline{\overline{\phi}}_{l,m,n}^h + \sum_i\lambda_i \widetilde{C}_{i_{l,m,n}}^g\nonumber.
+\end{align}
+and
+\begin{equation}
+    \frac{\partial}{\partial t}\widetilde{C}_{i_{l,m,n}}^g = \frac{\chi_{l,m,n}^{g}\beta_i}{k}\sum_{h=1}^G\nu\overline\Sigma^{hg}_{f_{l,m,n}} \overline{\overline{\phi}}_{l,m,n}^h - \lambda_i\widetilde{C}_{i_{l,m,n}}^g.
+\end{equation}
+
+We can write these equations in operator notation similar to Eq. \eqref{eq:steady_oper},
+\begin{equation}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)\frac{d}{dt}\boldsymbol{\Phi} + \mathbb{M}\left(t\right)\boldsymbol{\Phi} = \frac{1-\beta}{k}\mathbb{F}\left(t\right)\boldsymbol{\Phi} + \mathbb{D}\widetilde{\boldsymbol{C}}
+\end{equation}
+and
+\begin{equation} \label{eq:prec}
+    \frac{d}{dt}\widetilde{\boldsymbol{C}} = \frac{\beta}{k}\mathbb{F}\left(t\right)\boldsymbol{\Phi} -  \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace
+    \widetilde{\boldsymbol{C}}.
+\end{equation}
+Here we have introduced a new operator, the decay operator $\mathbb{D}$. This operator performs the dot product of decay constants with all precursor groups of a certain spatial location and energy group. Also, the loss and production operators are shown with time dependence. 
+
+After spatial discretization, the equation becomes an ordinary differential equation. This can be directly used in the GRK code. Note that the transient will be started off the steady state solution that includes $\boldsymbol{\Phi}$ and $k$.  The multiplication factor, which balances production and destruction of neutrons at steady state, must be held constant throughout the transient. The steady-state values of the modified precursor concentrations can be easily calculated by setting the temporal derivative in Eq. \eqref{eq:prec},
+\begin{equation}
+    \widetilde{\boldsymbol{C}} = \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace^{-1}\frac{\beta}{k}\mathbb{F}\boldsymbol{\Phi}.
+\end{equation}
+The derivative vector for the GRK solution is given as
+\begin{equation}
+    \frac{d}{dt}\left[\begin{array}{c}
+    \boldsymbol{\Phi} \\ \widetilde{\boldsymbol{C}} \end{array}\right] = 
+    \left[\begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\left[\frac{1-\beta}{k}\mathbb{F}\left(t\right) - \mathbb{M}\left(t\right)\right]\boldsymbol{\Phi} + \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\mathbb{D}\widetilde{\boldsymbol{C}} \\
+    \frac{\beta}{k}\mathbb{F}\left(t\right)\boldsymbol{\Phi} -  \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace
+    \widetilde{\boldsymbol{C}}
+    \end{array}\right]
+\end{equation}
+If there are $nx\times ny\times nz$ spatial points with $ng$ energy groups and $ni$ precursor groups, the size of the derivative vector is $\left(ni+1\right)\times ng\times nx\times ny\times nz$. The Jacobian matrix and vector an be created from this derivative vector. The Jacobian matrix is
+\begin{equation}
+    \mathbb{J} = \left[ \begin{array}{cc} 
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\left[\frac{1-\beta}{k}\mathbb{F}\left(t\right) - \mathbb{M}\left(t\right)\right] & \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\mathbb{D} \\
+     \frac{\beta}{k}\mathbb{F}\left(t\right) & \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace
+    \end{array}\right].
+\end{equation}
+Lastly, if any of the properties change with time this derivative must be captured. It will be assumed that the only type of change to the reactor is from a rod being withdrawn and thus only the thermal group absorption cross section will be altered.  Therefore, thus Jacobian vector for this forcing function is
+\begin{equation}
+    \frac{d\mathbf{f}}{dt} = \left[ \begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1} \frac{d\mathbb{M}}{dt}\boldsymbol{\Phi} \\ \mathbf{0}
+    \end{array}\right] = \left[ \begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1} \frac{d\boldsymbol{\Sigma}_a}{dt}\boldsymbol{\Phi} \\ \mathbf{0}
+    \end{array}\right]
+\end{equation}
+Subroutines can be written to interface with the GRK code to create this derivative vector and Jacobian matrix/vector.
+
+\Subsection{Results}
+
+To test the 1-D spatial kinetics equations derived in the beginning of this section, a simple 1-D heterogeneous core was created. The arrangement of materials in this core is shown in Figure \ref{fig:1D_layout}. Each 1-D assembly is 10 cm thick and is subdivided even further to 1 cm nodes for the finite difference calculation.  
+\input{./figs/1D_geometry.tex}
+The 1-D core is surrounded by 30 cm of reflector and basically consists of one fuel type. The center 20 cm region of fuel is allowed to have a variable rod. The input parameters and material properties are in Tables \ref{tab:pk_input} and \ref{tab:1D_input}.
+\begin{table}
+\caption{Input Values used for 1-D Spatial Kinetics Analysis}
+\label{tab:1D_input}
+\centering
+\begin{tabular}{ll||ll}
+\toprule 
+Parameter & Value & Parameter & Value\tabularnewline
+\midrule
+\midrule 
+Fuel $D_1$ & 1.3 cm & Fuel $D_2$ & 0.5 cm \tabularnewline
+Fuel $\Sigma_a^1$ & 0.0098 1/cm & Fuel $\Sigma_a^2$ & 0.114 1/cm \tabularnewline
+Fuel $\nu\Sigma_f^1$ & 0.006 1/cm & Fuel $\nu\Sigma_f^2$ & 0.1950 1/cm \tabularnewline
+Fuel $\Sigma_s^{1\rightarrow 2}$ & 0.022 1/cm \tabularnewline
+Fuel $\chi_1$ & 1.0 & Fuel $\chi_2$ & 0.0 \tabularnewline
+Reflector $D_1$ & 1.5 cm & Reflector $D_2$ & 0.5 cm \tabularnewline
+Reflector $\Sigma_a^1$ & 0.0002 1/cm & Reflector $\Sigma_a^2$ & 0.02 1/cm \tabularnewline
+Reflector $\Sigma_s^{1\rightarrow 2}$ & 0.032 1/cm \tabularnewline
+Kinetics $v_1$ & $4.374\times 10^7$ cm/s & Kinetics $v_2$ & $4.374\times 10^5$ cm/s \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+
+The GRK code was executed with a 1e-4 variable time step relative tolerance and an inner solver tolerance of 1e-8. The transient problem described in the previous section was analyzed. Results of the power evolution during the transient are shown in Figure \ref{fig:1D_power}.
+\begin{figure} 
+\centering \includegraphics[scale=1.00]{./figs/1D_power.pdf}
+\caption{Relative power behavior during rod withdrawl/insertion transient.}
+\label{fig:1D_power}
+\end{figure}
+The shape of the power is as expected, when the rod is withdrawn, there is a steep increase in the power. When the rod is fully withdrawn there is an asymptotic increase in the power until the rod is reinserted. Eventually, the core starts to approach a new steady state. Since there is no feedback, we can't say anything about what relative power the core settles back out at since the flux in steady state form is just an eigenvector. The shapes however should be equivalent at the beginning and end of the transient. Thermal flux shapes are presented in Figure \ref{fig:1D_fluxes}, where it is observed that the shapes at the beginning and end of the transient are equivalent.
+\begin{figure} 
+\centering \includegraphics[scale=1.00]{./figs/1D_fluxes.pdf}
+\caption{Thermal Flux distributions at rod in/rod out times during transient.}
+\label{fig:1D_fluxes}
+\end{figure}
+Reflector peaks are also visible consistent with the physics.
+
+The variable time step algorithm discussed in Section \ref{sec:var_ts} is applied to this problem. The initial time step guessed for this problem is 0.01 seconds. The results for the variable time step algorithm are shown in Figure \ref{fig:1D_time}. 
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/1D_time.pdf}
+\caption{Variable time step results for 1-D spatial kinetics.}
+\label{fig:1D_time}
+\end{figure}
+Two curves are shown on the plot. The first is the actual time step used from the variable time step algorithm. The second is the number of trials of time steps used in the algorithm before the truncation error acceptance criterion was met. Because the transient has no perturbation for the first two seconds, the time step quickly groups at the maximum rate. Once, the transient begins, the time step quickly reduces and the number of time step trials increases.  Note that the maximum number of trials is seven and it only occurs in a couple of places. Most of the time, it is observed that only one trial is needed and the time step predictor algorithm does well.  This is evident between two and three seconds where the time step is being reduced, but the number of trials is one. Therefore the number of time steps attempted is not much greater than the number of time steps actually used.  
 
 \Section{2-D LRA Benchmark}\label{sec:2D}
+
+The 2-D LRA BWR benchmark problem is a common test to verify a spatial kinetics solution. The core layout is shown in Figure \ref{fig:LRA_layout}.
+\input{./figs/LRA_layout.tex}
+The core is composed of two fuel types each having a rod in and rod out configuration. In addition there is a sizeable reflector placed around the core. Fuel assemblies are created by forming 15x15 cm boxes. Highlighted in orange in Figure \ref{fig:LRA_layout} is a 2x2 block of assemblies for Fuel 2 that the control blade can be manipulated. In 2-D the thermal absorption cross section is just changed to simulate a 3-D blade drop. Material specifications are listed in Table \ref{tab:LRA_mats}.
+\begin{table}
+\centering
+\caption{Material Specification for LRA Benchmark}
+\label{tab:LRA_mats}
+\begin{tabular}{ccccccc}
+\toprule 
+Region & Material & $g$ & $D_{g}\,\left[\mathrm{cm}\right]$ & $\Sigma_{a}^{g}\,\left[\mathrm{cm}^{-1}\right]$ & $\nu\Sigma_{f}^{g}\,\left[\mathrm{cm}^{-1}\right]$ & $\Sigma_{s}^{1\rightarrow2}\,\left[\mathrm{cm}^{-1}\right]$\tabularnewline
+\midrule
+\midrule 
+\multirow{2}{*}{1} & Fuel 1, & 1 & 1.255 & 0.008252 & 0.004602 & 0.02533\tabularnewline
+\cmidrule{2-7} 
+ & blade in & 2 & 0.211 & 0.1003 & 0.1091 & \tabularnewline
+\midrule 
+\multirow{2}{*}{2} & Fuel 1, & 1 & 1.268 & 0.007181 & 0.004609 & 0.02767\tabularnewline
+\cmidrule{2-7} 
+ & blade out & 2 & 0.1902 & 0.07047 & 0.08675 & \tabularnewline
+\midrule 
+\multirow{2}{*}{3, R} & Fuel 2, & 1 & 1.259 & 0.008002 & 0.004663 & 0.02617\tabularnewline
+\cmidrule{2-7} 
+ & blade in & 2 & 0.2091 & 0.08344 & 0.1021 & \tabularnewline
+\midrule 
+\multirow{2}{*}{4} & Fuel 2, & 1 & 1.259 & 0.008002 & 0.004663 & 0.02617\tabularnewline
+\cmidrule{2-7} 
+ & blade out & 2 & 0.2091 & 0.073324 & 0.1021 & \tabularnewline
+\midrule 
+\multirow{2}{*}{5} & Reflector & 1 & 1.257 & 0.0006034 & 0 & 0.04754\tabularnewline
+\cmidrule{2-7} 
+ &  & 2 & 0.1592 & 0.01911 & 0 & \tabularnewline
+\bottomrule
+\end{tabular} 
+\end{table}
+The change in thermal absorption cross section in region 3/4 affected by control blade motion is given piecewise as
+\begin{equation}
+    \Sigma_{a,R}^2\left(t\right) = \left\lbrace \begin{array}{cc} \Sigma_{a,3}^2\left(0\right)\cdot\left(1 -0.0606184\left[\mathrm{s}^{-1}\right]\cdot t \right) & \mathrm{if}\,t\le 2\mathrm{s} \\
+    \Sigma_{a,3}^2\left(0\right)\cdot\left(1 -0.0606184\left[\mathrm{s}^{-1}\right]\cdot 2\left[\mathrm{s}\right] \right) & \mathrm{if}\,t > 2\mathrm{s} \end{array}\right. .
+\end{equation}
+In every local fine mesh location in the diffusion mesh, local thermal feedback is present affecting fast group absorption cross sections. Doppler feedback is incorporated in the following expression
+\begin{equation}
+    \Sigma_a^1\left(T\right) = \Sigma_a^1\left(T_0\right)\left[1 + \gamma\left(\sqrt{T} - \sqrt{T_0}\right)\right],
+\end{equation}
+where $\gamma$ is defined in Table \ref{fig:LRA_params}. To compute temperatures an adiabatic heat up model is used given by
+\begin{equation}
+    \frac{\partial}{\partial t} T\left(t,\vec{r}\right) = \alpha\sum_h\Sigma_f^h\phi^h\left(t,\vec{r}\right),
+\end{equation}
+where $\alpha$ is given in Table \ref{fig:LRA_params}. Finally all normalizations are to core average power density which is related to fission density with
+\begin{equation}
+    P\left(t,\vec{r}\right) = \kappa\sum_h\Sigma_f^h\phi^h\left(t,\vec{r}\right),
+\end{equation}
+where $kappa$ can be found in Table \ref{tab:LRA_params}. 
+\begin{table}
+\centering
+\caption{Addition Parameters for LRA Benchmark}
+\label{tab:LRA_params}
+\begin{tabular}{cc||cc}
+\toprule 
+Parameter & Value & Parameter & Value\tabularnewline
+\midrule
+\midrule 
+$v_{1}$ & $3.0\times10^{7}$ cm/s & $v_{2}$ & $3.0\times10^{5}$ cm/s\tabularnewline
+\midrule 
+$\beta_{1}$ & 0.0054 & $\beta_{2}$ & 0.001087\tabularnewline
+\midrule 
+$\lambda_{1}$ & 0.0654 & $\lambda_{2}$ & 1.35\tabularnewline
+\midrule 
+$\nu$ & 2.43 neutrons/fission & $\alpha$ & $3.83\times10^{-11}\,\mathrm{K\cdot cm^{3}}$\tabularnewline
+\midrule 
+$\gamma$  & $3.034\times10^{-3}\,\mathrm{K\cdot cm^{3}}$ & $\kappa$  & $3.204\times10^{-11}\,\mathrm{J/fission}$\tabularnewline
+\midrule 
+$B_{z}^{2}$ & $1.0\times10^{-4}\,\mathrm{cm^{-2}}$ &  & \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
 
 \Section{Conclusion}
 

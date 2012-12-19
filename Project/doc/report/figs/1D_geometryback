@@ -1,0 +1,86 @@
+\begin{figure}
+%   \centering
+    
+    % these dimensions are determined in arrow_dimms.ods
+
+%   \def\scale{1.8}
+
+%   \def\latWidth{0.1*\scale}
+    
+%   \tikzset{Assembly/.style={
+%       inner sep=0pt,
+%       text width=\latWidth in,
+%       minimum size=\latWidth in,
+%       draw=black,
+%       align=center
+%       }
+%   }
+    
+%   \def\matone{yellow}
+%   \def\matthree{blue}
+%   \def\matfive{red}
+
+%   \scalebox{0.8}{
+
+%     \begin{tikzpicture}[x=1in,y=1in]
+      
+        % draw fuel assembly nodes
+        
+%        \node [Assembly, fill=\matthree]  at ($(-20.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matthree]  at ($(-19.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matthree]  at ($(-18.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-17.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-16.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-15.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-14.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-13.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-12.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-11.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-10.5*\latWidth,0)$)  {};
+%        \node [Assembly, fill=\matone]    at ($(-9.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-8.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-7.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-6.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-5.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-4.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-3.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-2.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(-1.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matfive]   at ($(-0.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matfive]   at ($(0.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(1.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(2.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(3.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(4.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(5.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(6.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(7.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(8.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(9.5*\latWidth,0)$)    {};
+%        \node [Assembly, fill=\matone]    at ($(10.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(11.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(12.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(13.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(14.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(15.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(16.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matone]    at ($(17.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matthree]  at ($(18.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matthree]  at ($(19.5*\latWidth,0)$)   {};
+%        \node [Assembly, fill=\matthree]  at ($(20.5*\latWidth,0)$)   {};
+
+%     \end{tikzpicture}
+%   }
+    
+    % make the legend
+%   \begin{tikzpicture}
+%     \matrix [matrix of nodes]
+%         {
+%             \node [Assembly, fill=\matone] at (0,0) {}; & Fuel 1, rod out~~~ & 
+%             \node [Assembly, fill=\matfive] at (0,0) {}; & Fuel 1, rod in/out~~ &
+%             \node [Assembly, fill=\matthree] at (0,0) {}; & Reflector~~~ \\
+%         };
+%   \end{tikzpicture}
+
+    \caption{Layout of 1-D core geometry. \label{fig:1D_layout}}
+\end{figure}

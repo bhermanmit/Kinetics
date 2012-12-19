@@ -1,0 +1,211 @@
+
+\begin{figure}[htbp]
+    \centering
+    
+    % these dimensions are determined in arrow_dimms.ods
+
+    \def\scale{1.1}
+
+    \def\latWidth{0.2808363589*\scale}
+    
+    \tikzset{Assembly/.style={
+        inner sep=0pt,
+        text width=\latWidth in,
+        minimum size=\latWidth in,
+        draw=black,
+        align=center
+        }
+    }
+    
+    \def\matone{blue}
+    \def\mattwo{blue!50}
+    \def\matthree{red}
+    \def\matfour{yellow}
+    \def\matfive{green}
+    \def\matsix{yellow!50!red}
+
+    \scalebox{1.0}{
+
+      \begin{tikzpicture}[x=1in,y=1in]
+      
+        % draw assembly row/column headers
+        
+        \draw[red, thick] ($(-5*\latWidth,7*\latWidth)$) node[above, anchor=south] {A} -- ($(-5*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(-4*\latWidth,7*\latWidth)$) node[above, anchor=south] {B} -- ($(-4*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(-3*\latWidth,7*\latWidth)$) node[above, anchor=south] {C} -- ($(-3*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(-2*\latWidth,7*\latWidth)$) node[above, anchor=south] {D} -- ($(-2*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(-1*\latWidth,7*\latWidth)$) node[above, anchor=south] {E} -- ($(-1*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(0*\latWidth,7*\latWidth)$) node[above, anchor=south] {F} -- ($(0*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(1*\latWidth,7*\latWidth)$) node[above, anchor=south] {G} -- ($(1*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(2*\latWidth,7*\latWidth)$) node[above, anchor=south] {H} -- ($(2*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(3*\latWidth,7*\latWidth)$) node[above, anchor=south] {J} -- ($(3*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(4*\latWidth,7*\latWidth)$) node[above, anchor=south] {K} -- ($(4*\latWidth,6*\latWidth)$);
+        \draw[red, thick] ($(5*\latWidth,7*\latWidth)$) node[above, anchor=south] {L} -- ($(5*\latWidth,6*\latWidth)$);
+        
+        \begin{scope}[rotate=90]
+          \draw[red, thick] ($(-5*\latWidth,7*\latWidth)$) node[left, anchor=east] {1} -- ($(-5*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(-4*\latWidth,7*\latWidth)$) node[left, anchor=east] {2} -- ($(-4*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(-3*\latWidth,7*\latWidth)$) node[left, anchor=east] {3} -- ($(-3*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(-2*\latWidth,7*\latWidth)$) node[left, anchor=east] {4} -- ($(-2*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(-1*\latWidth,7*\latWidth)$) node[left, anchor=east] {5} -- ($(-1*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(0*\latWidth,7*\latWidth)$) node[left, anchor=east] {6} -- ($(0*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(1*\latWidth,7*\latWidth)$) node[left, anchor=east] {7} -- ($(1*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(2*\latWidth,7*\latWidth)$) node[left, anchor=east] {8} -- ($(2*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(3*\latWidth,7*\latWidth)$) node[left, anchor=east] {9} -- ($(3*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(4*\latWidth,7*\latWidth)$) node[left, anchor=east] {10} -- ($(4*\latWidth,6*\latWidth)$);
+          \draw[red, thick] ($(5*\latWidth,7*\latWidth)$) node[left, anchor=east] {11} -- ($(5*\latWidth,6*\latWidth)$);
+        \end{scope}
+        
+        % draw fuel assembly nodes
+        
+        \node [Assembly, fill=\matfive]  at ($(-5*\latWidth,5*\latWidth)$)  {}; % A11
+        \node [Assembly, fill=\matfive]  at ($(-4*\latWidth,5*\latWidth)$)  {}; % B11
+        \node [Assembly, fill=\matfive]  at ($(-3*\latWidth,5*\latWidth)$)  {}; % C11
+        \node [Assembly, fill=\matfive]  at ($(-2*\latWidth,5*\latWidth)$)  {}; % D11
+        \node [Assembly, fill=\matfive]  at ($(-1*\latWidth,5*\latWidth)$)  {}; % E11
+        \node [Assembly, fill=\matfive]  at ($( 0*\latWidth,5*\latWidth)$)  {}; % F11
+        \node [Assembly, fill=\matfive]  at ($( 1*\latWidth,5*\latWidth)$)  {}; % G11
+        \node [Assembly, fill=\matfive]  at ($( 2*\latWidth,5*\latWidth)$)  {}; % H11
+        \node [Assembly, fill=\matfive]  at ($( 3*\latWidth,5*\latWidth)$)  {}; % J11
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,5*\latWidth)$)  {}; % K11
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,5*\latWidth)$)  {}; % L11
+
+        \node [Assembly, fill=\matfive]  at ($(-5*\latWidth,4*\latWidth)$)  {}; % A10
+        \node [Assembly, fill=\matfive]  at ($(-4*\latWidth,4*\latWidth)$)  {}; % B10
+        \node [Assembly, fill=\matfive]  at ($(-3*\latWidth,4*\latWidth)$)  {}; % C10
+        \node [Assembly, fill=\matfive]  at ($(-2*\latWidth,4*\latWidth)$)  {}; % D10
+        \node [Assembly, fill=\matfive]  at ($(-1*\latWidth,4*\latWidth)$)  {}; % E10
+        \node [Assembly, fill=\matfive]  at ($( 0*\latWidth,4*\latWidth)$)  {}; % F10
+        \node [Assembly, fill=\matfive]  at ($( 1*\latWidth,4*\latWidth)$)  {}; % G10
+        \node [Assembly, fill=\matfive]  at ($( 2*\latWidth,4*\latWidth)$)  {}; % H10
+        \node [Assembly, fill=\matfive]  at ($( 3*\latWidth,4*\latWidth)$)  {}; % J10
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,4*\latWidth)$)  {}; % K10
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,4*\latWidth)$)  {}; % L10
+
+        \node [Assembly, fill=\matthree] at ($(-5*\latWidth,3*\latWidth)$)  {};  % A9
+        \node [Assembly, fill=\matthree] at ($(-4*\latWidth,3*\latWidth)$)  {};  % B9
+        \node [Assembly, fill=\matthree] at ($(-3*\latWidth,3*\latWidth)$)  {};  % C9
+        \node [Assembly, fill=\matthree] at ($(-2*\latWidth,3*\latWidth)$)  {};  % D9
+        \node [Assembly, fill=\matthree] at ($(-1*\latWidth,3*\latWidth)$)  {};  % E9
+        \node [Assembly, fill=\matthree] at ($( 0*\latWidth,3*\latWidth)$)  {};  % F9
+        \node [Assembly, fill=\matthree] at ($( 1*\latWidth,3*\latWidth)$)  {};  % G9
+        \node [Assembly, fill=\matfive]  at ($( 2*\latWidth,3*\latWidth)$)  {};  % H9
+        \node [Assembly, fill=\matfive]  at ($( 3*\latWidth,3*\latWidth)$)  {};  % J9
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,3*\latWidth)$)  {};  % K9
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,3*\latWidth)$)  {};  % L9
+
+        \node [Assembly, fill=\matthree] at ($(-5*\latWidth,2*\latWidth)$)  {};  % A8
+        \node [Assembly, fill=\matthree] at ($(-4*\latWidth,2*\latWidth)$)  {};  % B8
+        \node [Assembly, fill=\matthree] at ($(-3*\latWidth,2*\latWidth)$)  {};  % C8
+        \node [Assembly, fill=\matthree] at ($(-2*\latWidth,2*\latWidth)$)  {};  % D8
+        \node [Assembly, fill=\matthree] at ($(-1*\latWidth,2*\latWidth)$)  {};  % E8
+        \node [Assembly, fill=\matthree] at ($( 0*\latWidth,2*\latWidth)$)  {};  % F8
+        \node [Assembly, fill=\matthree] at ($( 1*\latWidth,2*\latWidth)$)  {};  % G8
+        \node [Assembly, fill=\matfour]  at ($( 2*\latWidth,2*\latWidth)$)  {};  % H8
+        \node [Assembly, fill=\matfive]  at ($( 3*\latWidth,2*\latWidth)$)  {};  % J8
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,2*\latWidth)$)  {};  % K8
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,2*\latWidth)$)  {};  % L8
+
+        \node [Assembly, fill=\mattwo]   at ($(-5*\latWidth,1*\latWidth)$)  {};  % A7
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,1*\latWidth)$)  {};  % B7
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,1*\latWidth)$)  {};  % C7
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,1*\latWidth)$)  {};  % D7
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,1*\latWidth)$)  {};  % E7
+        \node [Assembly, fill=\mattwo]   at ($( 0*\latWidth,1*\latWidth)$)  {};  % F7
+        \node [Assembly, fill=\mattwo]   at ($( 1*\latWidth,1*\latWidth)$)  {};  % G7
+        \node [Assembly, fill=\matsix]   at ($( 2*\latWidth,1*\latWidth)$)  {};  % H7
+        \node [Assembly, fill=\matsix]   at ($( 3*\latWidth,1*\latWidth)$)  {};  % J7
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,1*\latWidth)$)  {};  % K7
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,1*\latWidth)$)  {};  % L7
+
+        \node [Assembly, fill=\mattwo]   at ($(-5*\latWidth,0*\latWidth)$)  {};  % A6
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,0*\latWidth)$)  {};  % B6
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,0*\latWidth)$)  {};  % C6
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,0*\latWidth)$)  {};  % D6
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,0*\latWidth)$)  {};  % E6
+        \node [Assembly, fill=\mattwo]   at ($( 0*\latWidth,0*\latWidth)$)  {};  % F6
+        \node [Assembly, fill=\mattwo]   at ($( 1*\latWidth,0*\latWidth)$)  {};  % G6
+        \node [Assembly, fill=\matsix]   at ($( 2*\latWidth,0*\latWidth)$)  {};  % H6
+        \node [Assembly, fill=\matsix]   at ($( 3*\latWidth,0*\latWidth)$)  {};  % J6
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,0*\latWidth)$)  {};  % K6
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,0*\latWidth)$)  {};  % L6
+
+        \node [Assembly, fill=\matone]   at ($(-5*\latWidth,-1*\latWidth)$) {};  % A5
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,-1*\latWidth)$) {};  % B5
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,-1*\latWidth)$) {};  % C5
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,-1*\latWidth)$) {};  % D5
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,-1*\latWidth)$) {};  % E5
+        \node [Assembly, fill=\matone]   at ($( 0*\latWidth,-1*\latWidth)$) {};  % F5
+        \node [Assembly, fill=\matone]   at ($( 1*\latWidth,-1*\latWidth)$) {};  % G5
+        \node [Assembly, fill=\matthree] at ($( 2*\latWidth,-1*\latWidth)$) {};  % H5
+        \node [Assembly, fill=\matthree] at ($( 3*\latWidth,-1*\latWidth)$) {};  % J5
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,-1*\latWidth)$) {};  % K5
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,-1*\latWidth)$) {};  % L5
+
+        \node [Assembly, fill=\matone]   at ($(-5*\latWidth,-2*\latWidth)$) {};  % A4
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,-2*\latWidth)$) {};  % B4
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,-2*\latWidth)$) {};  % C4
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,-2*\latWidth)$) {};  % D4
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,-2*\latWidth)$) {};  % E4
+        \node [Assembly, fill=\matone]   at ($( 0*\latWidth,-2*\latWidth)$) {};  % F4
+        \node [Assembly, fill=\matone]   at ($( 1*\latWidth,-2*\latWidth)$) {};  % G4
+        \node [Assembly, fill=\matthree] at ($( 2*\latWidth,-2*\latWidth)$) {};  % H4
+        \node [Assembly, fill=\matthree] at ($( 3*\latWidth,-2*\latWidth)$) {};  % J4
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,-2*\latWidth)$) {};  % K4
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,-2*\latWidth)$) {};  % L4
+
+        \node [Assembly, fill=\matone]   at ($(-5*\latWidth,-3*\latWidth)$) {};  % A3
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,-3*\latWidth)$) {};  % B3
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,-3*\latWidth)$) {};  % C3
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,-3*\latWidth)$) {};  % D3
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,-3*\latWidth)$) {};  % E3
+        \node [Assembly, fill=\matone]   at ($( 0*\latWidth,-3*\latWidth)$) {};  % F3
+        \node [Assembly, fill=\matone]   at ($( 1*\latWidth,-3*\latWidth)$) {};  % G3
+        \node [Assembly, fill=\matthree] at ($( 2*\latWidth,-3*\latWidth)$) {};  % H3
+        \node [Assembly, fill=\matthree] at ($( 3*\latWidth,-3*\latWidth)$) {};  % J3
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,-3*\latWidth)$) {};  % K3
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,-3*\latWidth)$) {};  % L3
+
+        \node [Assembly, fill=\matone]   at ($(-5*\latWidth,-4*\latWidth)$) {};  % A2
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,-4*\latWidth)$) {};  % B2
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,-4*\latWidth)$) {};  % C2
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,-4*\latWidth)$) {};  % D2
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,-4*\latWidth)$) {};  % E2
+        \node [Assembly, fill=\matone]   at ($( 0*\latWidth,-4*\latWidth)$) {};  % F2
+        \node [Assembly, fill=\matone]   at ($( 1*\latWidth,-4*\latWidth)$) {};  % G2
+        \node [Assembly, fill=\matthree] at ($( 2*\latWidth,-4*\latWidth)$) {};  % H2
+        \node [Assembly, fill=\matthree] at ($( 3*\latWidth,-4*\latWidth)$) {};  % J2
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,-4*\latWidth)$) {};  % K2
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,-4*\latWidth)$) {};  % L2
+
+        \node [Assembly, fill=\mattwo]   at ($(-5*\latWidth,-5*\latWidth)$) {};  % A1
+        \node [Assembly, fill=\matone]   at ($(-4*\latWidth,-5*\latWidth)$) {};  % B1
+        \node [Assembly, fill=\matone]   at ($(-3*\latWidth,-5*\latWidth)$) {};  % C1
+        \node [Assembly, fill=\matone]   at ($(-2*\latWidth,-5*\latWidth)$) {};  % D1
+        \node [Assembly, fill=\matone]   at ($(-1*\latWidth,-5*\latWidth)$) {};  % E1
+        \node [Assembly, fill=\mattwo]   at ($( 0*\latWidth,-5*\latWidth)$) {};  % F1
+        \node [Assembly, fill=\mattwo]   at ($( 1*\latWidth,-5*\latWidth)$) {};  % G1
+        \node [Assembly, fill=\matthree] at ($( 2*\latWidth,-5*\latWidth)$) {};  % H1
+        \node [Assembly, fill=\matthree] at ($( 3*\latWidth,-5*\latWidth)$) {};  % J1
+        \node [Assembly, fill=\matfive]  at ($( 4*\latWidth,-5*\latWidth)$) {};  % K1
+        \node [Assembly, fill=\matfive]  at ($( 5*\latWidth,-5*\latWidth)$) {}; `% L1
+
+      \end{tikzpicture}
+    }
+    
+    % make the legend
+    \begin{tikzpicture}
+      \matrix [matrix of nodes]
+          {
+              \node [Assembly, fill=\matone, text=white] at (0,0) {1}; & Fuel 1, blade in~~~ & 
+              \node [Assembly, fill=\mattwo] at (0,0) {2}; & Fuel 1, blade out~~ &
+              \node [Assembly, fill=\matthree] at (0,0) {3}; & Fuel 2, blade in~~~ \\
+              \node [Assembly, fill=\matfour] at (0,0) {4}; & Fuel 2, blade out~~~ & 
+              \node [Assembly, fill=\matsix] at (0,0) {R}; & Fuel 2, blade in/out~~~&
+              \node [Assembly, fill=\matfive] at (0,0) {5}; & Reflector~~\\ 
+          };
+    \end{tikzpicture}
+
+    \caption{Layout of 2-D LRA Benchmark \label{fig:LRA_layout}}
+\end{figure}
+
