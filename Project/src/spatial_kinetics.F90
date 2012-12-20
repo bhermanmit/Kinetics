@@ -441,22 +441,24 @@ contains
 ! PK_POST_TIMESTEP
 !===============================================================================
 
-  subroutine spk_post_timestep(t, y, h)
+  subroutine spk_post_timestep(t, y, h, i, ntry)
 
 !---references
 
-    use global,  only: prod, cmfd, geometry
+    use global,  only: prod, cmfd, geometry, material
     use math,    only: csr_matvec_mult
 
 !---arguments
 
+    integer :: ntry
+    integer :: i
     real(8) :: t
     real(8) :: h
     Vec :: y
 
 !---local variables
 
-    integer :: n
+    integer :: n, ii
     real(8) :: pow
     real(8), pointer :: yptr(:)
 
@@ -472,7 +474,12 @@ contains
               yptr(1:n),prod%n)) * cmfd % pfactor
 
     ! write output
-    print *, 'TIME:', t, 'POWER:', pow, 'STEP:', h
+    print *, i, 'TIME:', t, 'POWER:', pow, 'STEP:', h, 'TRIES:', ntry, 'XS:', material(5)%absorxs(2)
+    if (i == 1 .or. i == 173 .or. i == 345) then
+     do ii = 1,n
+       write(454,*) yptr(ii) 
+     end do
+    end if
 
     ! restore ptrs
     call VecRestoreArrayF90(y, yptr, mpi_err)

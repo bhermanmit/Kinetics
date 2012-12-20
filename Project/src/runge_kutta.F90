@@ -100,6 +100,7 @@ contains
 !---local variables
 
     integer :: i
+    integer :: ntry
     real(8) :: hdid
     real(8) :: hnext
     real(8) :: htry
@@ -130,7 +131,7 @@ contains
     do while (t <= time)
 
       ! solve for next time step values
-      call solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact)
+      call solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact, ntry)
 
       ! set next time step
       htry = hnext
@@ -138,7 +139,7 @@ contains
       i = i + 1
 
       ! post timestep routine
-      call post_timestep(t, y, hdid, i)
+      call post_timestep(t, y, hdid, i, ntry)
 
     end do
 
@@ -228,7 +229,7 @@ contains
 ! SOLVE_TS
 !===============================================================================
 
-  subroutine solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact)
+  subroutine solve_ts(y, dfdy, dfdt, dydt, n, t, htry, eps, hdid, hnext, derivs, jacobn, Cfact, ntry)
 
 !---references
 
@@ -239,6 +240,7 @@ contains
 !---arguments
 
     integer, intent(in)     :: n        ! size of problem
+    integer, intent(inout)  :: ntry     ! the number of tries
     real(8), intent(inout)  :: t        ! t value for step
     real(8), intent(in)     :: htry     ! trial time step
     real(8), intent(in)     :: eps      ! tolerance on solution
@@ -285,9 +287,6 @@ contains
     end where
     call VecRestoreArrayF90(yscal, yscalptr, mpi_err)
 
-    ! evaluate jacobian at beginning of time step
-!   call jacobn(t,y,dfdy,dfdt,n)
-
     ! call derivs to get dydt vector
     call derivs(t, y, dydt, n)
 
@@ -305,21 +304,17 @@ contains
     ! set up initial trial time step
     h = htry
 
+    ! reset counter
+    ntry = 0
+
     ! begin loop over trial time steps
     do istep = 1, MAXTRY
 
-      ! create coefficient matrix
-!     call MatConvert(dfdy, MATSAME, MAT_INITIAL_MATRIX, A, mpi_err)
+      ! increment counter
+      ntry = ntry + 1
+
       ! evaluate jacobian at beginning of time step
       call jacobn(t,y,dfdy,dfdt,n, ONE/(GAM*h))
-      ! multiply values by -1
-!     call MatScale(A, -1.0_8, mpi_err)
-#     ifdef DEBUG
-        CHKERRQ(mpi_err)
-#     endif
-
-      ! modify diagonal
-!     call MatShift(A, ONE/(GAM*h), mpi_err)
 #     ifdef DEBUG
         CHKERRQ(mpi_err)
 #     endif
@@ -497,9 +492,6 @@ contains
         CHKERRQ(mpi_err)
 #     endif
 
-      ! get rid of A matrix
-!     call MatDestroy(A, mpi_err)
-
       ! check for variable time stepping off
       if (.not. var_ts) then
         hnext = h
@@ -515,7 +507,6 @@ contains
         else
           hnext = GROW*h
         end if
-!       call MatDestroy(A, mpi_err)
         return
      else
         hnext = SAFETY*h*errmax**PSHRNK

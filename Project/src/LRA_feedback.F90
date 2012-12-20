@@ -109,6 +109,7 @@ contains
     Vec :: dfdt
     Vec :: dydt
     Vec :: y
+    PetscViewer :: viewer
 
 !---local variables
 
@@ -134,6 +135,16 @@ contains
                                    loss%col,loss%val,loss%oper,mpi_err)
     call MatCreateSeqAIJWithArrays(PETSC_COMM_WORLD,prod%n,prod%n,prod%row_csr,&
                                    prod%col,prod%val,prod%oper,mpi_err)
+
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'lossmat.bin', &
+           FILE_MODE_WRITE, viewer, mpi_err)
+    call MatView(loss%oper, viewer, mpi_err)
+    call PetscViewerDestroy(viewer, mpi_err)
+    call PetscViewerBinaryOpen(PETSC_COMM_WORLD, 'prodmat.bin', &
+           FILE_MODE_WRITE, viewer, mpi_err)
+    call MatView(prod%oper, viewer, mpi_err)
+    call PetscViewerDestroy(viewer, mpi_err)
+
     
     ! size of data
     n = geometry % nf 

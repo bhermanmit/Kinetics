@@ -9,6 +9,7 @@
 \usepackage{graphicx}
 \usepackage{url}
 \usepackage{tikz}
+\usepackage{tikz-qtree}
 \usepackage{subfigure}
 \usetikzlibrary{arrows,shapes,positioning}
 \usetikzlibrary{decorations.markings}
@@ -44,9 +45,245 @@ There are many methods that we can try and use to solve stiff sets of equations.
 
 In order to use large time steps, we must use a higher order time integration scheme. Here, we chose higher order generalized Runge-Kutta methods called Rosenbrock methods. These methods were first practically applied in the work of Kaps and Rentrop and thus are also referred to as Kaps-Rentrop methods. These methods are relatively simple to implement and have shown to remain reliable. Also with these methods, an automatic step size adjustment can be embedded in the algorithm. Kaps and Rentrop showed that the smallest order for which embedding a an error estimator for automatic time step size is four. This report focuses on the derivation and implementation of a fourth-order Kaps-Rentrop method with embedded third-order truncation error estimation for automatic time step size adjustment for neutron kinetics applications.
 
-\Section{Generalized Runge-Kutta Methods}
+\Section{Generalized Runge-Kutta Methods}\label{sec:GRK}
 
-\Subsection{Determining Runge-Kutta Coefficients}
+With any time integrator we are solving the following set of ordinary differential equations,
+\begin{equation}\label{eq:GRK_fund}
+    \mathbf{y}^\prime\left(t\right) = \mathbf{f}\left(t,\mathbf{y}\left(t\right)\right).
+\end{equation}
+This represents an arbitrary set of equations that can represent a multitude of physics. All forms of Runge-Kutta methods compute state variables at the next time step with
+\begin{equation}\label{eq:GRK_soln}
+   \mathbf{y}^{n+1} = \mathbf{y}^n + \sum_{i=1}^s m_i \mathbf{k}_i.
+\end{equation}
+All of the work in Runge-Kutta methods is to determine the values of $\mathbf{k}_i$. The parameter $m_i$ is a coefficient that defines the type of Runge-Kutta method. The $\mathbf{k}_i$ parameters can be written in different forms. Here, we should three different forms:
+\begin{itemize}
+  \item Explicit Form
+  \begin{equation}
+   \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j\right),
+  \end{equation}
+  \item Implicit Form
+  \begin{equation}
+    \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{s}a_{ij}\mathbf{k}_j\right),
+  \end{equation}
+  \item Diagonally Implicit Form
+  \begin{equation} \label{eq:GRK_diag}
+  \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i}a_{ij}\mathbf{k}_j\right).
+  \end{equation}
+\end{itemize}
+The only difference in these forms is the summation term. The parameter $h$ in these equations is the time step and $a_{ij}$ are given constants that define the Runge-Kutta method.  In the explicit form, $\mathbf{k}_i$ values only depend on previous $\mathbf{k}_i$ values. Therefore this can be performed in a once-through sweeping action. However, in the fully implicit form and diagonally implicit form, a more sophisticated solution scheme is required.
+
+The Generalized Runge-Kutta Methods (GRK) use the Rosenbrock form of the equations. This form can be derived by starting out with the diagonally implicit form $\mathbf{k}_i$ values. To begin, define the following parameter,
+\begin{equation}
+\mathbf{y}^\prime \equiv \mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j,
+\end{equation} 
+where now we can rewrite Eq. \eqref{eq:GRK_diag} as
+\begin{equation}
+  \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}^\prime  + a_{ii}\mathbf{k}_i\right).
+\end{equation}
+Having the equation in this form allows us to perform a linearization $\mathbf{y}^\prime$. Doing this yields the Jacobian matrix where now
+\begin{equation}
+ \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}^\prime\right) + h\mathbb{J}\left(\mathbf{y}^\prime\right)a_{ii}\mathbf{k}_i
+\end{equation}
+Although not entirely known, the Jacobian is assumed to be independent of $\mathbf{y}^\prime$ and is always evaluated at $\mathbf{y}_n$. One potential reason for this is that it may be expensive to evaluate a new Jacobian at every time evaluation. Therefore, $\mathbf{k}_i$ can be written as
+\begin{equation}
+   \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j\right) + h\mathbb{J}\left(\mathbf{y}_n\right)a_{ii}\mathbf{k}_i.
+\end{equation}
+The next step in the derivation is to expand the parameter $a_{ii}$ with a linear combination as follows:
+\begin{equation}\label{eq:GRK_auto}
+     \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j\right) +     
+     h\mathbb{J}\left(\mathbf{y}_n\right) \color{blue}\sum_{j=1}^{i}c_{ij}\mathbf{k}_j.
+\end{equation}
+Each $\mathbf{k}_i$ can now be solved since it only depends on previous $\mathbf{k}_i$ values and itself. Once the $\mathbf{k}_i$ parameters are known, the values of state variables can be calculated with Eq. \eqref{eq:GRK_soln}. Eq. \eqref{eq:GRK_auto} is in autonomous form assumes that the coupled ordinary differential equations only depend on time through state variables. If any other parameters on the right hand side of Eq. \eqref{eq:GRK_fund} depend on time, a nonautonomous form must be used. This is usually the case in reactor physics applications where either reactivity or macroscopic cross sections are changing as a function of time. A derivation of how to obtain this form is detailed in Appendix \ref{app:GRK_nonauto}. This non-autonomous form of GRK is
+\begin{equation} \label{eq:GRK_nonauto}
+    \mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
+                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt},
+\end{equation}
+\begin{equation}
+    \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i.
+\end{equation}
+Note that parameters $m_i$, $a_{ij}$ and $c_{ij}$ are determined from equations of condition which will be discussed more thoroughly in Section \ref{sec:GRK_cond}. The parameters $b_i$ and $d_i$ are derived from $c_{ij}$ and $a_{ij}$, respectively,
+\begin{equation}
+     b_i \equiv \sum_{j=1}^ic_{ij} \qquad d_i \equiv \sum_{j=1}^{i-1}a_{ij}.
+\end{equation}
+The matrix $\mathbb{J}$ represents the Jacobian of the derivative equations that will be in the form of Eq. \eqref{eq:GRK_fund}. If any parts of those derivative equations depend on time other than the state variables, a nonzero Jacobian vector, $\frac{d\mathbf{f}}{dt}$ will be used. This will become clearer as examples of simple reactor physics applications are discussed. Note that the Jacobian matrix and vector are only evaluated once per time step, at the beginning of the time step.
+
+\Subsection{Determining Runge-Kutta Coefficients} \label{sec:GRK_cond}
+
+To determine the coefficients in these GRK equations, we use Professor Butcher's method. The coefficients form what today we call a Butcher series. A Butcher series is represented as
+\begin{equation}    
+    \mathbf{B}\left(\mathbf{a}, \mathbf{y}_0\right) = \sum_t \frac{h^{\rho\left(t\right)}}{\rho\left(t\right)!}\mathbf{a}\left(t\right)F\left(t\right)\mathbf{y}_0.
+\end{equation}
+This equation looks really complicated and to a non-mathematician (e.g. the author) is it not really understandable. The idea of generating these coefficients is to generate a stable set of equations to some order of convergence. As we will see, this is no more than matching coefficients up with Taylor series. However, as the desired order of convergence is increased, higher and higher derivatives are needed. Instead of deriving out higher and higher derivatives, a Butcher series can do this easier once rooted trees have been created to represent these higher derivatives. For example, take the first derivative,
+\begin{equation} \label{eq:RT_D1}
+\mathbf{y}^\prime\left(t\right) = \mathbf{f}\left[\mathbf{y}\left(t\right)\right].
+\end{equation}
+The rooted tree for this situation is very simple it is just a dot as shown below.\\
+\begin{center}\begin{tikzpicture}
+    \tikzstyle{every node}=[circle,draw,fill=black]
+    \node {};
+\end{tikzpicture}\end{center}
+The next derivative is given as
+\begin{equation}
+    \mathbf{y}^{\prime\prime}\left(t\right) = \frac{d\mathbf{f}}{d\mathbf{y}}\frac{d\mathbf{y}}{dt}.
+\end{equation}
+The derivative with respect to $\mathbf{y}$ in this equation has been defined in Eq. \eqref{eq:RT_D1}. Whenever, a substitution occurs from a previous derivative that rooted tree as a branch point. The equation now becomes
+\begin{equation}\label{eq:RT_D2}
+    \mathbf{y}^{\prime\prime}\left(t\right) = \frac{d\mathbf{f}}{d\mathbf{y}}\mathbf{f}\left[\mathbf{y}\left(t\right)\right].
+\end{equation}
+The rooted tree that represents this second order derivative is shown below. \\
+\begin{center}\begin{tikzpicture}
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=72pt}
+    \Tree [.\node[circle,draw,fill=black] {};  \node[circle,draw,fill=black] {}; ]
+\end{tikzpicture}\end{center}
+For higher derivatives it becomes more complicated to generate their form. Although not discussed thoroughly here, the Faa di Bruno formula using Bell functions can be used. Using this formula, we can generate the third derivative,
+\begin{equation}
+    \mathbf{y}^{\prime\prime\prime}\left(t\right) = \frac{d^2\mathbf{f}}{d^2\mathbf{y}}\left(\frac{d\mathbf{y}}{dt}\right)^2 + \frac{d\mathbf{f}}{d\mathbf{y}} \frac{d^2\mathbf{y}}{dt^2}.
+\end{equation}
+Here, we see that we need to do a substitution in two places for the derivatives of $\mathbf{y}$ with respect to time. Also, a separate tree is made for each term in the expression. Look at the first term only, we can substitute in Eq. \ref{eq:RT_D1} to get
+\begin{equation}
+    \frac{d^2\mathbf{f}}{d^2\mathbf{y}}\left(\frac{d\mathbf{y}}{dt}\right)^2.
+\end{equation}
+Because we substituted, we need to create a branch. Here, this will be a multinode branch since this term is squared. This rooted tree is depicted below.\\
+\begin{center}\begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=20pt}
+    \Tree [.\node[circle,draw,fill=black] {}; [.\node[circle,draw,fill=black] {};] [.\node[circle,draw,fill=black] {}; ] ]
+\end{tikzpicture}\end{center}
+For the second term we substitute in Eq. \ref{eq:RT_D1} where we simply attach that 2-node single branch tree to the base tree of this equation. This rooted tree is shown below. \\
+\begin{center}\begin{tikzpicture}
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=72pt}
+    \Tree [.\node[circle,draw,fill=black] {};  [.\node[circle,draw,fill=black] {}; \node[circle,draw,fill=black] {};]]
+\end{tikzpicture}\end{center}
+Finally, we can just summarize this third derivative example with the following equation:
+\begin{equation}
+    \mathbf{y}^{\prime\prime\prime}\left(t\right) = \frac{d^2\mathbf{f}}{d^2\mathbf{y}}\underbrace{\left(\frac{d\mathbf{y}}{dt}\right)^2}_{\mathrm{multi\,branch}} + \frac{d\mathbf{f}}{d\mathbf{y}} \underbrace{\frac{d\mathbf{f}}{d\mathbf{y}}\mathbf{f}\left[\mathbf{y}\left(t\right)\right]}
+    _{\mathrm{single\,branch}}.
+\end{equation}
+Figure \ref{fig:RT} shows all the rooted trees up through 4th order.
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \node {1};
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=72pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {2};  \node {2}; ]
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {3};  [.\node {3}; ] [.\node {3};] ]
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {4};  [.\node {4};  \node {4};] ]
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {5};  \node {5};  \node {5}; \node{5}; ]
+  \end{tikzpicture}\hspace{1cm} 
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {6};  [.\node {6};  \node {6};] \node {6};  ]
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {7};  [.\node {7};  \node {7}; \node {7};]  ]
+  \end{tikzpicture} \hspace{1cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {8};  [.\node {8};  [.\node {8}; [.\node {8};]]] ]
+  \end{tikzpicture}
+\caption{Rooted trees for determining 4th order GRK coefficients.}
+\label{fig:RT}
+\end{figure}
+The numbering of the trees is present to see the order of there equations. Note that the derivative order that the trees represent is the number of nodes. Using these rooted trees we can derive the order equations to solve for the GRK coefficients. We seek to construct equations that have the form
+\begin{equation} \label{eq:RT_psi}
+    \sum_i m_i \Psi_i\left(t\right) = \frac{1}{\Gamma\left(t\right)}.
+\end{equation}
+In this equation $m_i$ are the GRK coefficients listed in Eq. \eqref{eq:GRK_fund}. The parameter $\Psi\left(t\right)$ represents an equation derived from the rooted tree $t$ (not time). The last parameter is $\Gamma\left(t\right)$ and is defined as
+\begin{equation}
+    \Gamma\left(t\right) = \rho\left(t\right)\Gamma\left(t_1\right) ... \Gamma\left(t_m\right),
+\end{equation}
+where $\rho\left(t\right)$ is just the order, or number of nodes of tree $t$. This recursion is performed until all branches are removed and only node is left. Note this equation is recursive on $\Gamma$ and can get very complicated with complex rooted trees. To write equations, each branches are represented as parameters and are multiplied together. In GRK, if there is a single branch from node $j$ and it connects to node $k$ it is represented with a new parameter $\beta^\prime_{jk}$. However, if multiple branches are coming out of node $j$ and one of them connects to node $k$, this is represented with the already introduced GRK parameter $a_{jk}$. We make the following definitions:
+\begin{equation}\label{eq:RT_simp}
+    a_{i} = sum_j^{i-1} a_{ij} \qquad \beta^\prime_i = sum_j^i \beta^\prime_{ij} \qquad \beta^\prime_{ij} = a_{ij} + c_{ij}.
+\end{equation}
+Note that the limits of the summation are consistent with Eq. \eqref{eq:GRK_nonauto}. To show how this works we look at the first two rooted trees in Figure \ref{fig:RT}. Since we are constructing 4th order GRK, we always write every equation up through 4th order (defined as $s$). The first rooted tree has one node and the condition equation is simply
+\begin{equation} \label{eq:RT_t1}
+    \sum_i^s m_i = m_1 + m_2 + m_3 + m_4 = 1
+\end{equation}
+Here $\Gamma_{t_1}$ is simply just unity. The second rooted tree has one single branch. Therefore, its equation is
+\begin{equation}
+    \sum_i^s \mu_i\beta^\prime_{ij} = \frac{1}{2}. 
+\end{equation}
+For the summation of the highest branches, we can apply Eq. \eqref{eq:RT_simp} such that:
+\begin{equation}
+    \sum_i^s \mu_i\beta^\prime_i = \mu_1\beta^\prime_1 + \mu_2\beta^\prime_2 + \mu_3\beta^\prime_3 + \mu_4\beta^\prime_4 = \frac{1}{2}. 
+\end{equation}
+In Runge-Kutta methods, the problem is usually under constrained and we are free to choose some parameters. In GRK, Kaps and Rentrop and Kaps and Wanner define that
+\begin{equation}
+    c_{ii} \equiv \gamma ,
+\end{equation}
+which can be adjusted. They showed that this parameter has stability implications on the algorithm. Therefore, if this $\gamma$ parameter is known, we need to move it to the right hand side of the order equations. However, $\gamma$ does not explicitly show up. If we expand out the $\beta^\prime_i$ and noting that $a_{ii} = 0$ such that $\beta^\prime_{ii} = c_{ii} = \gamma$ we can write that
+\begin{equation}
+    \mu_1\beta^\prime_{11} + \mu_2\left(\beta^\prime_{21} + \beta^\prime_{22}\right) + \mu_3\left(\beta^\prime_{31} + \beta^\prime_{32} +\beta^\prime_{33} \right) + \mu_4\left(\beta^\prime_{41} + \beta^\prime_{42}+ \beta^\prime_{43} + \beta^\prime_{44}\right) = \frac{1}{2}
+\end{equation}
+and thus,
+\begin{equation}
+    \mu_1\gamma + \mu_2\left(\beta^\prime_{21} + \gamma\right) + \mu_3\left(\beta^\prime_{31} + \beta^\prime_{32} +\gamma \right) + \mu_4\left(\beta^\prime_{41} + \beta^\prime_{42}+ \beta^\prime_{43} + \gamma \right) = \frac{1}{2}.
+\end{equation}
+Moving this to the right hand side we can rewrite that
+\begin{equation}
+    \mu_2\beta^\prime_{21} + \mu_3\left(\beta^\prime_{31} + \beta^\prime_{32} \right) + \mu_4\left(\beta^\prime_{41} + \beta^\prime_{42}+ \beta^\prime_{43} \right) = \frac{1}{2} - \gamma\left(\mu_1 + \mu_2 + \mu_3 + \mu_4\right).
+\end{equation}
+If we look at the term in parenthesis on the right hand side of the equation it is the order equation of the first tree. Therefore, the right hand side will always have the equation of sub-trees as you remove branches. From the theory, this only applies to removing single branches. When no more single branches can be removed, the right hand side is complete. Therefore substituting the result of Eq. \eqref{eq:RT_t1} such that
+\begin{equation}
+    \mu_2\beta^\prime_{21} + \mu_3\left(\beta^\prime_{31} + \beta^\prime_{32} \right) + \mu_4\left(\beta^\prime_{41} + \beta^\prime_{42}+ \beta^\prime_{43} \right) = \frac{1}{2} - \gamma.
+\end{equation}
+
+Doing this manipulation can get cumbersome for each tree especially when they get complicated and there is an enormous amount of sub-trees. To make it easier to construct these equations, we redefine Eq. \eqref{eq:RT_psi} to
+\begin{equation}
+    \sum_i^s m_i \Phi\left(t\right) = \sum_{j\ge 0}^{\rho\left(t\right)-1} \left(-\gamma\right)^j \sum_{s \in V\left(t,j\right)} \frac{N\left(t,t^\prime\right)}{\Gamma\left(t^\prime\right)}.
+\end{equation}
+The notation of this equation is as follows:
+\begin{itemize}
+    \item $\rho\left(t\right)$ represents the order of the original tree,
+    \item $j$ is a counter that represents the number of single branch nodes that have been removed from the original tree,
+    \item $V\left(t,j\right)$ is a sub-tree $t^\prime$ that appears from the original tree $t$ by removing $j$ single branch nodes,
+    \item $N\left(t,t^\prime\right)$ is the number of possibilities to obtain sub-tree $t^\prime$ by removing $j$ singly-branched nodes from the original tree $t$.
+\end{itemize}
+The second summation basically states that there may be multiple sub-trees that may be formed from the original tree by removing $j$ single branch nodes. This is just a convenient was of visually creating these order equations. Instead of $\Psi\left(t\right)$, we now have $\Phi\left(t\right)$.  The difference is that the $\beta^\prime_{ii}$ terms are no longer considered on the left hand side of the equation. Therefore, a new parameter $\beta$ is defined instead of $\beta^\prime$ such that
+\begin{equation}
+    \beta_i = \sum_j^{i-1} \beta_{ij} \qquad \beta_{ii} = 0 \qquad \beta_{ij} = a_{ij} + c_{ij}.
+\end{equation}
+If we consider the previous example for the second rooted tree, we can easily see that the relation is
+\begin{align}
+    \mu_2\beta_{21} + \mu_3\left(\beta_{31} + \beta_{32} \right) & + \mu_4\left(\beta_{41} + \beta_{42}+ \beta_{43} \right) \\ \nonumber & = \left(-\gamma\right)^0\cdot\left[\frac{N\left(t,t\right) = 1}{\Gamma\left(t\right) = 2\cdot 1}\right] + \left(-\gamma\right)^1\cdot\left[\frac{N\left(t,t^\prime\right) = 1}{\Gamma\left(t^\prime\right) = 1}\right]\\ \nonumber  & = \frac{1}{2} - \gamma .
+\end{align}
+\begin{itemize}
+    \item Big example
+    \item List out order equations
+    \item Expand out order equations
+    \item List out additional constraints
+    \item List out the values of the coefficients in a table for both Kaps-Rentrop and Shampine
+\end{itemize}
 
 \Subsection{Automated Time Step Size Adjustment} \label{sec:var_ts}
 
@@ -318,7 +555,7 @@ Looking at the results for 0.002 seconds, the convergence rate is nearly 4th ord
 Before analysis a 2-D reactor with local thermal feedback, significant upgrades need to made to a code. Therefore, a 1-D spatial kinetics code will be written and use basic operators to represent complex space and energy dependence such that moving to 2-D with feedback will happen naturally. With any reactor physics application, we start with the neutron balance equation. Here, we show it in 3-D multigroup steady state form over a Cartesian volume cell,
 \begin{equation}
 \label{eq:NBE}
-\sum_{u \in x,y,z} \frac{\overline{J}^{u,g}_{l+1/2,m,n} - \overline{J}^{u,g}_{l-1/2,m,n}}{\Delta_l^u} + \overline\Sigma_{t_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^g = \sum_{h=1}^G\upsilon\overline\Sigma^{h\rightarrow g}_{s_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^h + \frac{\chi_{l,m,n}^g}{k}\sum_{h=1}^G\nu\overline\Sigma^{hg}_{f_{l,m,n}} \overline{\overline{\phi}}_{l,m,n}^h.
+\sum_{u \in x,y,z} \frac{\overline{J}^{u,g}_{l+1/2,m,n} - \overline{J}^{u,g}_{l-1/2,m,n}}{\Delta_l^u} + \overline\Sigma_{t_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^g = \sum_{h=1}^G\upsilon\overline\Sigma^{h\rightarrow g}_{s_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^h + \frac{\chi_{l,m,n}^g}{k}\sum_{h=1}^G\nu\overline\Sigma^{h}_{f_{l,m,n}} \overline{\overline{\phi}}_{l,m,n}^h.
 \end{equation}
 The notation used in Eq. \eqref{eq:NBE} is as follows:
 \begin{itemize}
@@ -397,7 +634,7 @@ After spatial discretization, the equation becomes an ordinary differential equa
     \widetilde{\boldsymbol{C}} = \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace^{-1}\frac{\beta}{k}\mathbb{F}\boldsymbol{\Phi}.
 \end{equation}
 The derivative vector for the GRK solution is given as
-\begin{equation}
+\begin{equation}\label{eq:1D_deriv}
     \frac{d}{dt}\left[\begin{array}{c}
     \boldsymbol{\Phi} \\ \widetilde{\boldsymbol{C}} \end{array}\right] = 
     \left[\begin{array}{c}
@@ -509,20 +746,20 @@ Region & Material & $g$ & $D_{g}\,\left[\mathrm{cm}\right]$ & $\Sigma_{a}^{g}\,\
 \end{tabular} 
 \end{table}
 The change in thermal absorption cross section in region 3/4 affected by control blade motion is given piecewise as
-\begin{equation}
+\begin{equation}\label{eq:LRA_xsrod}
     \Sigma_{a,R}^2\left(t\right) = \left\lbrace \begin{array}{cc} \Sigma_{a,3}^2\left(0\right)\cdot\left(1 -0.0606184\left[\mathrm{s}^{-1}\right]\cdot t \right) & \mathrm{if}\,t\le 2\mathrm{s} \\
     \Sigma_{a,3}^2\left(0\right)\cdot\left(1 -0.0606184\left[\mathrm{s}^{-1}\right]\cdot 2\left[\mathrm{s}\right] \right) & \mathrm{if}\,t > 2\mathrm{s} \end{array}\right. .
 \end{equation}
 In every local fine mesh location in the diffusion mesh, local thermal feedback is present affecting fast group absorption cross sections. Doppler feedback is incorporated in the following expression
-\begin{equation}
+\begin{equation}\label{eq:LRA_xstemp}
     \Sigma_a^1\left(T\right) = \Sigma_a^1\left(T_0\right)\left[1 + \gamma\left(\sqrt{T} - \sqrt{T_0}\right)\right],
 \end{equation}
-where $\gamma$ is defined in Table \ref{fig:LRA_params}. To compute temperatures an adiabatic heat up model is used given by
-\begin{equation}
+where $\gamma$ is defined in Table \ref{tab:LRA_params}. To compute temperatures an adiabatic heat up model is used given by
+\begin{equation}\label{eq:Temp}
     \frac{\partial}{\partial t} T\left(t,\vec{r}\right) = \alpha\sum_h\Sigma_f^h\phi^h\left(t,\vec{r}\right),
 \end{equation}
-where $\alpha$ is given in Table \ref{fig:LRA_params}. Finally all normalizations are to core average power density which is related to fission density with
-\begin{equation}
+where $\alpha$ is given in Table \ref{tab:LRA_params}. Finally all normalizations are to core average power density which is related to fission density with
+\begin{equation}\label{eq:Pdens}
     P\left(t,\vec{r}\right) = \kappa\sum_h\Sigma_f^h\phi^h\left(t,\vec{r}\right),
 \end{equation}
 where $kappa$ can be found in Table \ref{tab:LRA_params}. 
@@ -549,6 +786,163 @@ $B_{z}^{2}$ & $1.0\times10^{-4}\,\mathrm{cm^{-2}}$ &  & \tabularnewline
 \bottomrule
 \end{tabular}
 \end{table}
+The initial core power density is
+\begin{equation}
+    \overline{P}\left(0\right) = 1.0 \times 10^{-6}\,\mathrm{W/cm^3},
+\end{equation}
+where core average power density and temperature are given as
+\begin{equation}\label{eq:aveP}
+    \overline{P}\left(t\right) = \frac{\int_{V_f}d^3rP\left(t,\vec{r}\right)}{V_f}
+\end{equation}
+and
+\begin{equation}
+    \overline{T}\left(t\right) = \frac{\int_{V_f}d^3rT\left(t,\vec{r}\right)}{V_f}.
+\end{equation}
+These integrals are only over the fueled region of the LRA BWR model. Once the steady state eigenvalue and spatial group flux distribution are determined, these fluxes can be scaled up the specified power density.  This can be accomplished by multiplying all of the flux eigenvector by a constant which is the ratio of the desired power density to the power density computed with Eqs. \eqref{eq:Pdens} and \eqref{eq:aveP}. At the start of the transient, the core is at a uniform temperature of 300 K.
+
+Although this is a 2-D problem, equations from Section \ref{sec:1D} can be extended with relative ease. The fact that we have added a dimension to the problem will be hidden in the operators. Therefore, the only element that we have to add to the 1-D equation set from Eq. \eqref{eq:1D_deriv} is the description of temperatures shown in continuous form in Eq. \eqref{eq:Temp}. The derivative vector becomes
+\begin{equation}\label{eq:LRA_deriv}
+    \frac{d}{dt}\left[\begin{array}{c}
+    \boldsymbol{\Phi} \\ \widetilde{\boldsymbol{C}} \\ \boldsymbol{T}\end{array}\right] = 
+    \left[\begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\left[\frac{1-\beta}{k}\mathbb{F} - \mathbb{M}\left(t\right)\right]\boldsymbol{\Phi} + \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\mathbb{D}\widetilde{\boldsymbol{C}} \\
+    \frac{\beta}{k}\mathbb{F}\boldsymbol{\Phi} -  \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace
+    \widetilde{\boldsymbol{C}} \\
+    \alpha \mathbb{F}^\prime\boldsymbol{\Phi}
+    \end{array}\right].
+\end{equation}
+The operator notation for the temperature in Eq. \eqref{eq:LRA_deriv} is a little strange. The operator, $\mathbb{F}^\prime$ is a modified form of the fission source operator $\mathbb{F}$. The dimension of this matrix that represents this modified operator is just the spatial cells in the geometry by the product number of spatial points and groups. Therefore, it is a rectangular matrix. Each row consists of all group fission cross sections. The flux vector is then still consistent with other equations.  Doing this product, the summation over groups shown in Eq. \eqref{eq:Temp} will be correctly performed. Note that also in Eq. \eqref{eq:LRA_deriv} the only explicit time dependent term other than the state variables of the system is the operator $\mathbb{M}$ which will change due to "rod movement". An example of the structure of the Jacobian matrix is shown in Figure \ref{fig:jacobian}.
+\begin{figure}
+\centering \includegraphics[scale=0.4]{./figs/jacobian.pdf}
+\caption{Structure of Jacobian matrix for LRA benchmark.}
+\label{fig:jacobian}
+\end{figure}
+The Jacobian matrix and vector in equation form are given as
+\begin{equation} \label{eq:LRA_Jmat}
+    \mathbb{J} = \left[ \begin{array}{ccc} 
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\left[\frac{1-\beta}{k}\mathbb{F}\left(t\right) - \mathbb{M}\left(t\right)\right] & \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\mathbb{D} & -\mathrm{diag}\left\lbrace\mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1}\Gamma\left(\boldsymbol{T}\right)\right\rbrace\boldsymbol{\Phi}\\
+     \frac{\beta}{k}\mathbb{F}\left(t\right) & \mathrm{diag}\left\lbrace\boldsymbol{\lambda}\right\rbrace \\
+     \alpha\mathbb{F}^\prime
+    \end{array}\right],
+\end{equation}
+and
+\begin{equation}\label{eq:LRA_Jvec}
+    \frac{d\mathbf{f}}{dt} = \left[ \begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1} \frac{d\mathbb{M}}{dt}\boldsymbol{\Phi} \\ \mathbf{0}
+    \end{array}\right] = \left[ \begin{array}{c}
+    \mathrm{diag}\left(\boldsymbol{\frac{1}{v}}\right)^{-1} \frac{d\boldsymbol{\Sigma}_a}{dt}\boldsymbol{\Phi} \\ \mathbf{0} \\ \mathbf{0}.
+    \end{array}\right]
+\end{equation}
+In Eq. \eqref{eq:LRA_Jmat} the term $\gamma\left(\boldsymbol{T}\right)$  represents the derivative of the group 1 absorption cross section dependence on temperature in the operator $\mathbb{M}$. This term can be derived from Eq. \eqref{eq:LRA_xstemp} and is presented in scalar form as follows:
+\begin{equation}
+    \Gamma_i\left(T\right) = \frac{1}{2}\Sigma_a^1\gamma T^{-0.5}.
+\end{equation}
+Similarly in Eq. \eqref{eq:LRA_Jvec}, there is a derivative of absorption cross section with respect to time. This term appears due to the forcing function of the control rod movement. Fortunately, we are given an expression for this dependence in Eq. \eqref{eq:LRA_xsrod}. However, this term will only be nonzero in the region that has the control blade drop and only in group 2. This derivative is
+\begin{equation}
+    \frac{d}{dt}\Sigma_{a,R}^2\left(t\right) = \left\lbrace \begin{array}{cc} -\Sigma_{a,3}^2\left(0\right)\cdot 0.0606184\left[\mathrm{s}^{-1}\right] & \mathrm{if}\,t\le 2\mathrm{s} \\
+    0 & \mathrm{if}\,t > 2\mathrm{s} \end{array}\right. .
+\end{equation}
+These models can be coded up and interfaced with the GRK solver as done with previous simulations. 
+
+\Subsection{LRA Results}
+
+Before the transient results are reported, the LRA benchmarks needs to be solved for a steady state eigenvalue and flux solution. Here, we investigate two spatial meshes, 15.0 and 1.5 cm. The 15.0 cm mesh corresponds to having one finite difference mesh per assembly, whereas for the 1.5 cm mesh, there will be ten. Table \ref{tab:LRA_eigs} shows the eigenvalue results and static control blade worth.
+\begin{table}
+\centering
+\caption{Eigenvalue and Blade Worth Results}
+\label{tab:LRA_eigs}
+\begin{tabular}{ccc}
+\toprule 
+ & 15 cm mesh & 1.5 cm mesh\tabularnewline
+\midrule
+\midrule 
+Blade in $k_{eff}$ & 1.003892 & 0.996283\tabularnewline
+\midrule 
+Blade out $k_{eff}$ & 1.028262 & 1.015192\tabularnewline
+\midrule 
+Blade worth $\left[\beta\right]$ & $\frac{1.028262-1.003892}{1.028262\cdot\beta}=3.65\beta$ & $\frac{1.015192-0.996283}{1.015192\cdot\beta}=2.87\beta$\tabularnewline
+\midrule
+\midrule
+Reference $k_{eff}$ & 0.99636 & $\beta=0.006487$ \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+Normalized assembly power distributions for rodded and unrodded cases for both the 15 cm and 1.5 cm mesh are presented in Figures \ref{fig:LRA_15_rodin} -- \ref{fig:LRA_1.5_rodout}.These figures show how the relative assembly power distribution changes when the control blade is dropped. There is a large spike in the unrodded assemblies.  Also from these spatial plots, we can observe the errors from spatial discretization between 15cm and 1.5cm.
+\input{./figs/LRA_15_rodin0.tex}
+\input{./figs/LRA_1.5_rodin0.tex}
+\input{./figs/LRA_15_rodout0.tex}
+\input{./figs/LRA_1.5_rodout0.tex}
+
+After the steady state solution, a transient simulation was executed for the 15 cm and 1.5 cm meshes. For a reference calculation with each mesh spacing, we have a 1e-10 tolerance on the inner GMRES solver and the truncation error tolerance is set to 1e-6. A plot of total core power density is for each mesh is shown in Figure \ref{fig:LRAcorepower}.
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/LRAcorepower.pdf}
+\caption{LRA core power density for coarse and fine mesh spacing.}
+\label{fig:LRAcorepower}
+\end{figure}
+Here, we see basically the same shapes of the curves and even similar peaks. However, the coarse mesh peak is occurring much earlier time. SPECIFY REASON HERE. The next set of results are the maximum normalized assembly powers. The time dependence of this is shown in Figure \ref{fig:LRAmaxpower}.
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/LRAassypowermax.pdf}
+\caption{LRA max normalized assembly power for coarse and fine mesh spacing.}
+\label{fig:LRAmaxpower}
+\end{figure}
+The results of this plot are very interesting. This plot states nothing about the absolute power, rather, it displays the maximum assembly power peaking factor. First, we see that the coarse mesh power is always greater than the fine mesh. Another interesting result is that the peaking factor keeps increasing well after the peak core average power density occurs. We see that once it starts to decrease, it is a very slow trend stating that the core will be very peaked for a while. A plot of temperatures throughout the transient are present in Figure \ref{fig:LRAcoretemp}.
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/LRAcoretemp.pdf}
+\caption{LRA core average and maximum temperature for coarse and fine mesh spacing.}
+\label{fig:LRAcoretemp}
+\end{figure}
+As expected, the coarse mesh temperatures are much higher than the fine mesh temperatures. This is understood since temperature is basically a measure here of energy distribution, proportional to the integral of the power density in Figure \ref{fig:LRAcorepower}. Since the coarse mesh power is larger for most of the transient, this is expected. Finally, a comparison to the reference solution is given in Table \ref{tab:LRAresults} along with timing information.
+\begin{table}
+\centering
+\caption{2-D LRA Results time step 1e-6 s}
+\label{tab:LRAresults}
+\begin{tabular}{lccc}
+\toprule 
+Parameter & 15 cm & 1.5 cm & Reference\tabularnewline
+\midrule
+\midrule 
+Time to first peak {[}s{]} & 1.301 & 1.450 & 1.436\tabularnewline
+\midrule 
+Power at first peak {[}W/cc{]} & 5974 & 5442 & 5411\tabularnewline
+\midrule 
+Power at second peak {[}W/cc{]} & 1030 & 791 & 784\tabularnewline
+\midrule 
+Power at $t=3.0\,\mathrm{s}$ & 113 & 97.5 & 96.2\tabularnewline
+\midrule 
+Core Average fuel temperature at $t=3.0\,\mathrm{s}$ & 1354 & 1083 & 1087\tabularnewline
+\midrule 
+Peak fuel assembly temperature at $t=3.0\,\mathrm{s}$ & 4440 & 2928 & 2948\tabularnewline
+\midrule
+Number of time steps & 4465 & 4704 & -- \tabularnewline
+\midrule
+CPU time {[}s{]} & 144 & 24,400 & --\tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+We see that for the fine mesh we do really well compared with the reference. The only major discrepancy is the peak fuel temperature.
+
+Listed in Table \ref{tab:LRAresults} are the number of time step results. Both spatial meshes use about the same number of time steps when held to a 1e-6 relative truncation error tolerance. A plot of these time steps is shown in Figure \ref{fig:LRAtime}.
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/LRAtimesteps.pdf}
+\caption{LRA peak power convergence rate.}
+\label{fig:LRAtime}
+\end{figure}
+\begin{figure}
+\centering \includegraphics[scale=1.00]{./figs/LRA_order.pdf}
+\caption{LRA peak power convergence rate.}
+\label{fig:LRAorder}
+\end{figure}
+Comparing this plot to Figure \ref{fig:LRAcorepower}, we see that when the core power begins to change rapidly, the time step begins to decrease at a similar rate. Also, the trend of both spatial meshes is very similar although there is a shift in time. 
+
+The next set of results look at what it takes to converge the peak core total power to 1\%. To perform this calculation the tolerance on the variable time step was varied. The reference calculation was at a tolerance of 1e-6. The convergence results for the coarse and fine mesh are shown in Figure \ref{fig:LRAorder}. The main result to take away from this figure is that the convergence rate is not 4-th order. It doesn't even look to be first order. This could be due to the method of calculating convergence rate since the peak power is changing time. Lastly, we show maps of assembly powers and temperatures for each spatial mesh at the time of peak power and the last time which is approximately three seconds. These results are shown in Figures \ref{fig:LRApeakpower_1.5} -- \ref{fig:LRAendtemp_1.5}.
+\input{./figs/LRApeakpower_15.tex}
+\input{./figs/LRApeakpower_1.5.tex}
+\input{./figs/LRApeaktemp_15.tex}
+\input{./figs/LRApeaktemp_1.5.tex}
+\input{./figs/LRAendpower_15.tex}
+\input{./figs/LRAendpower_1.5.tex}
+\input{./figs/LRAendtemp_15.tex}
+\input{./figs/LRAendtemp_1.5.tex}
 
 \Section{Conclusion}
 
@@ -557,14 +951,426 @@ $B_{z}^{2}$ & $1.0\times10^{-4}\,\mathrm{cm^{-2}}$ &  & \tabularnewline
 \bibliographystyle{ans}
 \bibliography{references}
 
-\appendix
+\appendix\newpage
 
-\section{Nonautonomous Form of Generalized Runge-Kutta}
+\section{Nonautonomous Form of Generalized Runge-Kutta} \label{app:GRK_nonauto}
+The derivation of the nonautonomous form of GRK begins with the autonomous form, derived in Section \ref{sec:GRK},
+\begin{equation}
+     \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j\right) +     
+     h\mathbb{J}\left(\mathbf{y}_n\right) \color{blue}\sum_{j=1}^{i}c_{ij}\mathbf{k}_j.
+\end{equation}
+The Jacobian matrix in the autonomous form is assumed to be only formed with respect to the state variables. We will define this as $\mathbb{J}_{yy} \equiv \mathbb{J}$. We now append another equation to the current system such that
+\begin{equation}
+    \mathbf{y} = \left[ \begin{array}{c}
+    \mathbf{y}_y \\
+    t
+    \end{array} \right ] \qquad
+     \mathbf{y}^\prime = \left[ \begin{array}{c}
+    \mathbf{y}_y^\prime \\
+    1
+    \end{array} \right ],
+\end{equation}
+where $\mathbf{y}_y$ represents the original state variables. All that is done here is that time is appended to this state variable vector. Naturally, the derivative of time with respect to time is unity as shown in the state variable derivative vector
+We can also define the Jacobian and the $k$-vector similarly
+  \begin{equation}
+    \mathbb{J} = \left[ \begin{array}{cc}
+    \mathbb{J}_{yy} & \mathbf{J}_{yt} \\
+    0 & 0
+    \end{array} \right]
+  \end{equation}
+  and
+  \begin{equation}
+    \mathbf{k}_i = \left[ \begin{array}{c}
+    \mathbf{k}_{i,y} \\
+    k_{i,t}
+    \end{array} \right ].
+  \end{equation}
+Note that here $\mathbb{J}_{yy}$ is the original Jacobian matrix and now there is an additional vector, $\mathbf{J}_{yt}$ which represents the partial derivative of the differential equations with respect to time. As explicitly shown the time equation in the differential equation set is unity so its partial derivative with respect to anything is zero.
+
+This new equation set can be put into the Rosenbrock or GRK form as
+  \begin{equation}\label{eq:GRK_non1}
+    \left[ \begin{array}{c}
+    \mathbf{k}_{i,y} \\
+    k_{i,t}
+    \end{array} \right ] = h\left[ \begin{array}{c}
+    \mathbf{f}_y\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j,y}\right) \\
+    f_t\left(t_n + \sum_{j=1}^{i-1}a_{ij}k_{j,t}\right) 
+    \end{array} \right] +  h\left[ \begin{array}{cc}
+        \mathbb{J}_{yy} & \mathbf{J}_{yt} \\
+    0 & 0
+    \end{array} \right]\sum_{j=1}^i c_{ij}\left[ \begin{array}{c}
+    \mathbf{k}_{j,y} \\
+    k_{j,t}
+    \end{array} \right].
+  \end{equation}
+If we just look at the second equation, it is simply
+  \begin{equation}
+     k_{i,t} = h f_t\left(t_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j,t}\right).
+  \end{equation}
+Recalling that $f_t$ is equivalent to the time equation of $\mathbf{y}^{-1}$, the only possible value for this is unity. Therefore this equation just reduces simply to 
+\begin{equation}
+    k_{i,t} = h.
+\end{equation}
+Instead of solving a set of Rosenbrock equations with this extra row, we can replace all of the $k_{i,t}$ parameters with $h$. Performing this substitution in Equation \ref{eq:GRK_non1}, and only taking the top portion, we get that
+  \begin{align}
+    \mathbf{k}_{i,y} = &  h\mathbf{f}_y \left(t_n + h\sum_{j=1}^{i-1}a_{ij},\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j,y}\right) \\
+                                + & h\mathbb{J}_{yy}\sum_{j=1}^i c_{ij}\mathbf{k}_{j,y}  + h^2\mathbf{J}_{yt}\sum_{j=1}^i c_{ij}\nonumber.
+  \end{align}
+Cleaning up the notation a bit, we define the following parameters:
+\begin{equation}
+    d_i \equiv \sum_{j=1}^{i-1} a_{ij} \qquad  b_i \equiv \sum_{j=1}^i c_{ij} \qquad \mathbb{J} \equiv \mathbb{J}_{yy} \qquad \frac{d\mathbf{f}}{dt} \equiv \mathbf{J}_{yt}.
+\end{equation}
+Finally, we arrive at the nonautonomous form of the Rosenbrock equations for GRK,
+  \begin{equation}
+     \mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
+                                + h\mathbb{J}\sum_{j=1}^i c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt},
+  \end{equation}
+  \begin{equation}
+     \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i.
+  \end{equation}
 
 \section{Derivation of Order Equations}
 
 \section{Derivation of Point Kinetics Equations} \label{app:pkes}
 
+To begin the derivation of PKE, start from the continuous energy neutron diffusion and precursor balance equation. These equations are given respectively as
+\begin{multline}
+\frac{1}{v\left(\vec{r},E\right)}\frac{\partial}{\partial t}\phi\left(\vec{r},E,t\right)=\nabla\cdot D\left(\vec{r},E,t\right)\nabla\phi\left(\vec{r},E,t\right)-
+\Sigma_{t}\left(\vec{r},E,t\right)\phi\left(\vec{r},E,t\right)\\ 
++\int_{0}^{\infty}dE^{\prime}\Sigma_{s}\left(\vec{r},E^{\prime}
+\rightarrow E,t\right)\phi\left(\vec{r},E^{\prime},t\right)\\ 
++\left[1-\beta\left(\vec{r}\right)\right]
+\frac{\chi^{p}\left(\vec{r},E\right)}{k_{crit}}\int_{0}^{\infty}dE^{\prime}\nu\Sigma_{s}
+\left(\vec{r},E^{\prime},t\right)
+\phi\left(\vec{r},E^{\prime},t\right)+
+\sum_{i}\chi_{i}^{d}\left(\vec{r},E\right)
+\lambda_{i}\mathcal{C}_{i}\left(\vec{r},t\right)\qquad g=1,...,G
+\end{multline}
+and
+\begin{equation}
+\frac{\partial}{\partial t}\mathcal{C}_{i}\left(\vec{r},t\right)=-\lambda_{i}\mathcal{C}_{i}\left(\vec{r},t\right)+\frac{\beta_{i}\left(\vec{r}\right)}{k_{crit}}\int_{0}^{\infty}dE^{\prime}\nu\Sigma_{f}\left(\vec{r},E^{\prime},t\right)\phi\left(\vec{r},E^{\prime},t\right)\qquad i=1,...,I.
+\end{equation}
+For point kinetics, we assume that the flux can be separated into a space/energy term and a time dependent term represented as 
+\begin{equation}
+\phi\left(\vec{r},E,t\right)=\mathcal{S}\left(\vec{r},E\right)
+\mathcal{T}\left(t\right).
+\end{equation}
+ Substituting this into the spatial kinetics equation we get
+\begin{multline}
+\frac{1}{v\left(\vec{r},E\right)}\mathcal{S}\left(\vec{r},E\right)\frac{\partial}{\partial t}\mathcal{T}\left(t\right)=\mathcal{T}\left(t\right)\nabla\cdot D\left(\vec{r},E,t\right)\nabla\mathcal{S}\left(\vec{r},E\right)-\Sigma_{t}\left(\vec{r},E,t\right)\mathcal{S}\left(\vec{r},E\right)\mathcal{T}\left(t\right)+\\
+\int_{0}^{\infty}dE^{\prime}\Sigma_{s}\left(\vec{r},E^{\prime}\rightarrow E,t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right)\mathcal{T}\left(t\right)+\left[1-\beta\left(\vec{r}\right)\right]\frac{\chi^{p}\left(\vec{r},E\right)}{k_{crit}}\int_{0}^{\infty}dE^{\prime}\nu\Sigma_{f}\left(\vec{r},E^{\prime},t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right)\mathcal{T}\left(t\right)\\
++\sum_{i}\chi_{i}^{d}\left(\vec{r},E\right)\lambda_{i}\mathcal{C}_{i}\left(\vec{r},t\right).
+\end{multline}
+ We now define some terms:
+\begin{equation}
+\overline{\left(\frac{1}{v}\right)}\equiv\int_{V}dV\int_{0}^{\infty}dE\frac{\mathcal{S}\left(\vec{r},E\right)}{v\left(\vec{r},E\right)},
+\end{equation}
+\begin{equation}
+\nu_{p}\Sigma_{f}\left(t\right)\equiv\int_{V}dV\int_{0}^{\infty}dE\left[1-\beta
+\left(\vec{r}\right)\right]\chi^{p}\left(\vec{r},E\right)\int_{0}^{\infty}dE^{\prime}
+\nu\Sigma_{f}\left(\vec{r},E^{\prime},t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right),
+\end{equation}
+\begin{equation}
+\nu_{d}\Sigma_{f,i}\left(t\right)\equiv\int_{V}dV\int_{0}^{\infty}dE\beta_{i}
+\left(\vec{r}\right)\chi_{i}^{d}\left(\vec{r},E\right)\int_{0}^{\infty}dE^{\prime}
+\nu\Sigma_{f}\left(\vec{r},E^{\prime},t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right),
+\end{equation}
+\begin{equation}
+\nu_{d}\Sigma_{f}\left(t\right)\equiv\int_{V}dV\int_{0}^{\infty}dE\sum_{i}
+\beta_{i}\left(\vec{r}\right)\chi_{i}^{d}\left(\vec{r},E\right)\int_{0}^{\infty}dE^{\prime}
+\nu\Sigma_{f}\left(\vec{r},E^{\prime},t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right),
+\end{equation}
+\begin{equation}
+\nu\Sigma_{f}\left(t\right)\equiv\nu_{p}\Sigma_{f}\left(t\right)+\nu_{d}\Sigma_{f}\left(t\right),
+\end{equation}
+\begin{equation}
+\Sigma_{a}\left(t\right)\equiv\int_{V}dV\int_{0}^{\infty}dE\left[\Sigma_{t}
+\left(\vec{r},E,t\right)-\int_{0}^{\infty}dE^{\prime}\Sigma_{s}\left(\vec{r},E^{\prime}\rightarrow E,t\right)\mathcal{S}\left(\vec{r},E^{\prime}\right)\right],
+\end{equation}
+\begin{equation}
+L\left(t\right)\equiv\int_{V}dV\int_{0}^{\infty}dE\nabla\cdot D\left(\vec{r},E,t\right)\nabla\mathcal{S}\left(\vec{r},E\right),
+\end{equation}
+and
+\begin{equation}
+C_{i}\left(t\right)\equiv\int_{V}dV\mathcal{C}_{i}\left(\vec{r},t\right).
+\end{equation}
+ We can now re-write both the spatial kinetics equation and precursor
+balance equation in this integral form,
+\begin{equation}
+\overline{\left(\frac{1}{v}\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{1}{k_{crit}}\nu_{p}\Sigma_{f}\left(t\right)+L\left(t\right)-\Sigma_{a}\left(t\right)\right]
+\mathcal{T}\left(t\right)+\sum_{i}\lambda_{i}C_{i}\left(t\right)
+\end{equation}
+and
+\begin{equation}
+\frac{d}{dt}C_{i}\left(t\right)=-\lambda_{i}C_{i}\left(t\right)+\frac{1}{k_{crit}}\nu_{d}\Sigma_{f,i}\left(t\right)\mathcal{T}\left(t\right).
+\end{equation}
+ The term $1/k_{crit}\cdot\nu_{d}\Sigma_{f}\left(t\right)$ can be
+added and subtracted from the term within the brackets to get
+\begin{equation}
+\overline{\left(\frac{1}{v}\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{1}{k_{crit}}\nu_{p}\Sigma_{f}\left(t\right)+\frac{1}{k_{crit}}\nu_{d}\Sigma_{f}\left(t\right)+L\left(t\right)-\Sigma_{a}\left(t\right)-\frac{1}{k_{crit}}\nu_{d}\Sigma_{f}\left(t\right)\right]\mathcal{T}\left(t\right)+\sum_{i}
+\lambda_{i}C_{i}\left(t\right).
+\end{equation}
+ Now, we can divide the kinetics equation and the precursor equation
+by $1/k_{crit}\cdot\nu\Sigma_{f}\left(t\right)$ (in precursor we
+just multiply the delayed fission term by this) to get
+\begin{equation}
+\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)+\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}C_{i}\left(t\right).
+\end{equation}
+and
+\begin{equation}
+\frac{d}{dt}C_{i}\left(t\right)=-\lambda_{i}C_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\nu_{d}\Sigma_{f,i}\left(t\right)\mathcal{T}\left(t\right).
+\end{equation}
+We now do a little trick to be able to define a new unknown. This
+involves multiplying the initial fission rate. We rewrite the equations
+as 
+\begin{multline}
+\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\frac{d}{dt}\mathcal{T}\left(t\right)=\left[\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}-\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\right]\mathcal{T}\left(t\right)\\
++\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}\sum_{i}\lambda_{i}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)
+\end{multline}
+ and
+\begin{equation}
+\frac{d}{dt}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)=-\lambda_{i}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}C_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)\mathcal{T}\left(t\right).
+\end{equation}
+The factor that we added is time-independent and can be brought
+inside the time-derivative. As you can see, the precursor concentration
+is now divided by the initialize fission rate. We can make a different
+definition of precursor concentration as
+\begin{equation}
+\zeta_{i}\left(t\right)\equiv\frac{C_{i}\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}.
+\end{equation}
+We can also make further definitions of parameters and also show
+in operator form with a weight function (which could be taken as unity or an adjoint flux):
+\begin{equation}
+\Lambda\left(t\right)\equiv\overline{\left(\frac{1}{v}\right)}\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\mathrm{diag}\left\lbrace\frac{1}{\mathbf{v}}\right\rbrace\boldsymbol{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\frac{1}{k_{crit}}\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle },
+\end{equation}
+\begin{equation}
+\rho\left(t\right)\equiv\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)-\Sigma_{a}\left(t\right)+L\left(t\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\left(\frac{1}{k_{crit}}\mathbb{F}\left(t\right)-\mathbb{M}\left(t\right)\right)\boldsymbol{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\frac{1}{k_{crit}}\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle },
+\end{equation}
+\begin{equation}
+\beta_{i}\left(t\right)\equiv\frac{\nu_{d}\Sigma_{f,i}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\beta_{i}\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle },
+\end{equation}
+\begin{equation}
+\beta\left(t\right)=\frac{\nu_{d}\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(t\right)}=\frac{\left\langle \mathbf{w}\left(t\right),\beta\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle }{\left\langle \mathbf{w}\left(t\right),\mathbb{F}\left(t\right)\boldsymbol{\Phi}\left(t\right)\right\rangle },
+\end{equation}
+ Both equations can now be rewritten as
+\begin{equation}
+\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\left[\rho\left(t\right)-\beta\left(t\right)\right]}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)+\frac{1}{\Lambda\left(0\right)}\sum_{i}\lambda_{i}\zeta_{i}\left(t\right)
+\end{equation}
+and
+\begin{equation}
+\frac{d}{dt}\zeta_{i}\left(t\right)=-\lambda_{i}\zeta_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(0\right)}\beta_{i}\left(t\right)\mathcal{T}\left(t\right)\label{eq:newC}.
+\end{equation}
+As you can see, this result does not agree with the form of the classical
+point kinetics equations. To obtain the classical form we make the
+following definition:
+\begin{equation}
+c_{i}\left(t\right)=\frac{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right)}\zeta_{i}\left(t\right).
+\end{equation}
+Note that the new normalization factor is actually time independent.
+Recall that
+\begin{equation}
+\overline{\left(\frac{1}{v}\right)}=\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right),
+\end{equation}
+where we can substitute this into both equations,
+\begin{equation}
+\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\rho\left(t\right)-\beta\left(t\right)}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)+\frac{1}{\Lambda\left(0\right)}\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\sum_{i}\lambda_{i}c_{i}\left(t\right)
+\end{equation}
+and
+\begin{equation}
+\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}\frac{d}{dt}c_{i}\left(t\right)=-\lambda_{i}\frac{\overline{\left(\frac{1}{v}\right)}}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(0\right)}c_{i}\left(t\right)+\frac{\nu\Sigma_{f}\left(t\right)}{\nu\Sigma_{f}\left(0\right)}\beta_{i}\left(t\right)\mathcal{T}\left(t\right).
+\end{equation}
+These equations can be reduced to the final form of the point kinetics equations:
+\begin{equation}
+\frac{d}{dt}\mathcal{T}\left(t\right)=\frac{\rho\left(t\right)-\beta\left(t\right)}{\Lambda\left(t\right)}\mathcal{T}\left(t\right)+\sum_{i}\lambda_{i}c_{i}\left(t\right)
+\end{equation}
+and
+\begin{equation}
+\frac{d}{dt}c_{i}\left(t\right)=-\lambda_{i}c_{i}\left(t\right)+\frac{\beta_{i}\left(t\right)}{\Lambda\left(t\right)}\mathcal{T}\left(t\right).
+\end{equation}
+After the derivation, it can be seen that the PKE could have been more quickly obtained if
+\begin{equation}
+c_{i}\left(t\right)=\frac{1}{\frac{1}{k_{crit}}\nu\Sigma_{f}\left(t\right)\cdot\Lambda\left(t\right)}C_{i}\left(t\right).
+\end{equation}
+
 \section{Mesh-centered Finite Difference Equations} \label{app:fdm}
+To derive the mesh-centered finite difference, we start with the steady state neutron balance equation in multigroup form, integrated over a Cartesian cell,
+\begin{equation}\label{eq:FD_NBE}
+\sum_{u \in x,y,z} \frac{\overline{J}^{u,g}_{l+1/2,m,n} - \overline{J}^{u,g}_{l-1/2,m,n}}{\Delta_l^u} + \overline\Sigma_{t_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^g  = \sum_{h=1}^G\upsilon\overline\Sigma^{h\rightarrow g}_{s_{l,m,n}}\overline{\overline{\phi}}_{l,m,n}^h + \frac{\chi_{l,m,n}^{p,g}}{k}\sum_{h=1}^G\nu\overline\Sigma^{h}_{f_{l,m,n}}  \overline{\overline{\phi}}_{l,m,n}^h.
+\end{equation}
+The next step is to relate the neutron currents at each surface to the cell-averaged neutron flux. We first perform the derivation for a cell's surface who is coupled to an adjacent cell. This step is performed by introducing Fick's Law at an arbitrary surface and writing the net current from each adjacent cell given as,
+\begin{equation}
+  \overline{J}^{u,g}_{l+1/2,m,n}=-D_{l,m,n}^{g}\left.\frac{d}{du}\overline{\phi}_{u,g}\right|_{l+1/2,m,n}^{-}
+\end{equation}
+and
+\begin{equation}
+  \overline{J}^{u,g}_{l+1/2,m,n}=-D_{l,m,n}^{g}\left.\frac{d}{du}\overline{\phi}^{u,g}\right|_{l+1/2,m,n}^{+}.
+\end{equation}
+We have already assumed here continuity of net current at the surface. In this notation the parameters are
+\begin{itemize}
+\item $\overline{J}^{u,g}_{l+1/2,m,n}$ is the group
+$g$ surface-averaged net current at arbitrary location $l+1/2,m,n$,
+approaching the surface from the negative sense
+\item $\overline{J}^{u,g}_{l+1/2,m,n}$ is the group
+$g$ surface-averaged net current at arbitrary location $l+1/2,m,n$,
+approaching the surface from the positive sense
+\item $D_{l,m,n}^{g}$ and $D_{l+1,m,n}^{g}$ are the cell-averaged diffusion
+coefficients in their respective cells
+\item $\left.\frac{d}{du}\overline{\phi}^{u,g}\right|_{l+1/2,m,n}^{-}$
+is the gradient with respective to arbitrary direction $u$ of the
+group $g$ surface-averaged flux at location $l+1/2,m,n$ approaching
+from the left
+\item $\left.\frac{d}{du}\overline{\phi}^{u,g}\right|_{l+1/2,m,n}^{+}$
+is the gradient with respective to arbitrary direction $u$ of the
+group $g$ surface-averaged flux at location $l+1/2,m,n$ approaching
+from the right
+\end{itemize}
+We can approximate each of these spatial derivatives by taking either a forward or backward difference between the surface-averaged flux
+and cell-averaged flux, which we approximate to be the flux at the
+center of the cell. Therefore each equation becomes
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-D_{l,m,n}^{g}\frac{
+\overline{\phi}^{u,g-}_{l+1/2,m,n}-
+\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\end{equation}
+and 
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-
+\overline{\phi}^{u,g+}_{l+1/2,m,n}}{h_{l+1}^{u}/2},
+\end{equation}
+where $h_{l}^{u}$ is the width of a cell in the $u$ direction for any cell with arbitrary index $l$. The first constraint place on these equations is that we have continuity of the surface flux,
+\begin{equation}
+\overline{\phi}^{u,g-}_{l+1/2,m,n}=\overline{\phi}^{u,g+}
+_{l+1/2,m,n}=\overline{\phi}^{u,g}_{l+1/2,m,n}.
+\end{equation}
+The current relations can be rewritten as
+\begin{equation}
+\overline{J}_{l+1/2,m,n}^{u,g}=-D_{l,m,n}^{g}\frac{\overline{\phi}^{u,g}_{l+1/2,m,n}-
+\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\end{equation}
+and
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-
+\overline{\phi}^{u,g}_{l+1/2,m,n}}{h_{l+1}^{u}/2}.
+\end{equation}
+Now, we are left with two equations and two unknowns. We can set
+both equations equation to each and solve for the surface-averaged flux:
+\begin{equation}
+-D_{l,m,n}^{g}\frac{\overline{\phi}^{u,g}_{l+1/2,m,n}-
+\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}=-D_{l+1,m,n}^{g}\frac{\overline{\overline{\phi}}_{l+1,m,n}^{g}-
+\overline{\phi}^{u,g}_{l+1/2,m,n}}{h_{l+1}^{u}/2},
+\end{equation}
+\begin{equation}
+h_{l+1}^{u}D_{l,m,n}^{g}\left(\overline{\phi}^{u,g}_{l+1/2,m,n}
+-\overline{\overline{\phi}}_{l,m,n}^{g}\right)=h_{l}^{u}
+D_{l+1,m,n}^{g}\left(\overline{\overline{\phi}}_{l+1,m,n}^{g}-
+\overline{\phi}^{u,g}_{l+1/2,m,n}\right),
+\end{equation}
+\begin{equation}
+\overline{\phi}^{u,g}_{l+1/2,m,n}=\frac{h_{l}^{u}
+D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}
++h_{l+1}^{u}D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}.
+\end{equation}
+Now that we have an expression for the surface flux we can substitute it into any of the current relations to get an expression for the net current. It is
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-D_{l,m,n}^{g}\frac{\left(\frac{h_{l}^{u}D_{l+1,m,n}^{g}
+\overline{\overline{\phi}}_{l+1,m,n}^{g}+h_{l+1}^{u}
+D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)-
+\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}
+\end{equation}
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-\frac{2D_{l,m,n}^{g}}{h_{l}^{u}}\left(\frac{h_{l}^{u}D_{l+1,m,n}^{g}
+\overline{\overline{\phi}}_{l+1,m,n}^{g}+h_{l+1}^{u}
+D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}-
+\frac{h_{l}^{u}D_{l+1,m,n}^{g}
+\overline{\overline{\phi}}_{l,m,n}^{g}+h_{l+1}^{u}
+D_{l,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)
+\end{equation}
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-\frac{2D_{l,m,n}^{g}}{h_{l}^{u}}\left(\frac{h_{l}^{u}
+D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l+1,m,n}^{g}-h_{l}^{u}D_{l+1,m,n}^{g}\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}\right)
+\end{equation}
+\begin{equation}
+\overline{J}^{u,g}_{l+1/2,m,n}=-\frac{2D_{l,m,n}^{g}
+D_{l+1,m,n}^{g}}{h_{l}^{u}D_{l+1,m,n}^{g}+h_{l+1}^{u}D_{l,m,n}^{g}}
+\left(\overline{\overline{\phi}}_{l+1,m,n}^{g}-
+\overline{\overline{\phi}}_{l,m,n}^{g}\right).
+\end{equation}
+This current formula can be extended to the neighbor in the opposite direction with
+\begin{equation}
+\overline{J}^{u,g}_{l\pm1/2,m,n}=-\frac{2D_{l,m,n}^{g}
+D_{l\pm1,m,n}^{g}}{h_{l}^{u}D_{l\pm1,m,n}^{g}+h_{l\pm1}^{u}D_{l,m,n}^{g}}
+\left(\pm\overline{\overline{\phi}}_{l\pm1,m,n}^{g}\mp
+\overline{\overline{\phi}}_{l,m,n}^{g}\right).
+\end{equation}
+The complicated weighted diffusion coefficient is usually represented in a more compact form shown as
+\begin{equation}\label{eq:FD_cellcur}
+\overline{J}^{u,g}_{l\pm1/2,m,n}=
+-\widetilde{D}_{l\pm1/2,m,n}^{g}
+\left(\pm\overline{\overline{\phi}}_{l\pm1,m,n}^{g}\mp
+\overline{\overline{\phi}}_{l,m,n}^{g}\right).
+\end{equation}
+
+Next, we derive out the current relationship for a surface that is couple to a boundary. The boundary condition that will be used here is the general albedo. This parameter ranges from 0 to 1 and is defined as the ratio of incoming partial current to outgoing partial current,
+\begin{equation}\label{eq:FD_alb}
+    \beta_{l\pm1/2,m,n}^{u,g} = \frac{\overline{J}^{u,g-}_{l\pm1/2,m,n}}{\overline{J}^{u,g+}_{l\pm1/2,m,n}}.
+\end{equation}
+These partial currents are determined from the $P_1$ expansion as
+\begin{equation} \label{eq:FD_Jm}
+    \overline{J}^{u,g-}_{l\pm1/2,m,n} = \frac{1}{4}\overline{\phi}^{u,g}_{l\pm1/2,m,n} \mp \frac{1}{2} \overline{J}^{u,g}_{l\pm1/2,m,n}
+\end{equation}
+and
+\begin{equation} \label{eq:FD_Jp}
+    \overline{J}^{u,g+}_{l\pm1/2,m,n} = \frac{1}{4}\overline{\phi}^{u,g}_{l\pm1/2,m,n} \pm \frac{1}{2} \overline{J}^{u,g}_{l\pm1/2,m,n}.
+\end{equation}
+Note that the sign changes depending on how the surface normal is oriented with respect to the coordinate access. The direction of incoming current changes depending on which surface is being considered since it represents the flow of neutrons coming into the medium.  Substituting Eqs. \eqref{eq:FD_Jm} and \eqref{eq:FD_Jp} into Eq. \eqref{eq:FD_alb} and solving for the neutron current, we arrive at
+\begin{equation}
+    \overline{J}^{u,g}_{l\pm1/2,m,n} = \pm \frac{1}{2}\overline{\phi}^{u,g}_{l\pm1/2,m,n}\frac{1-\beta_{l\pm1/2,m,n}^{u,g}}{1+\beta_{l\pm1/2,m,n}^{u,g}}.
+\end{equation}
+Now that we have a current relation for the boundary, we can follow the same procedure as cell-cell coupling where we equation current relationships. After finite difference of Fick's Law for the cell next to the boundary, the currents are equated as
+\begin{equation}\label{eq:FD_curr}
+    \pm \frac{1}{2}\overline{\phi}^{u,g}_{l\pm1/2,m,n}\frac{1-\beta_{l\pm1/2,m,n}^{u,g}}{1+\beta_{l\pm1/2,m,n}^{u,g}} = -D_{l,m,n}^{g}\frac{\pm \overline{\phi}^{u,g}_{l\pm1/2,m,n}\mp
+\overline{\overline{\phi}}_{l,m,n}^{g}}{h_{l}^{u}/2}.
+\end{equation}
+This equation can be solved for the surface which will be placed back in the right hand side of Eq. \eqref{eq:FD_curr} to get an expression for the current. The surface current is
+\begin{equation}
+    \overline{\phi}^{u,g}_{l\pm1/2,m,n} = \frac{4D_{l,m,n}^{g} \left(1+\beta_{l\pm1/2,m,n}^{u,g}\right)}{h_{l}^{u} \left(1-\beta_{l\pm1/2,m,n}^{u,g}\right) + 4D_{l,m,n}^{g} \left(1+\beta_{l\pm1/2,m,n}^{u,g}\right)}.
+\end{equation}
+The neutron current relation for a boundary surface of a cell becomes
+\begin{equation}
+    \overline{J}^{u,g}_{l\pm1/2,m,n} = \pm \frac{2D_{l,m,n}^{g} \left(1-\beta_{l\pm1/2,m,n}^{u,g}\right)}{h_{l}^{u} \left(1-\beta_{l\pm1/2,m,n}^{u,g}\right) + 4D_{l,m,n}^{g} \left(1+\beta_{l\pm1/2,m,n}^{u,g}\right)}
+    \overline{\overline{\phi}}_{l,m,n}^{g}.
+\end{equation}
+This can be represented in compact form as
+\begin{equation}\label{eq:FD_albcur}
+       \overline{J}^{u,g}_{l\pm1/2,m,n} = \pm \widetilde{D}_{l\pm1/2,m,n}^{g}
+    \overline{\overline{\phi}}_{l,m,n}^{g}. 
+\end{equation}
+
+The current relationships derived in Eqs. \eqref{eq:FD_cellcur} and \eqref{eq:FD_albcur} can be substituted back into the neutron balance equation, Eq. \eqref{eq:FD_NBE}, depending on a computational cell's orientation.  For example if we are in 1-D and we write down the 3 situations that can occur. The cell can have a boundary to the left or right, or it can be adjacent to another cell. The finite difference equations for these situations are:
+\begin{itemize}
+\item Boundary to the left
+\begin{align}
+    \left(- \widetilde{D}_{1/2}^{g} + \widetilde{D}_{3/2}^{g} + \overline\Sigma_{t_1} - \upsilon\overline\Sigma^{g\rightarrow g}_{s_{1}}\right)\overline{\overline{\phi}}_{1}^g -  \widetilde{D}_{3/2}^{g}
+    \overline{\overline{\phi}}_{2}^{g} & - \sum_{h\neq g}\upsilon\overline\Sigma^{h\rightarrow g}_{s_{1}}\overline{\overline{\phi}}_{1}^h \\ & = \frac{\chi_{1}^g} {k}\sum_{h=1}^G\nu\overline\Sigma^{h}_{f_{1}}  \overline{\overline{\phi}}_{1}^h. \nonumber
+\end{align}
+\item Cell on both sides
+\begin{align}
+-  \widetilde{D}_{i-1/2}^{g}
+    \overline{\overline{\phi}}_{i-1}^{g} + 
+    \left(\widetilde{D}_{i-1/2}^{g} + \widetilde{D}_{i+1/2}^{g} + \overline\Sigma_{t_i} - \upsilon\overline\Sigma^{g\rightarrow g}_{s_{i}}\right)\overline{\overline{\phi}}_{i}^g -  \widetilde{D}_{i+1/2}^{g}
+    \overline{\overline{\phi}}_{i+1}^{g} & - \sum_{h\neq g}\upsilon\overline\Sigma^{h\rightarrow g}_{s_{i}}\overline{\overline{\phi}}_{i}^h \\ & = \frac{\chi_{i}^g} {k}\sum_{h=1}^G\nu\overline\Sigma^{h}_{f_{i}}  \overline{\overline{\phi}}_{1}^h. \nonumber
+\end{align}
+\item Boundary to the right
+\begin{align}
+    -\widetilde{D}_{I-1/2}^{g}
+    \overline{\overline{\phi}}_{I-1}^{g} + 
+    \left(\widetilde{D}_{I-1/2}^{g} + \widetilde{D}_{I+1/2}^{g} + \overline\Sigma_{t_I} - \upsilon\overline\Sigma^{g\rightarrow g}_{s_{I}}\right)\overline{\overline{\phi}}_{I}^g  & - \sum_{h\neq g}\upsilon\overline\Sigma^{h\rightarrow g}_{s_{I}}\overline{\overline{\phi}}_{1}^h \\ & = \frac{\chi_{I}^g} {k}\sum_{h=1}^G\nu\overline\Sigma^{h}_{f_{I}}  \overline{\overline{\phi}}_{I}^h.
+\end{align}
+\end{itemize}
+These equation can be used to create a simultaneous set of linear equations. These equations can be written operator form
+\begin{equation}
+    \mathbb{M}\boldsymbol{\Phi} = \frac{1}{k} \mathbb{F}\boldsymbol{\Phi}.
+\end{equation}
+Note that this is an eigenvalue problem in steady state. Here, $\mathbb{M}$ is an operator that represents the loss of neutrons and $\mathbb{F}$ is production of neutrons from fission. If the eigenvalue is unity, the production and destruction operators balance when applied to the flux and the reactor is critical. In the GRK code this equation is solved using standard power iteration techniques.
 
 \end{document}
