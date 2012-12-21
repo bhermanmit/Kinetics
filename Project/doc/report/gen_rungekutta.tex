@@ -17,6 +17,10 @@
 \usetikzlibrary{matrix,calc}
 % \usepackage{flafter}
 \usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{algpseudocode}
+\usepackage[framed,autolinebreaks,useliterate]{mcode}
 
 \numberwithin{equation}{section}
 
@@ -102,7 +106,7 @@ Each $\mathbf{k}_i$ can now be solved since it only depends on previous $\mathbf
     \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i.
 \end{equation}
 Note that parameters $m_i$, $a_{ij}$ and $c_{ij}$ are determined from equations of condition which will be discussed more thoroughly in Section \ref{sec:GRK_cond}. The parameters $b_i$ and $d_i$ are derived from $c_{ij}$ and $a_{ij}$, respectively,
-\begin{equation}
+\begin{equation}\label{eq:GRK_bd}
      b_i \equiv \sum_{j=1}^ic_{ij} \qquad d_i \equiv \sum_{j=1}^{i-1}a_{ij}.
 \end{equation}
 The matrix $\mathbb{J}$ represents the Jacobian of the derivative equations that will be in the form of Eq. \eqref{eq:GRK_fund}. If any parts of those derivative equations depend on time other than the state variables, a nonzero Jacobian vector, $\frac{d\mathbf{f}}{dt}$ will be used. This will become clearer as examples of simple reactor physics applications are discussed. Note that the Jacobian matrix and vector are only evaluated once per time step, at the beginning of the time step.
@@ -460,7 +464,7 @@ Now, there are 12 equations with 17 unknowns. This allowed us to cut the deficit
 \begin{equation}
    \gamma = \mathrm{free \,\, parmeter}
 \end{equation}
-Now we have 17 equations with 17 unknowns! Both Kaps--Rentrop and Shampine has developed suitable coefficient sets. The only parameter that defines the set of coefficients is $\gamma$. Once this parameter is set all of the simultaneous equations can be solved for the rest of the coefficients. Unfortunately, the 16 equations are not linear and there for nonlinear methods can be applied to solve for the coefficients. However, these equations can be broken up into smaller problems that are linear. The method to solve for the coefficients is detailed in Appendix \ref{app:order}. Instead of using the parameter $\hat{m}_i$ for the third order solution, we only need the truncation error for variable time stepping. Therefore, the difference of $m_i$ and $\hat{m}_i$ is usually reported and is denoted by $e_i$. Finally, the parameters $c_{ij}$ can be derived from $a_{ij}$ and $\beta_{ij}$ as discussed in Eq. \eqref{eq:simp2}. The Kaps--Rentrop and Shampine set of coefficients as derived from the simultaneous equations presented here are listed in Table . Note, there are 3 forms of the Rosenbrock equations in the literature where the order coefficients are different but related. We show one of these other forms in Section \ref{sec:impl}.
+Now we have 17 equations with 17 unknowns! Both Kaps--Rentrop and Shampine has developed suitable coefficient sets. The only parameter that defines the set of coefficients is $\gamma$. Once this parameter is set all of the simultaneous equations can be solved for the rest of the coefficients. Unfortunately, the 16 equations are not linear and there for nonlinear methods can be applied to solve for the coefficients. However, these equations can be broken up into smaller problems that are linear. The method to solve for the coefficients is detailed in Appendix \ref{app:order}. Instead of using the parameter $\hat{m}_i$ for the third order solution, we only need the truncation error for variable time stepping. Therefore, the difference of $m_i$ and $\hat{m}_i$ is usually reported and is denoted by $e_i$. The Kaps--Rentrop and Shampine set of coefficients as derived from the simultaneous equations presented here are listed in Table . The parameter $c_{ij}$ can be derived from $a_{ij}$ and $\beta_{ij}$ as discussed in Eq. \eqref{eq:simp2} and are also available. For completeness, the parameters $d_1$ and $b_i$ from Eq. \ref{eq:GRK_nonauto} are also listed. They are based off other coefficients defined in Eq. \ref{eq:GRK_bd}. Recall that to define $b_i$ the parameter $c_{ii}$ is present and is just $\gamma$. Note, there are 3 forms of the Rosenbrock equations in the literature where the order coefficients are different but related. We show one of these other forms in Section \ref{sec:impl}.
 \begin{table}
 \caption{4-th Order GRK Coefficients}
 \label{tab:coefs}
@@ -470,56 +474,205 @@ Now we have 17 equations with 17 unknowns! Both Kaps--Rentrop and Shampine has d
 Coefficient & Kaps--Rentrop & Shampine \tabularnewline
 \midrule
 \midrule
-$\gamma$ & 0.231 & \tabularnewline
+$\gamma$ & 0.231 & 0.5 \tabularnewline
 \midrule
-$m_1$ & & \tabularnewline
+$m_1$ & 2.174873716527329e-01 & 8/27 \tabularnewline
 \midrule
-$m_2$ & & \tabularnewline
+$m_2$ & 4.862290379901194e-01 & 1/8 \tabularnewline
 \midrule
-$m_3$ & & \tabularnewline
+$m_3$ & 0 & 0 \tabularnewline
 \midrule
-$m_4$ & & \tabularnewline
+$m_4$ & 2.962835903571476e-01 & 125/216 \tabularnewline
 \midrule
-$a_{21}$ & 0.462 & \tabularnewline
+$a_{21}$ & 0.462 & 1 \tabularnewline
 \midrule
-$a_{31}$ & -8.156681683272238e-02 & \tabularnewline
+$a_{31}$ & -8.156681683272238e-02 & 12/25 \tabularnewline
 \midrule
-$a_{32}$ &  9.617751501660557e-01 & \tabularnewline
+$a_{32}$ &  9.617751501660557e-01 & 3/25 \tabularnewline
 \midrule
-$c_{21}$ & & \tabularnewline
+$c_{21}$ & -2.706296677524429e-01 & -2 \tabularnewline
 \midrule
-$c_{31}$ & & \tabularnewline
+$c_{31}$ &  3.112544832940969e-01 & 33/25 \tabularnewline
 \midrule
-$c_{32}$ & & \tabularnewline
+$c_{32}$ &  8.524456284818460e-03 & 3/5 \tabularnewline
 \midrule
-$c_{41}$ & & \tabularnewline
+$c_{41}$ &  2.828168320435299e-01 & -7/125 \tabularnewline
 \midrule
-$c_{42}$ & & \tabularnewline
+$c_{42}$ & -4.579594832807246e-01 & -57/250 \tabularnewline
 \midrule
-$c_{43}$ & & \tabularnewline
+$c_{43}$ & -1.112083333333333e-01 & -1/10 \tabularnewline
 \midrule
-$e_1 = m_1 - \hat{m}_1$ & & \tabularnewline
+$e_1 = m_1 - \hat{m}_1$ & 9.345758761520596e-01 & -8/27 \tabularnewline
 \midrule
-$e_2 = m_2 - \hat{m}_2$ & & \tabularnewline
+$e_2 = m_2 - \hat{m}_2$ & -1.289950083770920 & -1/6 \tabularnewline
 \midrule
-$e_3 = m_3 - \hat{m}_3$ & & \tabularnewline
+$e_3 = m_3 - \hat{m}_3$ & 5.909061726171296e-02 & -25/216 \tabularnewline
 \midrule
-$e_4 = m_4$ & & \tabularnewline
+$e_4 = m_4$ & 2.962835903571476e-01 & 125/216 \tabularnewline
+\midrule
+$d_1$ & 0 & 0 \tabularnewline
+\midrule
+$d_2$ & 0.462 & 1 \tabularnewline
+\midrule
+$d_3$ & 8.802083333333334e-01 & 3/5 \tabularnewline
+\midrule
+$d_4$ & 8.802083333333334e-01 & 3/5  \tabularnewline
+\midrule
+$b_1 = \gamma$ & 0.231 & 0.5 \tabularnewline
+\midrule
+$b_2$ & -3.962966775244289e-02 & -3/2 \tabularnewline
+\midrule
+$b_3$ & 5.507789395789153e-01 & 121/50 \tabularnewline
+\midrule
+$b_4$ & -5.535098457052796e-02 & 29/250 \tabularnewline
 \bottomrule
 \end{tabular}
 \end{table}
+The Kaps--Rentrop coefficient match very well with the coefficients they derived in their work. For Shampine's, it is more difficult as in his work his Rosenbrock equations are in a different for. However, in Section \ref{sec:impl} we will modify these coefficients to a numerically efficient form of the GRK equations and we can compare them to literature. Shampine notes that the Kaps--Rentrop parameters are barely stable and that the 3rd order embedded solution is not stable at infinity Shampine proves that both 4th order and 3rd order solutions are stable at infinity. Therefore, we will use Shampine's coefficient set for all of the analysis in this work.
 
-\begin{itemize}
-    \item Big example
-    \item List out order equations
-    \item Expand out order equations
-    \item List out additional constraints
-    \item List out the values of the coefficients in a table for both Kaps--Rentrop and Shampine
-\end{itemize}
+\Subsection{Implementation of 4-th Order GRK Algorithm} \label{sec:impl}
+
+Recall the nonautonomous form of the Rosenbrock equations given in Eq. \eqref{eq:GRK_nonauto}. To solve for $\mathbf{k}_i$ we move the $c_{ii} = \gamma$ term in the summation on the right hand side of the equation to the left hand side. The Rosenbrock equations now have the form
+\begin{equation} \label{eq:impl_rb1}
+    \left(\mathbb{I} - \gamma h \mathbb{J}\right)\mathbf{k}_{i} = h\mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_{j}\right) 
+                   + h\mathbb{J}\sum_{j=1}^{i-1} c_{ij}\mathbf{k}_{j}  + h^2b_i\frac{d\mathbf{f}}{dt}.
+\end{equation}
+Notice that now, the Jacobian matrix is on both sides of the equation. Since it is still on the right hand side, a lot of sparse matrix-vector products are required. This is numerically inefficient. To circumvent this, we can define a variable transformation such that
+\begin{equation}
+	\mathbf{k}^\prime_i=\sum_{j=1}^{i-1}c_{ij}\mathbf{k}_j + \gamma\mathbf{k}_i.
+\end{equation}
+When this is substituted into Eq. \ref{eq:impl_rb1}, the numerically efficient form of the Rosenbrock equations is obtained,
+\begin{equation}
+    \left[\mathbb{I}/\left(\gamma h\right) - \mathbb{J}\right]\mathbf{k}^\prime_{i} = \mathbf{f} \left(t_n + d_ih,\mathbf{y}_n + \sum_{j=1}^{i-1}a^\prime_{ij}\mathbf{k}^\prime_{j}\right) 
+                   + \frac{1}{h}\sum_{j=1}^{i-1} c^\prime_{ij}\mathbf{k}^\prime_{j}  + hb_i\frac{d\mathbf{f}}{dt}.
+\end{equation}
+This procedure is outline in Numerical Recipes by Press et al. It is now observed that the Jacobian matrix is only on the left hand side of the equation. It is also shown that some of the GRK coefficient need to be redefined. This can be achieved by inspection of the different forms of the Rosenbrock equation. The detailed derivation of this conversion is in Appendix \ref{app:conv}. Scripts are also provided in the appendix to do this conversion very quickly. The results modified coefficients are shown in Table \ref{tab:ef_coefs}, similar to Table \ref{tab:coefs}. 
+\begin{table}
+\caption{4-th Order GRK Coefficients for Numerically Efficient Rosenbrock Equations}
+\label{tab:ef_coefs}
+\centering
+\begin{tabular}{ccc}
+\toprule
+Coefficient & Kaps--Rentrop & Shampine \tabularnewline
+\midrule
+\midrule
+$\gamma$ & 0.231 & 0.5 \tabularnewline
+\midrule
+$m^\prime_1$ &  3.957503746640767 & 19/9 \tabularnewline
+\midrule
+$m^\prime_2$ &  4.624892388363308 & 1/2 \tabularnewline
+\midrule
+$m^\prime_3$ & 6.174772638750108e-01 & 25/108 \tabularnewline
+\midrule
+$m^\prime_4$ &  1.282612945269037 & 125/108 \tabularnewline
+\midrule
+$a^\prime_{21}$ & 2.0 & 2.0 \tabularnewline
+\midrule
+$a^\prime_{31}$ & 4.524708207373113 & 48/25 \tabularnewline
+\midrule
+$a^\prime_{32}$ & 4.163528788597644  & 6/25 \tabularnewline
+\midrule
+$c^\prime_{21}$ & -5.071675338776314 & -8.0 \tabularnewline
+\midrule
+$c^\prime_{31}$ & 6.020152728650829 & 372/25 \tabularnewline
+\midrule
+$c^\prime_{32}$ & 1.597506846726722e-01 & 12/5  \tabularnewline
+\midrule
+$c^\prime_{41}$ & -1.856343618686086 & -112/125 \tabularnewline
+\midrule
+$c^\prime_{42}$ & -8.505380858179807 & -54/125 \tabularnewline
+\midrule
+$c^\prime_{43}$ & -2.084075136023187 & -2/5 \tabularnewline
+\midrule
+$e^\prime_1$ & -2.302155402933007 & 17/54 \tabularnewline
+\midrule
+$e^\prime_2$ & -3.073634485392629 & 7/36 \tabularnewline
+\midrule
+$e^\prime_3$ & 8.732808018045042e-01 & 0.0 \tabularnewline
+\midrule
+$e^\prime_4$ & 1.282612945269037 & 125/108 \tabularnewline
+\midrule
+$d_1$ & 0 & 0 \tabularnewline
+\midrule
+$d_2$ & 0.462 & 1 \tabularnewline
+\midrule
+$d_3$ & 8.802083333333334e-01 & 3/5 \tabularnewline
+\midrule
+$d_4$ & 8.802083333333334e-01 & 3/5  \tabularnewline
+\midrule
+$b_1 = \gamma$ & 0.231 & 0.5 \tabularnewline
+\midrule
+$b_2$ & -3.962966775244289e-02 & -3/2 \tabularnewline
+\midrule
+$b_3$ & 5.507789395789153e-01 & 121/50 \tabularnewline
+\midrule
+$b_4$ & -5.535098457052796e-02 & 29/250 \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+The 4-th order Rosenbrock equations to implement and solve at every attempted time step are given as
+\begin{equation}
+\left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_1 = \mathbf{f}\left(t_n, \mathbf{y}_n\right) + hb_1\frac{d\mathbf{f}}{dt},
+\end{equation}
+\begin{equation}
+    \left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_2 = \mathbf{f}\left(t_n + d_2h, \mathbf{y}_n + a^\prime_{21}\mathbf{k}^\prime_1\right) + c^\prime_{21}\mathbf{k}^\prime_1/h + hb_2\frac{d\mathbf{f}}{dt},
+\end{equation}
+\begin{equation}
+    \left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_3 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{31}\mathbf{k}^\prime_1 + c^\prime_{32}\mathbf{k}^\prime_2\right)/h + hb_3\frac{d\mathbf{f}}{dt},
+\end{equation}
+\begin{equation}
+    \left[1/\left(h\gamma\right) - \mathbb{J}\right]\mathbf{k}^\prime_4 = \mathbf{f}\left(t_n + d_3h, \mathbf{y}_n + a^\prime_{31}\mathbf{k}^\prime_1 + a^\prime_{32}\mathbf{k}^\prime_2\right) + \left(c^\prime_{41}\mathbf{k}^\prime_1 + c^\prime_{42}\mathbf{k}^\prime_2 + c^\prime_{43}\mathbf{k}^\prime_3\right)/h + hb_4\frac{d\mathbf{f}}{dt}.
+\end{equation}
+The solution at the end of time step is obtained with
+\begin{equation}
+   \mathbf{y}^{n+1} = \mathbf{y}^n + m^\prime_1\mathbf{k}^\prime_1 + m^\prime_2\mathbf{k}^\prime_2 + m^\prime_3\mathbf{k}^\prime_3 + m^\prime_4\mathbf{k}^\prime_4.
+\end{equation}
+From the equations, once can see that 4 linear solves are required, 1 Jacobian evaluation and 3 derivative vector evaluations at each time step. The user of the algorithm provides a Jacobian routine that evaluates $\mathbb{J}$ and $\frac{d\mathbf{f}}{dt}$ and a derivative routine that evaluations $\mathbf{f}$. An algorithm of this method is outlined in Algorithm \ref{alg:GRK}.
+\begin{algorithm}
+\centering
+\caption{4-th Order GRK Algorithm}
+\label{alg:GRK}
+\begin{algorithmic}[1]
+  \State Evaluate $\mathbf{f}_1$ and $\mathbb{J}\rightarrow$ {\color{red}You supply both routines for $\mathbf{f}$ and $\mathbb{J}$}
+  \For{\# of trial timesteps}
+    \State Construct left hand side matrix, $\mathbb{A} = \left[1/\left(h\gamma\right) - \mathbb{J}\right]$
+    \State Construct first right hand side vector, $\mathbf{RHS}_1$
+    \State Solve $\mathbb{A}\mathbf{k}_1=\mathbf{RHS}_1$
+    \State Get intermediate $t$ and $\mathbf{y}$ and evaluate $\mathbf{f}_2$
+    \State Construct first right hand side vector, $\mathbf{RHS}_2$
+    \State Solve $\mathbb{A}\mathbf{k}_2=\mathbf{RHS}_2$
+    \State Get intermediate $t$ and $\mathbf{y}$ and evaluate $\mathbf{f}_3$
+    \State Construct first right hand side vector, $\mathbf{RHS}_3$
+    \State Solve $\mathbb{A}\mathbf{k}_3=\mathbf{RHS}_3$
+    \State Construct first right hand side vector, $\mathbf{RHS}_4$
+    \State Solve $\mathbb{A}\mathbf{k}_4=\mathbf{RHS}_4$
+    \State Get final estimate of $\mathbf{y}$ and truncation error, $\mathbf{T}$
+    \State Accept or reject truncation error and get new timestep
+  \EndFor
+\end{algorithmic}
+\end{algorithm}
 
 \Subsection{Automated Time Step Size Adjustment} \label{sec:var_ts}
 
-\Subsection{Implementation of 4-th Order GRK Algorithm} \label{sec:impl}
+The last major part to discuss with 4-th order GRK is the ability to do variable time stepping. This ability comes for free when doing this algorithm since the third order solution coefficients are need to constrain the fourth order coefficients. This is known as embedded Fehlberg methods, where the truncation error between the 4-th and 3-rd order solutions is given by
+\begin{equation}
+    \mathbf{T} = \left| \mathbf{y} - \hat{\mathbf{y}} \right| = \sum_{i=1}^s e^\prime_i \mathbf{k}_i.
+\end{equation}
+The 4-th order GRK algorithm works specifically well for stiff systems. With any stiff set of equations, a the residual or errors must be scaled appropriately. Therefore, this truncation error must be scaled to see the relative importance of the errors. It is recommended to use
+\begin{equation}
+	\mathbf{y}_\mathrm{scale} = \mathrm{max}\left(\mathbf{C},\left|\mathbf{y}\right|\right).
+\end{equation}
+The vector $\mathbf{C}$ is used to control the relative error above some threshold. If all parameters are in nondimensional units, this parameter is recommended to be on the order of unity.
+
+After scaling, the max error in this relative truncation error vector can be compared against some user-defined tolerance (usually around 1e-5 - 1e-4). If the max relative error is less than the specified tolerance, the time step is accepted. The next estimated time step is calculated with
+\begin{equation}
+	h_{n+1} = 0.9h_n\left(\frac{\epsilon_\mathrm{tol}}{e_{\mathrm{max}}}\right)^{\frac{1}{4}}.
+\end{equation}
+This new time step is accepted as long as it is below $1.5\times h_n$. Otherwise, $1.5\times h_n$ is used so that the time step doesn't grow out of control. Note, just because the current time step was accepted, it doesn't mean that the next time step will be larger. The 0.9 safety can yield a time step that is less to ensure that the next time step evaluation will be accepted. If the max relative error is greater than the specified tolerance, the time step is rejected and has to be re-tried. The time step is decreased by
+\begin{equation}
+	h_{n+1} = 0.9h_n\left(\frac{\epsilon_\mathrm{tol}}{e_{\mathrm{max}}}\right)^{\frac{1}{3}}.
+\end{equation}
+Note that if the new time step is below $0.5\times h_n$, this time step is used instead.
 
 \Section{Point Kinetics Equations}
 
@@ -1261,7 +1414,204 @@ Finally, we arrive at the nonautonomous form of the Rosenbrock equations for GRK
      \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i.
   \end{equation}
 
-\section{Derivation of Order Equations}\label{app:order}
+\section{Solving for 4-th Order GRK Coefficients}\label{app:order}
+
+To begin, we list all 16 simultaneous equations (not including the free $\gamma$).
+\begin{equation}\label{eq:eq1}
+   m_1 + m_2 + m_3 + m_4 = p_1\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq2}
+   m_2\beta_2 + m_3\beta_3 + m_4\beta_4 = p_2\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq3}
+   m_2a^2_2 + m_3a^2_3 + m_4a^2_3 = p_3\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq4}
+   m_3\beta_{32}\beta_2 + m_4\beta_{42}\beta_2 + m_4\beta_{43}\beta_3 = p_4\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq5}
+   m_2a^3_2 + m_3a^3_3 + m_4a^3_3 = p_5\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq6}
+   m_3a_3a_{32}\beta_2 + m_4a_3a_{32}\beta_2 = p_6\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq7}
+   m_3\beta_{32}a_2^2 + m_4\beta_{42}a_2^2 + m_4\beta_{43}a_3^2 = p_7\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq8}
+   m_4\beta_{43}\beta_{32}\beta_2 = p_8\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq9}
+     \hat{m}_1 + \hat{m}_2 + \hat{m}_3 = p_1\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq10}
+     \hat{m}_2\beta_2 + \hat{m}_3\beta_3 = p_2\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq11}
+     \hat{m}_2a^2_2 + \hat{m}_3a^2_3 = p_3\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq12}
+     \hat{m}_3\beta_{32}\beta_2 = p_4\left(\gamma\right),
+\end{equation}
+\begin{equation}\label{eq:eq13}
+   a_2 = 2\gamma,
+\end{equation}
+\begin{equation}\label{eq:eq14}
+    a_3 = \left(p_{9}\left(\gamma\right) - p_{5}\left(\gamma\right)a_2\right)/\left(p_{5}\left(\gamma\right) - p_{3}\left(\gamma\right)a_2\right),
+\end{equation}
+\begin{equation}\label{eq:eq15}
+   m_3 = 0,
+\end{equation}
+\begin{equation}\label{eq:eq16}
+   m_4\beta_{42}a_2^3 + m_4\beta_{43}a_3^3 = p_{14}\left(\gamma\right).
+\end{equation}
+
+The first step is to choose an appropriate value of $\gamma$. Kaps-Rentrop have a value of 0.231 while Shampine has 0.5. From this, right hand side polynomials can be calculated as a function of this $\gamma$. Next, the free parameters can be calculated using Eqs. \eqref{eq:eq13}, \eqref{eq:eq14} and \eqref{eq:eq15}. The Kaps-Rentrop procedure is to set $a_{43}=0$ and that $a_{42} = a_{32}$ and $a_{41} = a_{31}$. Following this, Eqs. \eqref{eq:eq1}, \eqref{eq:eq3} and \eqref{eq:eq5} can be solved simultaneously. Using the fact that $m_3=0$, this linear system is
+\begin{equation}
+	\left[ \begin{array}{ccc}
+		1 & 1 & 1 \\
+		0 & a_2^2 & a_3^2 \\
+		0 & a_2^3 & a_3^3
+			\end{array} \right] 
+	\left[ \begin{array}{c}
+		m_1 \\ m_2 \\ m_4
+			\end{array}\right] =
+	\left[ \begin{array}{c}
+		p_1 \\ p_3 \\ p_5
+			\end{array}\right].
+\end{equation}
+This gives us the coefficients $m_1$, $m_2$ and $m_4$. Now that these are known we can set up a linear with Eqs. \eqref{eq:eq7} and \eqref{eq:eq14}. This linear system is 
+\begin{equation}
+	\left[ \begin{array}{cc}
+		m_4a_2^2 & m_4a_3^2 \\
+		m_4a_2^3 & m_4a_3^3
+			\end{array} \right] 
+	\left[ \begin{array}{c}
+		\beta_{42} \\ \beta_{43}
+			\end{array}\right] =
+	\left[ \begin{array}{c}
+		p_7 \\ p_{14}
+			\end{array}\right].
+\end{equation}
+Solving this yields us $\beta_{43}$ and $\beta_{42}$. Next, we solve Eq. \eqref{eq:eq8} such that
+\begin{equation}
+	u \equiv \beta_{32}\beta_2 = \frac{p_8}{m_4\beta_{43}}.
+\end{equation}
+Since we know this quantity we can set up a linear system with Eqs. \eqref{eq:eq9}, \eqref{eq:eq11} and \eqref{eq:eq12}. Using $u$, the linear system is
+\begin{equation}
+	\left[ \begin{array}{ccc}
+		1 & 1 & 1 \\
+		0 & a_2^2 & a_3^2 \\
+		0 & 0 & u
+			\end{array} \right] 
+	\left[ \begin{array}{c}
+		\hat{m}_1 \\ \hat{m}_2 \\ \hat{m}_3
+			\end{array}\right] =
+	\left[ \begin{array}{c}
+		p_1 \\ p_3 \\ p_4
+			\end{array}\right].
+\end{equation}
+This will give us the coefficients $\hat{m}_1$, $\hat{m}_2$ and $\hat{m}_3$. The next system of equations involves Eqs. \eqref{eq:eq4} and \eqref{eq:eq10}. After removing $m_3=0$, the system is
+\begin{equation}
+	\left[ \begin{array}{cc}
+		m_4\beta_{42} & m_4\beta_{43} \\
+		\hat{m}_2 & \hat{m}_3
+			\end{array} \right] 
+	\left[ \begin{array}{c}
+		\beta_{2} \\ \beta_{3}
+			\end{array}\right] =
+	\left[ \begin{array}{c}
+		p_4 \\ p_2
+			\end{array}\right].
+\end{equation}
+This will give us the coefficients $\beta_2$ and $\beta_3$. We can now go back to the definition of $u$ and solve for $\beta_{32}$,
+\begin{equation}
+	\beta_{32} = \frac{u}{\beta_2}.
+\end{equation}
+We can use Eq. \eqref{eq:eq6} to calculate $a_32$,
+\begin{equation}
+	a_{32} = \frac{p_6}{m_3a_3\beta_2 + m_4a_3\beta_2}.
+\end{equation}
+Finally, $\beta_4$ can be calculated from Eq. \eqref{eq:eq2} as
+\begin{equation}
+	\beta_4 = \frac{p_2 - m_2\beta_2 - m_3\beta_3}{m_4}
+\end{equation}
+Using equations described in Section \ref{sec:GRK}, the rest of the parameters can be defined as follows:
+\begin{equation}
+	a_{21} = a_2
+\end{equation}
+\begin{equation}
+	a_{31} = a_3 - a_{32}
+\end{equation}
+\begin{equation}
+	a_{31} = a_3 - a_{32}
+\end{equation}
+\begin{equation}
+	\beta_{21} = \beta_2
+\end{equation}
+\begin{equation}
+	\beta_{31} = \beta_3 - \beta_{32}
+\end{equation}
+\begin{equation}
+	\beta_{41} = \beta_4 - \beta_{43} - \beta_{42}
+\end{equation}
+\begin{equation}
+	c_{21} = \beta_{21} - a_{21}
+\end{equation}
+\begin{equation}
+	c_{31} = \beta_{31} - a_{31}
+\end{equation}
+\begin{equation}
+	c_{32} = \beta_{32} - a_{32}
+\end{equation}
+\begin{equation}
+	c_{41} = \beta_{41} - a_{31}
+\end{equation}
+\begin{equation}
+	c_{42} = \beta_{42} - a_{32}
+\end{equation}
+\begin{equation}
+	c_{43} = \beta_{43}
+\end{equation}
+\begin{equation}
+	d_1 = 0
+\end{equation}
+\begin{equation}
+	d_2 = a_{21}
+\end{equation}
+\begin{equation}
+	d_3 = a_{31} + a_{32}
+\end{equation}
+\begin{equation}
+	d_4 = a_{31} + a_{32}
+\end{equation}
+\begin{equation}
+	b_1 = \gamma
+\end{equation}
+\begin{equation}
+	b_2 = c_{21} + \gamma
+\end{equation}
+\begin{equation}
+	b_3 = c_{31} + c_{32} + \gamma
+\end{equation}
+\begin{equation}
+	b_4 = c_{41} + c_{42} + c_{42} +\gamma
+\end{equation}
+\lstinputlisting{../../scripts/order_equations.m}
+
+\section{Conversion of GRK Coefficients to Numerically Efficient Form}\label{app:conv}
+
+\begin{itemize}
+
+\item Write this section pull equations from LYX report
+\item Organize this script
+\item Write conclusions
+\item References
+\item Title page / TOC
+\item Print and proof read.
+
+\end{itemize}
+
 
 \section{Derivation of Point Kinetics Equations} \label{app:pkes}
 
