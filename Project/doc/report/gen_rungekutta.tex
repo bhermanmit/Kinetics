@@ -36,13 +36,17 @@
 \title{Generalized Runge-Kutta Methods for Solving Stiff Ordinary Differential Equations for Reactor Physics Applications}
 
 \author{Bryan R. Herman}
-\affil{Massachusetts Institute of Technology}
+\affil{22.S904 Nuclear Reactor Kinetcs \\ Fall 2012 Semester \\ Massachusetts Institute of Technology \\ Turned in: 21 December 2012}
 
 \maketitle
 \thispagestyle{empty}
 
-\Section{Introduction}
+\pagebreak
+\thispagestyle{empty}
+\tableofcontents
 
+\Section{Introduction}
+\setcounter{page}{0}
 When dealing with multiple coupled ordinary first order differential equations, the question of stiffness of the system arises. This can occur when independent variables of the system are represented on different scales and their magnitudes may span many orders of magnitude. An example that we encounter in nuclear reactor analysis is the neutron kinetics equations where fluxes and precursor concentrations are calculated. Furthermore when coupling to thermal-hydraulics, a different set of physics is introduced that is represented on a different scale. Therefore, it is important to understand how to solve stiff sets of ordinary differential equations.
 
 There are many methods that we can try and use to solve stiff sets of equations. First, we can try and use a simple explicit method. However, in this method, we must follow the equation with the shortest length scale to maintain stability of the system. If an simple implicit scheme is used, stability can be guaranteed, but we give up accuracy if we use a large time step. In this study, we wish to investigate methods that will allow us to take a larger time step, but are also relatively stable. 
@@ -962,7 +966,7 @@ The notation used in Eq. \eqref{eq:NBE} is as follows:
  \begin{equation}
      \overline{J}^{u,g}_{l\pm1/2,m,n} = -D_{l,m,n}^g\left.\frac{d\overline{\phi}^g}{du}\right|_{l\pm 1/2,m,n},
  \end{equation}
-where $D_{l,m,n}^g$ is the diffusion coefficient and $\overline{\phi}^g$ is the group $g$ neutron flux averaged over the transverse area in directions $v$ and $w$. This equation is then discretized using mesh-centered finite difference methods. The derivation of the subsequent equation is detailed thoroughly in Appendix \ref{app:fdm}. Relations are shown for two cases:
+where $D_{l,m,n}^g$ is the diffusion coefficient and $\overline{\phi}^g$ is the group $g$ neutron flux averaged over the transverse area in directions $v$ and $w$. This equation is then discretized using mesh-centered finite difference methods \cite{hebert-2009}. The derivation of the subsequent equation is detailed thoroughly in Appendix \ref{app:fdm}. Relations are shown for two cases:
 \begin{itemize}
 	\item cell-to-cell coupling
 	\begin{equation}
@@ -1298,7 +1302,7 @@ Core Average fuel temperature at $t=3.0\,\mathrm{s}$ & 1354 & 1083 & 1087\tabula
 \midrule 
 Peak fuel assembly temperature at $t=3.0\,\mathrm{s}$ & 4440 & 2928 & 2948\tabularnewline
 \midrule
-Number of time steps & 4465 & 4704 & -- \tabularnewline
+Number of time steps & 4465 (344 for 1e-4)& 4704 (350 for 1e-4) & -- \tabularnewline
 \midrule
 CPU time {[}s{]} & 144 & 24,400 & --\tabularnewline
 \bottomrule
@@ -1331,18 +1335,27 @@ The next set of results look at what it takes to converge the peak core total po
 
 \Section{Conclusion}
 
+This work tried to do a thorough job of showing how to derive 4-th order Rosenbrock equations or Generalized Runge-Kutta equations. This all begins by starting with a diagonally implicit form of Runge-Kutta and then performing a linearization. A big conclusion of understanding and implementing these methods is that they are relatively easy to code up and use. However, the theory and reasons why they work and are stable is very involved mathematics. Just to determine a set of GRK coefficients is very involved using Butcher Series and rooted trees. The most important aspect of these equations is that they handle stiff systems and the embedded truncation error estimation for variable time stepping.
+
+Many reactor physics applications are shown throughout this work. The simplest model shown is Point Kinetics. Fourth order convergence was only able to be achieved perfectly when the reactivity was constant. This leads to a conclusion that the nonautonomous form of the Rosenbrock equations cannot be guaranteed to be fourth order convergent. However, it is mentioned multiple times in the literature that if there is a slight mistake anywhere in the equations, this nice convergence rate will be lost. There is always a potential for bugs, however, all of the results reported in this work make physical sense and compare well with accepted results.
+
+These GRK equations were successfully applied to a finite mesh finite difference solution of the classic LRA BWR Benchmark problem.  It is shown that we successfully solve the problem and compare very well to the reference solution that is reported in the literature. For a good convergence, it is recommended that the tolerance be 1e-4. Most of the results shown in this work was with an over conservative 1e-6 tolerance. This let about a factor of ten more time steps than needed. For 1e-4 tolerance, this would take about 350. If this was using simple backward Euler which would need about 1e-4 second time step, this would take 30,000 time steps. However, it would only need one linear solver per time step instead of four here. This algorithm is shown to work robustly if one doesn't consider the loss in convergence rate. Going to the 3-D LRA BWR Problem for fine mesh finite difference look to be pretty intractable as it seems the CPU time sky-rockets as more nonzeros are added. This could take days/weeks to solve on a very fine mesh.
+
 \setlength{\baselineskip}{12pt}
 
 \bibliographystyle{ans}
 \bibliography{references}
 
-\appendix\newpage
+\pagebreak
+\newpage
+
+\appendix
 
 \section{Nonautonomous Form of Generalized Runge-Kutta} \label{app:GRK_nonauto}
 The derivation of the nonautonomous form of GRK begins with the autonomous form, derived in Section \ref{sec:GRK},
 \begin{equation}
      \mathbf{k}_i = h\mathbf{f}\left(\mathbf{y}_n + \sum_{j=1}^{i-1}a_{ij}\mathbf{k}_j\right) +     
-     h\mathbb{J}\left(\mathbf{y}_n\right) \color{blue}\sum_{j=1}^{i}c_{ij}\mathbf{k}_j.
+     h\mathbb{J}\left(\mathbf{y}_n\right) {\color{blue}\sum_{j=1}^{i}c_{ij}\mathbf{k}_j}.
 \end{equation}
 The Jacobian matrix in the autonomous form is assumed to be only formed with respect to the state variables. We will define this as $\mathbb{J}_{yy} \equiv \mathbb{J}$. We now append another equation to the current system such that
 \begin{equation}
@@ -1600,6 +1613,9 @@ Using equations described in Section \ref{sec:GRK}, the rest of the parameters c
 \lstinputlisting{../../scripts/order_equations.m}
 
 \section{Conversion of GRK Coefficients to Numerically Efficient Form}\label{app:conv}
+
+\lstinputlisting{../../scripts/conversion.m}
+
 
 \begin{itemize}
 

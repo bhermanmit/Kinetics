@@ -5,6 +5,7 @@
 % that a_43 = 0, a_41 = a_31 and a_42 = a_32
 
 % chose gamma for stability
+% 0.231 for Kaps-Rentrop, 0.5 for Shampine
 gam = 0.5;
 
 % comPute used Polynomials
@@ -80,3 +81,8 @@ b_1 = gam;
 b_2 = c_21 + gam;
 b_3 = c_31 + c_32 + gam;
 b_4 = c_41 + c_42 + c_43 + gam;
+
+% Note that
+a_41 = a_31;
+a_42 = a_32;
+a_43 = 0;
