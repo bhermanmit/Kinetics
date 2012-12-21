@@ -221,7 +221,7 @@ In this equation $m_i$ are the GRK coefficients listed in Eq. \eqref{eq:GRK_fund
 \begin{equation}
     \Gamma\left(t\right) = \rho\left(t\right)\Gamma\left(t_1\right) ... \Gamma\left(t_m\right),
 \end{equation}
-where $\rho\left(t\right)$ is just the order, or number of nodes of tree $t$. This recursion is performed until all branches are removed and only node is left. Note this equation is recursive on $\Gamma$ and can get very complicated with complex rooted trees. To write equations, each branches are represented as parameters and are multiplied together. In GRK, if there is a single branch from node $j$ and it connects to node $k$ it is represented with a new parameter $\beta^\prime_{jk}$. However, if multiple branches are coming out of node $j$ and one of them connects to node $k$, this is represented with the already introduced GRK parameter $a_{jk}$. We make the following definitions:
+where $\rho\left(t\right)$ is just the order, or number of nodes of tree $t$. This recursion is performed until all branches are removed and only node is left. Branches are removed by cutting off the root of the tree. Note this equation is recursive on $\Gamma$ and can get very complicated with complex rooted trees. To write equations, each branches are represented as parameters and are multiplied together. In GRK, if there is a single branch from node $j$ and it connects to node $k$ it is represented with a new parameter $\beta^\prime_{jk}$. However, if multiple branches are coming out of node $j$ and one of them connects to node $k$, this is represented with the already introduced GRK parameter $a_{jk}$. We make the following definitions:
 \begin{equation}\label{eq:RT_simp}
     a_{i} = sum_j^{i-1} a_{ij} \qquad \beta^\prime_i = sum_j^i \beta^\prime_{ij} \qquad \beta^\prime_{ij} = a_{ij} + c_{ij}.
 \end{equation}
@@ -259,7 +259,7 @@ If we look at the term in parenthesis on the right hand side of the equation it 
 \end{equation}
 
 Doing this manipulation can get cumbersome for each tree especially when they get complicated and there is an enormous amount of sub-trees. To make it easier to construct these equations, we redefine Eq. \eqref{eq:RT_psi} to
-\begin{equation}
+\begin{equation} \label{eq:RT_eq}
     \sum_i^s m_i \Phi\left(t\right) = \sum_{j\ge 0}^{\rho\left(t\right)-1} \left(-\gamma\right)^j \sum_{s \in V\left(t,j\right)} \frac{N\left(t,t^\prime\right)}{\Gamma\left(t^\prime\right)}.
 \end{equation}
 The notation of this equation is as follows:
@@ -270,24 +270,256 @@ The notation of this equation is as follows:
     \item $N\left(t,t^\prime\right)$ is the number of possibilities to obtain sub-tree $t^\prime$ by removing $j$ singly-branched nodes from the original tree $t$.
 \end{itemize}
 The second summation basically states that there may be multiple sub-trees that may be formed from the original tree by removing $j$ single branch nodes. This is just a convenient was of visually creating these order equations. Instead of $\Psi\left(t\right)$, we now have $\Phi\left(t\right)$.  The difference is that the $\beta^\prime_{ii}$ terms are no longer considered on the left hand side of the equation. Therefore, a new parameter $\beta$ is defined instead of $\beta^\prime$ such that
-\begin{equation}
+\begin{equation}\label{eq:simp2}
     \beta_i = \sum_j^{i-1} \beta_{ij} \qquad \beta_{ii} = 0 \qquad \beta_{ij} = a_{ij} + c_{ij}.
 \end{equation}
 If we consider the previous example for the second rooted tree, we can easily see that the relation is
 \begin{align}
     \mu_2\beta_{21} + \mu_3\left(\beta_{31} + \beta_{32} \right) & + \mu_4\left(\beta_{41} + \beta_{42}+ \beta_{43} \right) \\ \nonumber & = \left(-\gamma\right)^0\cdot\left[\frac{N\left(t,t\right) = 1}{\Gamma\left(t\right) = 2\cdot 1}\right] + \left(-\gamma\right)^1\cdot\left[\frac{N\left(t,t^\prime\right) = 1}{\Gamma\left(t^\prime\right) = 1}\right]\\ \nonumber  & = \frac{1}{2} - \gamma .
 \end{align}
+
+Before moving on to defining each order equation for the rooted trees in Figure \ref{fig:RT}, we look at a more complicated tree to address some of the possible confusion. The tree is made up of 6 nodes shown below. \\
+\begin{center}\begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=40pt}
+    \tikzset{sibling distance=30pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {i};  [.\node {j}; [.\node{k}; \node{l}; [.\node {m}; \node{n};]]]]
+\end{tikzpicture}\end{center}
+The first step is to define $\Phi_i\left(t\right)$ which can be determined by looking at the branch structure of the tree:
+\begin{equation}    
+    \Phi_i\left(t\right) = \beta_{ij}\beta_{jk}a_{k}a_{km}\beta_{m}
+\end{equation}
+Recall that the nodes on the extremities may be summed over which is why there is no $l$ or $n$ designation, rather there is a $k$ and $m$. Most of the work goes in to defining the right hand side of Eq. \eqref{eq:RT_eq}. To do this we must list all of the possible trees by removing single-branch nodes. The sub-trees are shown if Figure .
+\begin{figure}
+    \centering
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=black,text=white]
+    \Tree [.\node {};  [.\node {}; [.\node{}; \node{}; [.\node {}; \node{};]]]]
+  \end{tikzpicture} \hspace{0.5cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=red,text=white]
+    \Tree [.\node {}; [.\node{}; \node{}; [.\node {}; \node{};]]]
+  \end{tikzpicture} \hspace{0.5cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=green,text=white]
+    \Tree [.\node {};  [.\node {}; [.\node{}; \node{}; [.\node {};]]]]
+  \end{tikzpicture}  \\ \vspace{1.0em}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=orange,text=white]
+    \Tree [.\node {}; [.\node{}; \node{}; [.\node {};]]]
+  \end{tikzpicture} \hspace{0.5cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=blue,text=white]
+    \Tree [.\node{}; \node{}; [.\node {}; \node{};]]
+  \end{tikzpicture} \hspace{0.5cm}
+  \begin{tikzpicture}[grow'=up]
+    \tikzset{level distance=20pt}
+    \tikzset{sibling distance=10pt}
+    \tikzstyle{every node}=[circle,draw,fill=purple,text=white]
+    \Tree [.\node{}; \node{}; [.\node {};]]
+  \end{tikzpicture}
+  \caption{Example of creating sub-trees from an original rooted tree shown in black.}
+  \label{fig:RT_ex}
+\end{figure}
+The following list will give a description of how to calculate $N\left(t,t^\prime\right)$ and $\Gamma\left(t^\prime\right)$:
+\begin{itemize}
+    \item Black tree: This is the original tree. Therefore, there is only one way to form this so $N\left(t,t^\prime\right) = 1$. To determine $\Gamma\left(t^\prime\right)$, we successively cut off the root of the tree a multiply by the number of left over nodes. If trees become separated, they are treated as individual trees and their nodes are multiplied together. For the black tree, there is 6 nodes to begin with. If the root is cut off, there is still one tree and now there are 5 nodes. Again if the root of the tree is cut off there is still one tree and 4 nodes left. If we cut off the next root, two individual trees now exist, the first with 1 nodes and the second with 2 nodes. We finally cut off the root of the tree with 2 nodes left leaving it with one node. This is represented mathematically as $\Gamma\left(t^\prime\right) =  6\cdot 5\cdot 4\cdot 1\cdot 2\cdot 1$.
+    \item {\color{red}Red tree}: This sub-tree can be achieved two different ways from the black tree. The first way is to remove the bottom-most single branch. The second way is to remove the single branch above that one. Therefore, $N\left(t,t^\prime\right) = 2$. Similar to the black tree, $\Gamma\left(t^\prime\right) =  5\cdot 4\cdot 1\cdot 2\cdot 1$.
+    \item {\color{green}Green tree}: There is only 1 possibility of going from the black tree to this tree and it is to remove the top-most single branch. Therefore, $N\left(t,t^\prime\right) = 1$ and $\Gamma\left(t^\prime\right) =  5\cdot 4\cdot 3\cdot 1\cdot 1$.
+    \item {\color{orange}Orange tree}: This tree is obtained by removing two single branches from the black tree. However, there are two possibilities similar to how the red tree was created. Therefore, $N\left(t,t^\prime\right) = 2$ and $\Gamma\left(t^\prime\right) =  4\cdot 3\cdot 1 \cdot 1$.
+    \item {\color{blue}Blue tree}: This tree is obtained by removing the bottom two single branches from the black tree. There is one possibility so that $N\left(t,t^\prime\right) = 1$ and $\Gamma\left(t^\prime\right) =  4\cdot 1\cdot 2\cdot 1$.
+    \item {\color{purple}Purple tree}: This is the final sub-tree that can be formed by removing single branches. There is only one possible way this is formed so $N\left(t,t^\prime\right) = 1$ and $\Gamma\left(t^\prime\right) =  3\cdot 1\cdot 1$.
+\end{itemize}
+Using all of this information, the order condition is
+\begin{align}
+    \sum_{i,j,k,m} m_{i}\beta_{ij}\beta_{jk}a_{k}a_{km}\beta_{m} = &  \frac{1}{240} - \frac{2\gamma}{40} - \frac{\gamma}{60} + \frac{2\gamma^2}{12} + \frac{1\gamma^2}{8} - \frac{\gamma^3}{3} \\ \nonumber 
+      = & \frac{1}{240} - \frac{\gamma}{15} + \frac{7\gamma^2}{24} - \frac{\gamma^3}{3}.
+\end{align}
+
+\Subsubsection{4-th order GRK order equations}
+
+By now, hopefully it is clear on how to construct these order equations. Returning to 4-th order GRK order equations, these can be constructed using Figure \ref{fig:RT}. The order equations listed below:
+\begin{equation}
+  \sum m_i = 1 = p_1\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_i\beta_i = 1/2 - \gamma = p_2\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_ia_i^2 = 1/3 = p_3\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_i\beta_{ij}\beta_j = 1/6 - \gamma + \gamma^2 = p_4\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_ia_i^3 = 1/4 = p_5\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_ia_ia_{ij}\beta_j = 1/8 - \gamma/3 = p_6\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_i\beta_{ij}a_j^2 = 1/12 - \gamma/3 = p_7\left(\gamma\right),
+\end{equation}
+\begin{equation}
+  \sum m_i\beta_{ij}\beta_{jk}\beta_{k} = 1/24 - \gamma/2 + 3\gamma^2/2 - \gamma^3 = p_8\left(\gamma\right).
+\end{equation}  
+We can expand out the summations for each of these equations. They all respectively become:
+\begin{equation}
+   m_1 + m_2 + m_3 + m_4 = p_1\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_1\beta_1 + m_2\beta_2 + m_3\beta_3 + m_4\beta_4 = p_2\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_1a^2_1 + m_2a^2_2 + m_3a^2_3 + m_4a^2_4 = p_3\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2\beta_{21}\beta_1 + m_3\beta_{31}\beta_1 + m_3\beta_{32}\beta_2 + m_4\beta_{41}\beta_1 + m_4\beta_{42}\beta_2 + m_4\beta_{43}\beta_3 = p_4\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_1a^3_1 + m_2a^3_2 + m_3a^3_3 + m_4a^3_4 = p_5\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2a_2a_{21}\beta_1 + m_3a_3a_{31}\beta_1 + m_3a_3a_{32}\beta_2 + m_4a_4a_{41}\beta_1 + m_4a_4a_{42}\beta_2 + m_4a_4a_{43}\beta_3 = p_6\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2\beta_{21}a_1^2 + m_3\beta_{31}a_1^2 + m_3\beta_{32}a_2^2 + m_4\beta_{41}a_1^2 + m_4\beta_{42}a_2^2 + m_4\beta_{43}a_3^2 = p_7\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_3\beta_{32}\beta_{21}\beta_1 + m_4\beta_{42}\beta_{21}\beta_1 + m_4\beta_{43}\beta_{31}\beta_1 + m_4\beta_{43}\beta_{32}\beta_2 = p_8\left(\gamma\right).
+\end{equation}
+The first numerical implementation of the 4-th order Rosenbrock GRK equations was accomplished by Kaps and Rentrop. They developed a 4 stage algorithm (4-th order) by only having to perform 3 derivative evaluations. This will be clearer in Section \ref{sec:impl}. What you see from these simultaneous equations is that there are far more unknowns than equations. Kaps and Rentrop were able to develop a set of coefficients where they were able to take  
+\begin{equation}
+       a_3 = a_4 \quad a_{41} = a_{31} \quad a_{42} = a_{32} \quad a_{43} = 0.
+\end{equation}
+This translates into only having to perform 1 Jacobian matrix/vector evaluation and 3 derivative vector evaluations at every time step. These simplifications can be used to simplify the simultaneous equations such that
+\begin{equation}
+   m_1 + m_2 + m_3 + m_4 = p_1\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2\beta_2 + m_3\beta_3 + m_4\beta_4 = p_2\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2a^2_2 + m_3a^2_3 + m_4a^2_3 = p_3\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_3\beta_{32}\beta_2 + m_4\beta_{42}\beta_2 + m_4\beta_{43}\beta_3 = p_4\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_2a^3_2 + m_3a^3_3 + m_4a^3_3 = p_5\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_3a_3a_{32}\beta_2 + m_4a_3a_{32}\beta_2 = p_6\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_3\beta_{32}a_2^2 + m_4\beta_{42}a_2^2 + m_4\beta_{43}a_3^2 = p_7\left(\gamma\right),
+\end{equation}
+\begin{equation}
+   m_4\beta_{43}\beta_{32}\beta_2 = p_8\left(\gamma\right).
+\end{equation}
+The equation set has now been reduced to 8 equations with 14 unknowns. Feldberg noticed that with certain Runge-Kutta equations, estimation of lower order solutions is possible. It has been proven that an embedded third order solution can be calculated from a similar form of GRK equations where
+\begin{equation}
+    \hat{\mathbf{y}} = \hat{m}_1\mathbf{k}_1 + \hat{m}_2\mathbf{k}_2 + \hat{m}_3\mathbf{k}_3.
+\end{equation}
+We can use the rooted trees from Figure \ref{fig:RT} up to third order. The order equations are determined to be
+\begin{equation}
+     \hat{m}_1 + \hat{m}_2 + \hat{m}_3 = p_1\left(\gamma\right)
+\end{equation}
+\begin{equation}
+     \hat{m}_2\beta_2 + \hat{m}_3\beta_3 = p_2\left(\gamma\right)
+\end{equation}
+\begin{equation}
+     \hat{m}_2a^2_2 + \hat{m}_3a^2_3 = p_3\left(\gamma\right)
+\end{equation}
+\begin{equation}
+     \hat{m}_3\beta_{32}\beta_2 = p_4\left(\gamma\right)
+\end{equation}
+Now, there are 12 equations with 17 unknowns. This allowed us to cut the deficit of equations by 1. Although not derived out thoroughly, additional constraint equations can be derived by matching higher order rooted trees.  And finally, as stated before, the parameter $\gamma$ is free to be chosen with stability implications. The last needed equations are listed below and discussed further in Kaps and Rentrop:
+\begin{equation}
+   a_2 = 2\gamma
+\end{equation}
+\begin{equation}
+    a_3 = \left(1/5 - 1/4a_2\right)/\left(1/4 - 1/3a_2\right)
+\end{equation}
+\begin{equation}
+   m_3 = 0
+\end{equation}
+\begin{equation}
+   m_4\beta_{42}a_2^3 + m_4\beta_{43}a_3^3 = 1/20 - \gamma/4 = p_{14}\left(\gamma\right)
+\end{equation}
+\begin{equation}
+   \gamma = \mathrm{free \,\, parmeter}
+\end{equation}
+Now we have 17 equations with 17 unknowns! Both Kaps--Rentrop and Shampine has developed suitable coefficient sets. The only parameter that defines the set of coefficients is $\gamma$. Once this parameter is set all of the simultaneous equations can be solved for the rest of the coefficients. Unfortunately, the 16 equations are not linear and there for nonlinear methods can be applied to solve for the coefficients. However, these equations can be broken up into smaller problems that are linear. The method to solve for the coefficients is detailed in Appendix \ref{app:order}. Instead of using the parameter $\hat{m}_i$ for the third order solution, we only need the truncation error for variable time stepping. Therefore, the difference of $m_i$ and $\hat{m}_i$ is usually reported and is denoted by $e_i$. Finally, the parameters $c_{ij}$ can be derived from $a_{ij}$ and $\beta_{ij}$ as discussed in Eq. \eqref{eq:simp2}. The Kaps--Rentrop and Shampine set of coefficients as derived from the simultaneous equations presented here are listed in Table . Note, there are 3 forms of the Rosenbrock equations in the literature where the order coefficients are different but related. We show one of these other forms in Section \ref{sec:impl}.
+\begin{table}
+\caption{4-th Order GRK Coefficients}
+\label{tab:coefs}
+\centering
+\begin{tabular}{ccc}
+\toprule
+Coefficient & Kaps--Rentrop & Shampine \tabularnewline
+\midrule
+\midrule
+$\gamma$ & 0.231 & \tabularnewline
+\midrule
+$m_1$ & & \tabularnewline
+\midrule
+$m_2$ & & \tabularnewline
+\midrule
+$m_3$ & & \tabularnewline
+\midrule
+$m_4$ & & \tabularnewline
+\midrule
+$a_{21}$ & 0.462 & \tabularnewline
+\midrule
+$a_{31}$ & -8.156681683272238e-02 & \tabularnewline
+\midrule
+$a_{32}$ &  9.617751501660557e-01 & \tabularnewline
+\midrule
+$c_{21}$ & & \tabularnewline
+\midrule
+$c_{31}$ & & \tabularnewline
+\midrule
+$c_{32}$ & & \tabularnewline
+\midrule
+$c_{41}$ & & \tabularnewline
+\midrule
+$c_{42}$ & & \tabularnewline
+\midrule
+$c_{43}$ & & \tabularnewline
+\midrule
+$e_1 = m_1 - \hat{m}_1$ & & \tabularnewline
+\midrule
+$e_2 = m_2 - \hat{m}_2$ & & \tabularnewline
+\midrule
+$e_3 = m_3 - \hat{m}_3$ & & \tabularnewline
+\midrule
+$e_4 = m_4$ & & \tabularnewline
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{itemize}
     \item Big example
     \item List out order equations
     \item Expand out order equations
     \item List out additional constraints
-    \item List out the values of the coefficients in a table for both Kaps-Rentrop and Shampine
+    \item List out the values of the coefficients in a table for both Kaps--Rentrop and Shampine
 \end{itemize}
 
 \Subsection{Automated Time Step Size Adjustment} \label{sec:var_ts}
 
-\Subsection{Implementation of 4-th Order GRK Algorithm}
+\Subsection{Implementation of 4-th Order GRK Algorithm} \label{sec:impl}
 
 \Section{Point Kinetics Equations}
 
@@ -1029,7 +1261,7 @@ Finally, we arrive at the nonautonomous form of the Rosenbrock equations for GRK
      \mathbf{y}_{n+1} = \mathbf{y}_{n} + \sum_{i=1}^s m_i\mathbf{k}_i.
   \end{equation}
 
-\section{Derivation of Order Equations}
+\section{Derivation of Order Equations}\label{app:order}
 
 \section{Derivation of Point Kinetics Equations} \label{app:pkes}
 
